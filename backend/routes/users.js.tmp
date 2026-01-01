@@ -1,0 +1,186 @@
+const express = require('express');
+const router = express.Router();
+const { User, Connection, Event, Company, Internship, Application, sequelize } = require('../models');
+const { protect, admin } = require('../middleware/auth');
+const { Op, fn, col } = require('sequelize');
+
+// @route   GET /api/users/public/stats
+// @desc    Get public statistics for landing page
+// @access  Public
+router.get('/public/stats', async (req, res, next) => {
+    try {
+        const totalUsers = await User.count({ where: { status: 'Verified' } });
+        const students = await User.count({ where: { role: 'student', status: 'Verified' } });
+        const graduates = await User.count({ where: { role: 'graduate', status: 'Verified' } });
+        const eventsCount = await Event.count();
+        const partnerCompanies = await Company.count();
+        const activeInternships = await Internship.count({ where: { active: true } });
+
+        // Latest 3 Internships
+        const latestInternships = await Internship.findAll({
+            where: { active: true },
+            limit: 3,
+            order: [['createdAt', 'DESC']]
+        });
+
+        // Latest 3 Events
+        const latestEvents = await Event.findAll({
+            limit: 3,
+            order: [['date', 'ASC']]
+        });
+
+        res.json({
+            stats: {
+                totalUsers,
+                students,
+                graduates,
+                eventsCount,
+                partnerCompanies,
+                activeInternships
+            },
+            latestInternships,
+            latestEvents
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+// @route   GET /api/users/dashboard/stats
+// @desc    Get dashboard statistics
+// @access  Private
+router.get('/dashboard/stats', protect, async (req, res, next) => {
+    try {
+        const totalUsers = await User.count({ where: { status: 'Verified' } });
+        const friendsCount = await Connection.count({
+            where: {
+                [Op.or]: [
+                    { requesterId: req.user.id },
+                    { recipientId: req.user.id }
+                ],
+                status: 'accepted'
+            }
+        });
+        const pendingRequests = await Connection.count({
+            where: {
+                recipientId: req.user.id,
+                status: 'pending'
+            }
+        });
+
+        res.json({
+            totalUsers,
+            friendsCount,
+            pendingRequests
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+// @route   GET /api/users/admin/stats
+// @desc    Get admin dashboard statistics
+// @access  Private/Admin
+router.get('/admin/stats', protect, admin, async (req, res, next) => {
+    try {
+        const totalGraduates = await User.count({ where: { role: 'graduate' } });
+        const verifiedGraduates = await User.count({ where: { role: 'graduate', status: 'Verified' } });
+        const pendingUserRequests = await User.count({ where: { status: 'Pending' } });
+        const partnerCompanies = await Company.count();
+        const activeInternships = await Internship.count({ where: { active: true } });
+        const totalApplications = await Application.count();
+        const activeEvents = await Event.count({
+            where: {
+                date: { [Op.gte]: new Date() }
+            }
+        });
+
+        // Growth Data (Last 6 months)
+        const months = [];
+        for (let i = 5; i >= 0; i--) {
+            const date = new Date();
+            date.setMonth(date.getMonth() - i);
+            months.push({
+                name: date.toLocaleString('default', { month: 'short' }),
+                month: date.getMonth() + 1,
+                year: date.getFullYear()
+            });
+        }
+
+        const growthData = await Promise.all(months.map(async (m) => {
+            const startOfMonth = new Date(m.year, m.month - 1, 1);
+            const endOfMonth = new Date(m.year, m.month, 0, 23, 59, 59);
+
+            const students = await User.count({
+                where: {
+                    role: 'student',
+                    createdAt: { [Op.lte]: endOfMonth }
+                }
+            });
+            const graduates = await User.count({
+                where: {
+                    role: 'graduate',
+                    createdAt: { [Op.lte]: endOfMonth }
+                }
+            });
+
+            return { name: m.name, students, graduates };
+        }));
+
+        // Domain Data (based on jobTitle)
+        const domains = await User.findAll({
+            where: { role: 'graduate', jobTitle: { [Op.ne]: '' } },
+            attributes: ['jobTitle', [fn('COUNT', col('id')), 'count']],
+            group: ['jobTitle'],
+            order: [[sequelize.literal('count'), 'DESC']],
+            limit: 4
+        });
+
+        const domainColors = ['#3b82f6', '#0ea5e9', '#6366f1', '#8b5cf6'];
+        const domainData = domains.map((d, i) => ({
+            name: d.jobTitle,
+            value: parseInt(d.getDataValue('count')),
+            color: domainColors[i % domainColors.length]
+        }));
+
+        // Opportunities Data
+        const opportunitiesData = await Promise.all(months.map(async (m) => {
+            const startOfMonth = new Date(m.year, m.month - 1, 1);
+            const endOfMonth = new Date(m.year, m.month, 0, 23, 59, 59);
+
+            const jobs = await Internship.count({
+                where: {
+                    type: { [Op.ne]: 'Internship' },
+                    createdAt: { [Op.between]: [startOfMonth, endOfMonth] }
+                }
+            });
+            const internships = await Internship.count({
+                where: {
+                    type: 'Internship',
+                    createdAt: { [Op.between]: [startOfMonth, endOfMonth] }
+                }
+            });
+
+            return { name: m.name, jobs, internships };
+        }));
+
+        res.json({
+            stats: {
+                totalGraduates,
+                verifiedGraduates,
+                pendingUserRequests,
+                partnerCompanies,
+                activeInternships,
+                totalApplications,
+                activeEvents
+            },
+            growthData,
+            domainData,
+            opportunitiesData
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+// ... rest of the file ...
