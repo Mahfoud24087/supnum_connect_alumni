@@ -174,15 +174,14 @@ export function LandingPage() {
                     }
                 }
 
-                if ((finalStats.totalUsers || 0) <= 0) {
-                    // Completely empty system -> Show full mock mode
+                if ((finalStats.totalUsers || 0) <= 0 && response.latestEvents?.length === 0) {
+                    // Completely empty system -> Show full mock mode for stats
                     setRealStats(MOCK_LANDING_DATA.stats);
-                    setUpcomingEvents(MOCK_LANDING_DATA.latestEvents);
-                    setLatestInternships(MOCK_LANDING_DATA.latestInternships);
+                    setUpcomingEvents([]);
+                    setLatestInternships([]);
                 } else {
                     // Real data mode
                     setRealStats(finalStats);
-                    // For events and internships, we trust the API unless it's empty AND users are 0 (handled above)
                     setUpcomingEvents(response.latestEvents || []);
                     setLatestInternships(response.latestInternships || []);
                 }
