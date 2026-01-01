@@ -83,7 +83,7 @@ export function Navbar() {
                             {user ? (
                                 <Link to={user.role === 'admin' ? '/admin' : '/dashboard'}>
                                     <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20">
-                                        Dashboard
+                                        {t.dashboard.nav.dashboard}
                                     </Button>
                                 </Link>
                             ) : (

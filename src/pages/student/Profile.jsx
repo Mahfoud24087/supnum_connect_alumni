@@ -11,36 +11,57 @@ export function Profile() {
     const { user, updateProfile } = useAuth();
     const { t } = useLanguage();
     const [formData, setFormData] = useState({
-        name: user?.name || '',
-        bio: user?.bio || '',
-        location: user?.location || '',
-        linkedin: user?.social?.linkedin || '',
-        github: user?.social?.github || '',
-        facebook: user?.social?.facebook || '',
-        phone: user?.phone || '',
-        birthday: user?.birthday || '',
-        workStatus: user?.workStatus || '',
-        jobTitle: user?.jobTitle || '',
-        company: user?.company || ''
+        name: '',
+        bio: '',
+        location: '',
+        linkedin: '',
+        github: '',
+        facebook: '',
+        phone: '',
+        birthday: '',
+        workStatus: '',
+        jobTitle: '',
+        company: ''
     });
-    const [previewImage, setPreviewImage] = useState(user?.avatar || null);
+    const [previewImage, setPreviewImage] = useState(null);
     const [isDirty, setIsDirty] = useState(false);
     const [saveStatus, setSaveStatus] = useState(''); // 'saving', 'success', 'error'
 
+    // Sync form with user data
+    useEffect(() => {
+        if (user) {
+            setFormData({
+                name: user.name || '',
+                bio: user.bio || '',
+                location: user.location || '',
+                linkedin: user.social?.linkedin || '',
+                github: user.social?.github || '',
+                facebook: user.social?.facebook || '',
+                phone: user.phone || '',
+                birthday: user.birthday ? user.birthday.split('T')[0] : '',
+                workStatus: user.workStatus || '',
+                jobTitle: user.jobTitle || '',
+                company: user.company || ''
+            });
+            setPreviewImage(user.avatar || null);
+        }
+    }, [user]);
+
     // Check for changes
     useEffect(() => {
+        if (!user) return;
         const isChanged =
-            formData.name !== (user?.name || '') ||
-            formData.bio !== (user?.bio || '') ||
-            formData.linkedin !== (user?.social?.linkedin || '') ||
-            formData.github !== (user?.social?.github || '') ||
-            formData.facebook !== (user?.social?.facebook || '') ||
-            formData.phone !== (user?.phone || '') ||
-            formData.birthday !== (user?.birthday || '') ||
-            formData.workStatus !== (user?.workStatus || '') ||
-            formData.jobTitle !== (user?.jobTitle || '') ||
-            formData.company !== (user?.company || '') ||
-            previewImage !== (user?.avatar || null);
+            formData.name !== (user.name || '') ||
+            formData.bio !== (user.bio || '') ||
+            formData.linkedin !== (user.social?.linkedin || '') ||
+            formData.github !== (user.social?.github || '') ||
+            formData.facebook !== (user.social?.facebook || '') ||
+            formData.phone !== (user.phone || '') ||
+            formData.birthday !== (user.birthday ? user.birthday.split('T')[0] : '') ||
+            formData.workStatus !== (user.workStatus || '') ||
+            formData.jobTitle !== (user.jobTitle || '') ||
+            formData.company !== (user.company || '') ||
+            previewImage !== (user.avatar || null);
 
         setIsDirty(isChanged);
     }, [formData, previewImage, user]);
@@ -56,7 +77,7 @@ export function Profile() {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setSaveStatus('saving');
 
@@ -78,12 +99,17 @@ export function Profile() {
                 }
             };
 
-            updateProfile(updatedProfile);
-            setSaveStatus('success');
-            setTimeout(() => {
-                setSaveStatus('');
-                setIsDirty(false);
-            }, 3000);
+            const result = await updateProfile(updatedProfile);
+            if (result.success) {
+                setSaveStatus('success');
+                setTimeout(() => {
+                    setSaveStatus('');
+                    setIsDirty(false);
+                }, 3000);
+            } else {
+                setSaveStatus('error');
+                setTimeout(() => setSaveStatus(''), 3000);
+            }
         } catch (error) {
             console.error("Failed to save profile", error);
             setSaveStatus('error');
@@ -146,7 +172,7 @@ export function Profile() {
                     <CardContent className="space-y-6">
                         <div className="grid md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.profile.fullName}</label>
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.common.name}</label>
                                 <div className="relative">
                                     <User className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
                                     <Input
@@ -165,7 +191,7 @@ export function Profile() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Phone Number</label>
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.common.phone}</label>
                                 <div className="relative">
                                     <Phone className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
                                     <Input
@@ -177,7 +203,7 @@ export function Profile() {
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Birthday</label>
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.common.birthday}</label>
                                 <div className="relative">
                                     <Calendar className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
                                     <Input
@@ -188,15 +214,27 @@ export function Profile() {
                                     />
                                 </div>
                             </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.common.location}</label>
+                                <div className="relative">
+                                    <Building className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+                                    <Input
+                                        value={formData.location}
+                                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                        placeholder={t.profile.locationPlaceholder}
+                                        className="pl-10 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
+                                    />
+                                </div>
+                            </div>
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.profile.bio}</label>
+                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.common.bio}</label>
                             <textarea
                                 className="w-full min-h-[120px] p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none outline-none"
                                 value={formData.bio}
                                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                                placeholder="Tell us about yourself..."
+                                placeholder={t.profile.bioPlaceholder}
                             />
                         </div>
                     </CardContent>
@@ -205,12 +243,12 @@ export function Profile() {
                 {/* Professional Info */}
                 <Card className="border-none shadow-lg bg-white dark:bg-slate-800">
                     <CardHeader>
-                        <CardTitle className="text-xl text-slate-900 dark:text-white">Professional Info</CardTitle>
+                        <CardTitle className="text-xl text-slate-900 dark:text-white">{t.common.professionalInfo}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div className="grid md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Current Status</label>
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.common.workStatus.label}</label>
                                 <div className="relative">
                                     <Briefcase className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
                                     <select
@@ -218,31 +256,31 @@ export function Profile() {
                                         onChange={(e) => setFormData({ ...formData, workStatus: e.target.value })}
                                         className="w-full h-11 pl-10 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
                                     >
-                                        <option value="">Select Status</option>
-                                        <option value="employed">Employed</option>
-                                        <option value="seeking">Seeking Opportunities</option>
-                                        <option value="studying">Continuing Studies</option>
-                                        <option value="freelance">Freelancing</option>
+                                        <option value="">{t.common.workStatus.select}</option>
+                                        <option value="employed">{t.common.workStatus.employed}</option>
+                                        <option value="seeking">{t.common.workStatus.seeking}</option>
+                                        <option value="studying">{t.common.workStatus.studying}</option>
+                                        <option value="freelance">{t.common.workStatus.freelance}</option>
                                     </select>
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Job Title</label>
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.common.jobTitle}</label>
                                 <Input
                                     value={formData.jobTitle}
                                     onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
-                                    placeholder="e.g. Software Engineer"
+                                    placeholder={t.profile.jobPlaceholder}
                                     className="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
                                 />
                             </div>
                             <div className="space-y-2 md:col-span-2">
-                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Company / Organization</label>
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.common.company}</label>
                                 <div className="relative">
                                     <Building className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
                                     <Input
                                         value={formData.company}
                                         onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                                        placeholder="e.g. Tech Corp"
+                                        placeholder={t.profile.companyPlaceholder}
                                         className="pl-10 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
                                     />
                                 </div>
@@ -301,7 +339,7 @@ export function Profile() {
                             animate={{ opacity: 1, scale: 1 }}
                             className="px-4 py-2 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm font-medium"
                         >
-                            ✓ Changes saved successfully!
+                            ✓ {t.common.saved}
                         </motion.div>
                     )}
                     <Button
@@ -310,7 +348,7 @@ export function Profile() {
                         className={`px-8 ${!isDirty ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                         <Save className="mr-2 h-4 w-4" />
-                        {saveStatus === 'saving' ? 'Saving...' : 'Save Changes'}
+                        {saveStatus === 'saving' ? t.common.saving : t.common.save}
                     </Button>
                 </div>
             </form>

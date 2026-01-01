@@ -1,69 +1,59 @@
-export const users = [
-    {
-        id: '1',
-        name: 'Ahmed Mohamed',
-        role: 'student',
-        supnumId: '2Y001',
-        email: '2Y001@supnum.mr',
-        bio: 'Computer Science student passionate about AI.',
-        avatar: null,
-        social: {
-            linkedin: '#',
-            github: '#',
-            facebook: '#'
-        }
-    },
-    {
-        id: '2',
-        name: 'Fatima Sidi',
-        role: 'graduate',
-        supnumId: '2Y002',
-        email: '2Y002@supnum.mr',
-        bio: 'Software Engineer at TechCorp.',
-        avatar: null,
-        social: {
-            linkedin: '#',
-            github: '#'
-        }
-    },
-    {
-        id: '3',
-        name: 'Admin User',
-        role: 'admin',
-        email: 'admin@supnum.mr',
-        name: 'System Admin'
-    }
-];
-
-export const events = [
-    {
-        id: '1',
-        title: 'SupNum Hackathon 2024',
-        type: 'contest',
-        description: 'Annual coding competition for all students.',
-        date: '2024-05-15',
-        image: 'https://images.unsplash.com/photo-1504384308090-c54be3855833?auto=format&fit=crop&q=80&w=1000'
-    },
-    {
-        id: '2',
-        title: 'Web Dev Workshop',
-        type: 'event',
-        description: 'Learn React and Tailwind CSS from scratch.',
-        date: '2024-04-20',
-        image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=1000'
-    },
-    {
-        id: '3',
-        title: 'Algorithm Challenge',
-        type: 'challenge',
-        description: 'Solve complex algorithmic problems.',
-        date: '2024-06-01',
-        image: 'https://images.unsplash.com/photo-1516116216624-53e697fedbea?auto=format&fit=crop&q=80&w=1000'
-    }
-];
+// Minimal mock data for development/testing only
+// In production, all data will come from the backend API
 
 export const stats = {
-    totalUsers: 1250,
-    students: 850,
-    graduates: 400
+    totalUsers: 0,
+    students: 0,
+    graduates: 0,
+    events: 0
 };
+
+// Mock users for testing authentication
+// REMOVE THIS when backend is connected
+export const users = [
+    {
+        id: 'admin-1',
+        name: 'Admin User',
+        role: 'admin',
+        supnumId: 'ADMIN001',
+        email: 'admin@supnum.mr',
+        bio: 'System Administrator',
+        avatar: null,
+        social: {
+            linkedin: '',
+            github: '',
+            facebook: ''
+        }
+    },
+    {
+        id: 'student-1',
+        name: 'Test Student',
+        role: 'student',
+        supnumId: '2Y001',
+        email: 'student@supnum.mr',
+        bio: 'Computer Science student',
+        avatar: null,
+        social: {
+            linkedin: '',
+            github: '',
+            facebook: ''
+        }
+    },
+    {
+        id: 'graduate-1',
+        name: 'Test Graduate',
+        role: 'graduate',
+        supnumId: '1G001',
+        email: 'graduate@supnum.mr',
+        bio: 'Software Engineer',
+        avatar: null,
+        social: {
+            linkedin: '',
+            github: '',
+            facebook: ''
+        }
+    }
+];
+
+// Mock events - will be replaced by API data
+export const events = [];

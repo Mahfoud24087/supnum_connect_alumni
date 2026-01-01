@@ -3,26 +3,42 @@ import { Card, CardContent } from '../../components/ui/Card';
 import { Briefcase, Plus, Search, MapPin, Building, Trash2, Edit, X } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
-
-const initialInternships = [
-    { id: 1, title: 'Software Engineer Intern', company: 'Tech Corp', type: 'Internship', location: 'Nouakchott', active: true },
-    { id: 2, title: 'Junior Data Analyst', company: 'Data Systems', type: 'Full-time', location: 'Nouadhibou', active: true },
-    { id: 3, title: 'Marketing Assistant', company: 'Creative Agency', type: 'Internship', location: 'Nouakchott', active: false },
-];
+import { apiClient } from '../../services/api';
 
 export function ManageInternships() {
-    const [internships, setInternships] = useState(() => {
-        const saved = localStorage.getItem('supnum_internships');
-        return saved ? JSON.parse(saved) : initialInternships;
-    });
+    const [internships, setInternships] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentInternship, setCurrentInternship] = useState(null);
-    const [formData, setFormData] = useState({ title: '', company: '', type: 'Internship', location: '', active: true });
+    const [formData, setFormData] = useState({
+        title: '',
+        company: '',
+        type: 'Internship',
+        location: '',
+        active: true,
+        description: '',
+        customQuestions: [],
+        requireCv: true,
+        requireMessage: true,
+        requirePhone: true
+    });
+
+    const fetchInternships = async () => {
+        try {
+            setLoading(true);
+            const response = await apiClient.get('/internships');
+            setInternships(response.internships);
+        } catch (error) {
+            console.error('Failed to fetch internships:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        localStorage.setItem('supnum_internships', JSON.stringify(internships));
-    }, [internships]);
+        fetchInternships();
+    }, []);
 
     const filteredInternships = internships.filter(i =>
         i.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -37,11 +53,27 @@ export function ManageInternships() {
                 company: internship.company,
                 type: internship.type,
                 location: internship.location,
-                active: internship.active
+                active: internship.active,
+                description: internship.description || '',
+                customQuestions: internship.customQuestions || [],
+                requireCv: internship.requireCv !== false,
+                requireMessage: internship.requireMessage !== false,
+                requirePhone: internship.requirePhone !== false
             });
         } else {
             setCurrentInternship(null);
-            setFormData({ title: '', company: '', type: 'Internship', location: '', active: true });
+            setFormData({
+                title: '',
+                company: '',
+                type: 'Internship',
+                location: '',
+                active: true,
+                description: '',
+                customQuestions: [],
+                requireCv: true,
+                requireMessage: true,
+                requirePhone: true
+            });
         }
         setIsModalOpen(true);
     };
@@ -51,28 +83,39 @@ export function ManageInternships() {
         setCurrentInternship(null);
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (currentInternship) {
-            setInternships(internships.map(i => i.id === currentInternship.id ? { ...i, ...formData } : i));
-        } else {
-            const newInternship = {
-                id: Date.now(),
-                ...formData
-            };
-            setInternships([...internships, newInternship]);
+        try {
+            if (currentInternship) {
+                await apiClient.put(`/internships/${currentInternship.id}`, formData);
+            } else {
+                await apiClient.post('/internships', formData);
+            }
+            fetchInternships();
+            handleCloseModal();
+        } catch (error) {
+            alert(error.message || 'Failed to save internship');
         }
-        handleCloseModal();
     };
 
-    const handleDelete = (id) => {
+    const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this opportunity?')) {
-            setInternships(internships.filter(i => i.id !== id));
+            try {
+                await apiClient.delete(`/internships/${id}`);
+                fetchInternships();
+            } catch (error) {
+                alert('Failed to delete internship');
+            }
         }
     };
 
-    const toggleActive = (id) => {
-        setInternships(internships.map(i => i.id === id ? { ...i, active: !i.active } : i));
+    const toggleActive = async (id) => {
+        try {
+            await apiClient.patch(`/internships/${id}/toggle`);
+            fetchInternships();
+        } catch (error) {
+            alert('Failed to toggle status');
+        }
     };
 
     return (
@@ -144,16 +187,19 @@ export function ManageInternships() {
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Job Title</label>
-                                <Input
-                                    required
-                                    value={formData.title}
-                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    placeholder="e.g. Software Engineer"
-                                />
+                        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2 col-span-2">
+                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Job Title</label>
+                                    <Input
+                                        required
+                                        value={formData.title}
+                                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                        placeholder="e.g. Software Engineer"
+                                    />
+                                </div>
                             </div>
+
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Company</label>
                                 <Input
@@ -163,6 +209,7 @@ export function ManageInternships() {
                                     placeholder="e.g. Tech Corp"
                                 />
                             </div>
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Type</label>
@@ -187,15 +234,137 @@ export function ManageInternships() {
                                     />
                                 </div>
                             </div>
-                            <div className="flex items-center space-x-2 pt-2">
-                                <input
-                                    type="checkbox"
-                                    id="active"
-                                    checked={formData.active}
-                                    onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-                                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                                />
-                                <label htmlFor="active" className="text-sm font-medium text-slate-700 dark:text-slate-300">Active Listing</label>
+
+                            <div className="space-y-4 py-4 border-t border-b border-slate-100 dark:border-slate-800">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Application Requirements</label>
+                                <div className="grid grid-cols-2 gap-y-3">
+                                    <div className="flex items-center space-x-2">
+                                        <input
+                                            type="checkbox"
+                                            id="requireCv"
+                                            checked={formData.requireCv}
+                                            onChange={(e) => setFormData({ ...formData, requireCv: e.target.checked })}
+                                            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                        />
+                                        <label htmlFor="requireCv" className="text-sm text-slate-700 dark:text-slate-300">Require CV</label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <input
+                                            type="checkbox"
+                                            id="requireMessage"
+                                            checked={formData.requireMessage}
+                                            onChange={(e) => setFormData({ ...formData, requireMessage: e.target.checked })}
+                                            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                        />
+                                        <label htmlFor="requireMessage" className="text-sm text-slate-700 dark:text-slate-300">Require Message</label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <input
+                                            type="checkbox"
+                                            id="requirePhone"
+                                            checked={formData.requirePhone}
+                                            onChange={(e) => setFormData({ ...formData, requirePhone: e.target.checked })}
+                                            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                        />
+                                        <label htmlFor="requirePhone" className="text-sm text-slate-700 dark:text-slate-300">Require Phone</label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <input
+                                            type="checkbox"
+                                            id="active"
+                                            checked={formData.active}
+                                            onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
+                                            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                        />
+                                        <label htmlFor="active" className="text-sm font-bold text-blue-600">Active Listing</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                                <div className="flex justify-between items-center">
+                                    <label className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Custom Questions</label>
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => setFormData({ ...formData, customQuestions: [...formData.customQuestions, { label: '', type: 'text', required: true }] })}
+                                        className="h-8 text-xs"
+                                    >
+                                        <Plus className="h-3 w-3 mr-1" /> Add Question
+                                    </Button>
+                                </div>
+                                <div className="space-y-3">
+                                    {formData.customQuestions.map((q, idx) => (
+                                        <div key={idx} className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl space-y-2 relative group">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const newQs = [...formData.customQuestions];
+                                                    newQs.splice(idx, 1);
+                                                    setFormData({ ...formData, customQuestions: newQs });
+                                                }}
+                                                className="absolute -right-2 -top-2 h-6 w-6 bg-red-100 text-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                                            >
+                                                <X className="h-3 w-3" />
+                                            </button>
+                                            <Input
+                                                required
+                                                placeholder="Question Label (e.g. Portfolio Link)"
+                                                value={q.label}
+                                                onChange={(e) => {
+                                                    const newQs = [...formData.customQuestions];
+                                                    newQs[idx].label = e.target.value;
+                                                    setFormData({ ...formData, customQuestions: newQs });
+                                                }}
+                                                className="h-9 text-sm"
+                                            />
+                                            <div className="flex gap-2">
+                                                <select
+                                                    className="flex-1 h-8 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs"
+                                                    value={q.type}
+                                                    onChange={(e) => {
+                                                        const newQs = [...formData.customQuestions];
+                                                        newQs[idx].type = e.target.value;
+                                                        setFormData({ ...formData, customQuestions: newQs });
+                                                    }}
+                                                >
+                                                    <option value="text">Short Text</option>
+                                                    <option value="url">URL Link</option>
+                                                    <option value="textarea">Long Text</option>
+                                                    <option value="select">Dropdown Choice</option>
+                                                </select>
+                                                {q.type === 'select' && (
+                                                    <Input
+                                                        placeholder="Options (comma separated)"
+                                                        value={q.options || ''}
+                                                        onChange={(e) => {
+                                                            const newQs = [...formData.customQuestions];
+                                                            newQs[idx].options = e.target.value;
+                                                            setFormData({ ...formData, customQuestions: newQs });
+                                                        }}
+                                                        className="h-8 text-[10px] mt-1"
+                                                    />
+                                                )}
+                                                <label className="flex items-center gap-1 text-[10px] text-slate-500">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={q.required}
+                                                        onChange={(e) => {
+                                                            const newQs = [...formData.customQuestions];
+                                                            newQs[idx].required = e.target.checked;
+                                                            setFormData({ ...formData, customQuestions: newQs });
+                                                        }}
+                                                    />
+                                                    Required
+                                                </label>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {formData.customQuestions.length === 0 && (
+                                        <p className="text-xs text-slate-400 italic text-center py-2">No custom questions added.</p>
+                                    )}
+                                </div>
                             </div>
                             <div className="pt-4 flex gap-3">
                                 <Button type="button" variant="outline" onClick={handleCloseModal} className="flex-1">Cancel</Button>

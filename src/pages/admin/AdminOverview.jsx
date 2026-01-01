@@ -1,50 +1,137 @@
+import { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { Card, CardContent } from '../../components/ui/Card';
-import { Users, GraduationCap, Calendar, Briefcase, Building, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Users, GraduationCap, Calendar, Briefcase, Building, CheckCircle, Clock, AlertTriangle, FileText } from 'lucide-react';
+import { motion, animate, useInView } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend } from 'recharts';
+import { apiClient } from '../../services/api';
 
-const growthData = [
-    { name: 'Sep', students: 120, graduates: 40 },
-    { name: 'Oct', students: 180, graduates: 55 },
-    { name: 'Nov', students: 250, graduates: 80 },
-    { name: 'Dec', students: 320, graduates: 115 },
-    { name: 'Jan', students: 450, graduates: 140 },
-    { name: 'Feb', students: 600, graduates: 190 },
-];
+function Counter({ value }) {
+    const ref = useRef(null);
+    const inView = useInView(ref, { once: true });
 
-const domainData = [
-    { name: 'Software Dev', value: 45, color: '#3b82f6' },
-    { name: 'Data Science', value: 25, color: '#0ea5e9' },
-    { name: 'Networking', value: 20, color: '#6366f1' },
-    { name: 'Cybersecurity', value: 10, color: '#8b5cf6' },
-];
+    useEffect(() => {
+        if (inView) {
+            const node = ref.current;
+            const controls = animate(0, Number(value) || 0, {
+                duration: 2,
+                ease: "easeOut",
+                onUpdate(value) {
+                    if (node) {
+                        node.textContent = Math.round(value).toLocaleString();
+                    }
+                }
+            });
+            return () => controls.stop();
+        }
+    }, [value, inView]);
 
-const opportunitiesData = [
-    { name: 'Sep', jobs: 5, internships: 12 },
-    { name: 'Oct', jobs: 8, internships: 15 },
-    { name: 'Nov', jobs: 12, internships: 20 },
-    { name: 'Dec', jobs: 10, internships: 18 },
-    { name: 'Jan', jobs: 15, internships: 25 },
-];
+    return <span ref={ref}>0</span>;
+}
+
+const MOCK_ADMIN_DATA = {
+    stats: {
+        totalGraduates: 1240,
+        verifiedGraduates: 850,
+        pendingUserRequests: 12,
+        partnerCompanies: 45,
+        activeInternships: 28,
+        totalApplications: 156,
+        activeEvents: 3
+    },
+    growthData: [
+        { name: '2019', students: 150, graduates: 80 },
+        { name: '2020', students: 200, graduates: 120 },
+        { name: '2021', students: 300, graduates: 180 },
+        { name: '2022', students: 450, graduates: 250 },
+        { name: '2023', students: 600, graduates: 400 },
+        { name: '2024', students: 850, graduates: 600 },
+    ],
+    domainData: [
+        { name: 'Software Eng', value: 400, color: '#3b82f6' },
+        { name: 'Data Science', value: 300, color: '#8b5cf6' },
+        { name: 'Networking', value: 300, color: '#10b981' },
+        { name: 'Cybersecurity', value: 200, color: '#f59e0b' },
+        { name: 'IT Management', value: 100, color: '#ef4444' }
+    ],
+    opportunitiesData: [
+        { name: 'Jan', jobs: 20, internships: 10 },
+        { name: 'Feb', jobs: 25, internships: 15 },
+        { name: 'Mar', jobs: 30, internships: 12 },
+        { name: 'Apr', jobs: 35, internships: 20 },
+        { name: 'May', jobs: 40, internships: 25 },
+        { name: 'Jun', jobs: 45, internships: 30 }
+    ]
+};
 
 export function AdminOverview() {
     const { t } = useLanguage();
+    const [loading, setLoading] = useState(true);
+    const [statsData, setStatsData] = useState(null);
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const response = await apiClient.get('/users/admin/stats');
+
+                setStatsData(response);
+            } catch (error) {
+                console.error('Failed to fetch admin stats:', error);
+                // Fallback on error too
+                setStatsData(MOCK_ADMIN_DATA);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchStats();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="w-12 h-12 border-4 border-blue-600/30 border-t-blue-600 rounded-full animate-spin" />
+            </div>
+        );
+    }
+
+    const { stats: s, growthData, domainData, opportunitiesData } = statsData || {
+        stats: {},
+        growthData: [],
+        domainData: [],
+        opportunitiesData: []
+    };
+
+    // FIX: Sync "Partner Companies" with the local storage (since ManageCompanies is client-side)
+    try {
+        const localCompanies = localStorage.getItem('supnum_companies');
+        if (localCompanies) {
+            const parsed = JSON.parse(localCompanies);
+            if (Array.isArray(parsed)) {
+                if (!s.partnerCompanies || s.partnerCompanies === 0) {
+                    s.partnerCompanies = parsed.length;
+                }
+            }
+        }
+    } catch (e) {
+        console.error("Error syncing local companies stats:", e);
+    }
 
     const stats = [
-        { title: "Total Graduates", value: "1,247", icon: Users, color: "bg-blue-500", subtext: "+12% this month" },
-        { title: "Verified Graduates", value: "892", icon: CheckCircle, color: "bg-green-500", subtext: "72% verification rate" },
-        { title: "Pending Requests", value: "45", icon: Clock, color: "bg-amber-500", subtext: "Requires attention" },
-        { title: "Partner Companies", value: "28", icon: Building, color: "bg-indigo-500", subtext: "Active partnerships" },
-        { title: "Active Internships", value: "156", icon: Briefcase, color: "bg-purple-500", subtext: "Currently active" },
-        { title: "Active Events", value: "12", icon: Calendar, color: "bg-pink-500", subtext: "Upcoming this month" },
+        { title: t?.admin?.stats?.totalUsers || "Total Users", value: s.totalUsers || 0, icon: Users, color: "bg-blue-500", subtext: "Total registered" },
+        { title: "Verified Graduates", value: s.verifiedGraduates || 0, icon: CheckCircle, color: "bg-green-500", subtext: `${Math.round((s.verifiedGraduates / s.totalGraduates) * 100) || 0}% verification rate` },
+        { title: t?.dashboard?.stats?.pending || "Pending Requests", value: s.pendingUserRequests || 0, icon: Clock, color: "bg-amber-500", subtext: "Requires attention" },
+        { title: t?.landing?.partnerCompanies || "Partner Companies", value: s.partnerCompanies || 0, icon: Building, color: "bg-indigo-500", subtext: "Active partnerships" },
+        { title: t?.landing?.activeInternships || "Active Internships", value: s.activeInternships || 0, icon: Briefcase, color: "bg-purple-500", subtext: "Currently active" },
+        { title: "Applications", value: s.totalApplications || 0, icon: FileText, color: "bg-orange-500", subtext: "Total submissions" },
+        { title: t?.admin?.events?.title || "Active Events", value: s.activeEvents || 0, icon: Calendar, color: "bg-pink-500", subtext: "Upcoming events" },
     ];
 
     return (
         <div className="space-y-8">
             <div className="flex flex-col space-y-2">
                 <h1 className="text-4xl font-bold text-slate-900 dark:text-white">{t.admin.welcome}</h1>
-                <p className="text-slate-500 dark:text-slate-400 text-lg">Platform Overview & Statistics</p>
+                <p className="text-slate-500 dark:text-slate-400 text-lg">{t.admin.subtitle}</p>
             </div>
 
             {/* Stats Grid */}
@@ -65,7 +152,9 @@ export function AdminOverview() {
                                     <stat.icon className="h-6 w-6" />
                                 </div>
                                 <p className="text-slate-500 dark:text-slate-400 font-medium">{stat.title}</p>
-                                <h3 className="text-3xl font-bold text-slate-900 dark:text-white mt-1">{stat.value}</h3>
+                                <h3 className="text-3xl font-bold text-slate-900 dark:text-white mt-1">
+                                    <Counter value={stat.value} />
+                                </h3>
                                 <p className="text-xs text-slate-400 mt-2">{stat.subtext}</p>
                             </CardContent>
                         </Card>
@@ -78,7 +167,7 @@ export function AdminOverview() {
                 {/* Growth Chart */}
                 <Card className="bg-white dark:bg-slate-800 border-none shadow-xl lg:col-span-2">
                     <CardContent className="p-8">
-                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-8">Graduates Growth Over Time</h3>
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-8">{t.admin?.charts?.graduatesGrowth}</h3>
                         <div className="h-[350px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={growthData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -99,8 +188,30 @@ export function AdminOverview() {
                                         contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                                         itemStyle={{ color: '#1e293b' }}
                                     />
-                                    <Area type="monotone" dataKey="students" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorStudents)" name="Students" />
-                                    <Area type="monotone" dataKey="graduates" stroke="#0ea5e9" strokeWidth={3} fillOpacity={1} fill="url(#colorGraduates)" name="Graduates" />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="students"
+                                        stroke="#3b82f6"
+                                        strokeWidth={3}
+                                        fillOpacity={1}
+                                        fill="url(#colorStudents)"
+                                        name={t.admin?.charts?.students}
+                                        isAnimationActive={true}
+                                        animationDuration={2000}
+                                        animationEasing="ease-out"
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="graduates"
+                                        stroke="#0ea5e9"
+                                        strokeWidth={3}
+                                        fillOpacity={1}
+                                        fill="url(#colorGraduates)"
+                                        name={t.admin?.charts?.graduates}
+                                        isAnimationActive={true}
+                                        animationDuration={2000}
+                                        animationEasing="ease-out"
+                                    />
                                     <Legend />
                                 </AreaChart>
                             </ResponsiveContainer>
@@ -111,7 +222,7 @@ export function AdminOverview() {
                 {/* Employment Domains */}
                 <Card className="bg-white dark:bg-slate-800 border-none shadow-xl">
                     <CardContent className="p-8">
-                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-8">Employment Domains</h3>
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-8">{t.admin?.charts?.employmentDomains}</h3>
                         <div className="h-[300px] w-full flex items-center justify-center">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
@@ -123,6 +234,10 @@ export function AdminOverview() {
                                         outerRadius={100}
                                         paddingAngle={5}
                                         dataKey="value"
+                                        isAnimationActive={true}
+                                        animationDuration={2000}
+                                        animationBegin={200}
+                                        animationEasing="ease-out"
                                     >
                                         {domainData.map((entry, index) => (
                                             <Cell key={`cell-${index}`} fill={entry.color} strokeWidth={0} />
@@ -142,7 +257,7 @@ export function AdminOverview() {
                 {/* Opportunities Posted */}
                 <Card className="bg-white dark:bg-slate-800 border-none shadow-xl">
                     <CardContent className="p-8">
-                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-8">Opportunities Posted</h3>
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-8">{t.admin?.charts?.opportunitiesPosted}</h3>
                         <div className="h-[300px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={opportunitiesData}>
@@ -154,8 +269,24 @@ export function AdminOverview() {
                                         contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                                         itemStyle={{ color: '#1e293b' }}
                                     />
-                                    <Bar dataKey="jobs" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Jobs" />
-                                    <Bar dataKey="internships" fill="#8b5cf6" radius={[4, 4, 0, 0]} name="Internships" />
+                                    <Bar
+                                        dataKey="jobs"
+                                        fill="#3b82f6"
+                                        radius={[4, 4, 0, 0]}
+                                        name={t.admin?.charts?.jobs}
+                                        isAnimationActive={true}
+                                        animationDuration={2000}
+                                        animationEasing="ease-out"
+                                    />
+                                    <Bar
+                                        dataKey="internships"
+                                        fill="#8b5cf6"
+                                        radius={[4, 4, 0, 0]}
+                                        name={t.admin?.charts?.internships}
+                                        isAnimationActive={true}
+                                        animationDuration={2000}
+                                        animationEasing="ease-out"
+                                    />
                                     <Legend />
                                 </BarChart>
                             </ResponsiveContainer>

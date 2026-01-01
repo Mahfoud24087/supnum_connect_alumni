@@ -1,38 +1,66 @@
-import { createContext, useContext, useState } from 'react';
-import { users } from '../data/mockData';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { authService } from '../services/authService';
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    const login = (email, password) => {
-        // Mock login logic
-        const foundUser = users.find(u => u.email === email);
-        if (foundUser) {
-            setUser(foundUser);
-            return { success: true, role: foundUser.role };
+    // Check if user is logged in on mount
+    useEffect(() => {
+        const initAuth = async () => {
+            const token = localStorage.getItem('auth_token');
+            if (token) {
+                try {
+                    const currentUser = await authService.getCurrentUser();
+                    if (currentUser) {
+                        setUser(currentUser);
+                    } else {
+                        localStorage.removeItem('auth_token');
+                    }
+                } catch (error) {
+                    console.error('Auth init error:', error);
+                    localStorage.removeItem('auth_token');
+                }
+            }
+            setLoading(false);
+        };
+
+        initAuth();
+    }, []);
+
+    const login = async (email, password) => {
+        const result = await authService.login(email, password);
+        if (result.success) {
+            setUser(result.user);
+            return { success: true, role: result.user.role };
         }
-        return { success: false, error: 'Invalid credentials' };
+        return result;
     };
 
-    const signup = (userData) => {
-        // Mock signup - in a real app this would call an API
-        // For now we just simulate success
-        return { success: true };
+    const signup = async (userData) => {
+        const result = await authService.register(userData);
+        return result;
     };
 
-    const logout = () => {
+    const logout = async () => {
+        await authService.logout();
         setUser(null);
     };
 
-    const updateProfile = (profileData) => {
-        setUser(prev => ({ ...prev, ...profileData }));
+    const updateProfile = async (profileData) => {
+        const result = await authService.updateProfile(profileData);
+        if (result.success) {
+            setUser(result.user);
+            return { success: true };
+        }
+        return result;
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, signup, logout, updateProfile }}>
-            {children}
+        <AuthContext.Provider value={{ user, login, signup, logout, updateProfile, loading }}>
+            {!loading && children}
         </AuthContext.Provider>
     );
 }

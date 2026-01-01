@@ -1,0 +1,96 @@
+{
+    "users": [
+        {
+            "id": "1",
+            "name": "Admin User",
+            "email": "admin@supnum.mr",
+            "password": "admin123",
+            "supnumId": "ADMIN001",
+            "role": "admin",
+            "status": "Verified",
+            "avatar": null,
+            "bio": "System Administrator",
+            "social": {
+                "linkedin": "",
+                "github": "",
+                "facebook": ""
+            }
+        },
+        {
+            "id": "2",
+            "name": "John Doe",
+            "email": "john@supnum.mr",
+            "password": "password123",
+            "supnumId": "2Y001",
+            "role": "graduate",
+            "status": "Verified",
+            "avatar": null,
+            "bio": "Software Engineer",
+            "phone": "+222 12345678",
+            "birthday": "1995-05-15",
+            "workStatus": "employed",
+            "jobTitle": "Senior Developer",
+            "company": "Tech Corp",
+            "social": {
+                "linkedin": "https://linkedin.com/in/johndoe",
+                "github": "https://github.com/johndoe",
+                "facebook": ""
+            }
+        },
+        {
+            "id": "3",
+            "name": "Student User",
+            "email": "24001@supnum.mr",
+            "password": "1234567890",
+            "supnumId": "24001",
+            "role": "student",
+            "status": "Verified",
+            "avatar": null,
+            "bio": "Computer Science Student",
+            "social": {
+                "linkedin": "",
+                "github": "",
+                "facebook": ""
+            }
+        }
+    ],
+    "events": [
+        {
+            "id": "1",
+            "title": "Tech Meetup 2024",
+            "date": "2024-12-31",
+            "type": "Event",
+            "description": "Annual technology meetup for SupNum graduates",
+            "image": "",
+            "duration": "7",
+            "stage": "All",
+            "color": "bg-blue-600",
+            "createdAt": "2024-12-01T00:00:00Z"
+        }
+    ],
+    "companies": [
+        {
+            "id": "1",
+            "name": "Tech Solutions Ltd",
+            "industry": "Technology",
+            "location": "Nouakchott",
+            "website": "techsolutions.mr",
+            "logo": null,
+            "createdAt": "2024-12-01T00:00:00Z"
+        }
+    ],
+    "internships": [
+        {
+            "id": "1",
+            "title": "Software Engineer Intern",
+            "company": "Tech Corp",
+            "type": "Internship",
+            "location": "Nouakchott",
+            "description": "6-month internship opportunity",
+            "active": true,
+            "createdAt": "2024-12-01T00:00:00Z"
+        }
+    ],
+    "conversations": [],
+    "messages": []
+}

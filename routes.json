@@ -1,0 +1,7 @@
+{
+    "/api/*": "/$1",
+    "/api/auth/login": "/users?email=:email",
+    "/api/auth/register": "/users",
+    "/api/auth/me": "/users/:id",
+    "/api/auth/profile": "/users/:id"
+}

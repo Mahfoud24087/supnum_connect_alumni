@@ -3,11 +3,13 @@ import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
 import { stats, events as initialEvents } from '../data/mockData';
-import { motion } from 'framer-motion';
+import { motion, animate, useInView, AnimatePresence } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, BarChart, Bar } from 'recharts';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { apiClient } from '../services/api';
+import { EventModal } from '../components/EventModal';
 
 // Data for "Students by Entry Year" (Bar Chart)
 const entryYearData = [
@@ -39,19 +41,163 @@ const growthData = [
     { name: '2024', students: 6, graduates: 6 },
 ];
 
+function Counter({ value }) {
+    const ref = useRef(null);
+    const inView = useInView(ref, { once: true });
+
+    useEffect(() => {
+        if (inView) {
+            const node = ref.current;
+            const controls = animate(0, Number(value) || 0, {
+                duration: 2.5, // Slower counting
+                ease: "easeOut",
+                onUpdate(value) {
+                    if (node) {
+                        node.textContent = Math.round(value).toLocaleString();
+                    }
+                }
+            });
+            return () => controls.stop();
+        }
+    }, [value, inView]);
+
+    return <span ref={ref}>0</span>;
+}
+
+const MOCK_LANDING_DATA = {
+    stats: {
+        totalUsers: 1450,
+        students: 210,
+        graduates: 1240,
+        eventsCount: 5,
+        partnerCompanies: 45,
+        activeInternships: 28
+    },
+    latestEvents: [
+        {
+            id: 'mock-1',
+            title: 'Annual Tech Summit 2024',
+            description: 'Join us for the biggest tech event of the year featuring industry leaders from around the globe. Topics include AI, Blockchain, and more. A great opportunity for networking.',
+            date: '2024-12-15',
+            location: 'SupNum Main Hall',
+            type: 'Event',
+            color: 'bg-blue-600',
+            image: 'https://images.unsplash.com/photo-1540575467063-178a50935339?q=80&w=2070&auto=format&fit=crop'
+        },
+        {
+            id: 'mock-2',
+            title: 'Hackathon: Code for Future',
+            description: '48-hour coding challenge to solve real-world problems. Teams of 4. Great prizes including internships and tech gear.',
+            date: '2024-11-20',
+            location: 'Innovation Lab',
+            type: 'Challenge',
+            color: 'bg-purple-600',
+            image: null
+        },
+        {
+            id: 'mock-3',
+            title: 'Alumni Networking Dinner',
+            description: 'Connect with fellow graduates and mentors over a formal dinner. Share experiences and explore career opportunities.',
+            date: '2024-10-05',
+            location: 'Hotel Monotel',
+            type: 'Event',
+            color: 'bg-emerald-600',
+            image: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2069&auto=format&fit=crop'
+        }
+    ],
+    latestInternships: [
+        {
+            id: 'mock-job-1',
+            title: 'Frontend Developer Intern',
+            company: 'TechCorp Mauritania',
+            location: 'Nouakchott'
+        },
+        {
+            id: 'mock-job-2',
+            title: 'Data Analyst Junior',
+            company: 'Banque Centrale',
+            location: 'Nouakchott'
+        },
+        {
+            id: 'mock-job-3',
+            title: 'Network Administrator',
+            company: 'Mattel',
+            location: 'Nouadhibou'
+        },
+        {
+            id: 'mock-job-4',
+            title: 'Cybersecurity Analyst',
+            company: 'SupNum Lab',
+            location: 'Nouakchott'
+        }
+    ]
+};
+
 export function LandingPage() {
     const { t } = useLanguage();
     const { user } = useAuth();
     const [upcomingEvents, setUpcomingEvents] = useState([]);
+    const [latestInternships, setLatestInternships] = useState([]);
+    const [realStats, setRealStats] = useState({
+        totalUsers: 0,
+        students: 0,
+        graduates: 0,
+        eventsCount: 0,
+        partnerCompanies: 0,
+        activeInternships: 0
+    });
+    const [loading, setLoading] = useState(true);
+    const [selectedEvent, setSelectedEvent] = useState(null);
 
-    // Load events from localStorage
     useEffect(() => {
-        const savedEvents = localStorage.getItem('supnum_events');
-        if (savedEvents) {
-            setUpcomingEvents(JSON.parse(savedEvents));
-        } else {
-            setUpcomingEvents(initialEvents);
-        }
+        const fetchData = async () => {
+            try {
+                const response = await apiClient.get('/users/public/stats');
+
+                // Demo Mode Enhancement:
+                // If total users is very low (e.g. 0 or just the 1 initial admin), show Mock Data to make the site look populated.
+                // Otherwise, show REAL data.
+                const finalStats = response.stats || {};
+
+                // FIX: Sync "Partner Companies" with the Admin Panel's local storage
+                // key: 'supnum_companies'
+                const localCompanies = localStorage.getItem('supnum_companies');
+                if (localCompanies) {
+                    try {
+                        const parsed = JSON.parse(localCompanies);
+                        if (parsed && Array.isArray(parsed)) {
+                            // Override the API zero/null with the local admin creation count
+                            finalStats.partnerCompanies = parsed.length;
+                        }
+                    } catch (e) {
+                        console.error("Error parsing local companies:", e);
+                    }
+                }
+
+                if ((finalStats.totalUsers || 0) <= 0) {
+                    // Completely empty system -> Show full mock mode
+                    setRealStats(MOCK_LANDING_DATA.stats);
+                    setUpcomingEvents(MOCK_LANDING_DATA.latestEvents);
+                    setLatestInternships(MOCK_LANDING_DATA.latestInternships);
+                } else {
+                    // Real data mode
+                    setRealStats(finalStats);
+                    // For events and internships, we trust the API unless it's empty AND users are 0 (handled above)
+                    setUpcomingEvents(response.latestEvents || []);
+                    setLatestInternships(response.latestInternships || []);
+                }
+            } catch (error) {
+                console.error('Failed to fetch public stats:', error);
+                // Fallback on error
+                setRealStats(MOCK_LANDING_DATA.stats);
+                setUpcomingEvents(MOCK_LANDING_DATA.latestEvents);
+                setLatestInternships(MOCK_LANDING_DATA.latestInternships);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
     }, []);
 
     return (
@@ -65,7 +211,7 @@ export function LandingPage() {
                         <motion.div
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6 }}
+                            transition={{ duration: 1.0 }}
                             className="space-y-6 max-w-5xl"
                         >
                             <h1 className="text-5xl font-extrabold tracking-tight sm:text-6xl md:text-7xl lg:text-8xl leading-tight">
@@ -79,7 +225,7 @@ export function LandingPage() {
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.3 }}
+                            transition={{ duration: 1.0, delay: 0.3 }}
                             className="flex flex-col sm:flex-row gap-4 w-full justify-center pt-4"
                         >
                             <Link to="/signup">
@@ -117,10 +263,12 @@ export function LandingPage() {
                                 <CardContent className="p-6 flex flex-col justify-between h-full relative z-10">
                                     <div>
                                         <p className="text-blue-100 font-medium mb-1">{t.stats.totalUsers}</p>
-                                        <div className="text-4xl font-bold">{stats.totalUsers}</div>
+                                        <div className="text-4xl font-bold">
+                                            <Counter value={realStats.totalUsers} />
+                                        </div>
                                     </div>
                                     <div className="mt-4 text-sm text-blue-100 bg-white/10 inline-block px-2 py-1 rounded-lg w-fit">
-                                        +12% this month
+                                        {t.landing.activeCommunity}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -135,10 +283,12 @@ export function LandingPage() {
                                 <CardContent className="p-6 flex flex-col justify-between h-full relative z-10">
                                     <div>
                                         <p className="text-slate-500 dark:text-slate-400 font-medium mb-1">{t.stats.students}</p>
-                                        <div className="text-4xl font-bold text-slate-900 dark:text-white">{stats.students}</div>
+                                        <div className="text-4xl font-bold text-slate-900 dark:text-white">
+                                            <Counter value={realStats.students} />
+                                        </div>
                                     </div>
                                     <div className="mt-4 text-sm text-green-600 font-medium">
-                                        +8% this month
+                                        {t.landing.currentStudents}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -153,10 +303,12 @@ export function LandingPage() {
                                 <CardContent className="p-6 flex flex-col justify-between h-full relative z-10">
                                     <div>
                                         <p className="text-cyan-100 font-medium mb-1">{t.stats.graduates}</p>
-                                        <div className="text-4xl font-bold">{stats.graduates}</div>
+                                        <div className="text-4xl font-bold">
+                                            <Counter value={realStats.graduates} />
+                                        </div>
                                     </div>
                                     <div className="mt-4 text-sm text-cyan-100 bg-white/10 inline-block px-2 py-1 rounded-lg w-fit">
-                                        +5% this month
+                                        {t.landing.alumniNetwork}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -171,10 +323,12 @@ export function LandingPage() {
                                 <CardContent className="p-6 flex flex-col justify-between h-full relative z-10">
                                     <div>
                                         <p className="text-slate-500 dark:text-slate-400 font-medium mb-1">{t.stats.events}</p>
-                                        <div className="text-4xl font-bold text-slate-900 dark:text-white">{upcomingEvents.length}</div>
+                                        <div className="text-4xl font-bold text-slate-900 dark:text-white">
+                                            <Counter value={upcomingEvents.length} />
+                                        </div>
                                     </div>
                                     <div className="mt-4 text-sm text-slate-400">
-                                        Upcoming this term
+                                        {t.landing.upcomingTerm}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -188,9 +342,9 @@ export function LandingPage() {
                 <div className="container mx-auto px-4 md:px-6">
                     <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
                         <div className="space-y-4">
-                            <h2 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-white">Opportunities & Partners</h2>
+                            <h2 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-white">{t.landing.oppsTitle}</h2>
                             <p className="text-slate-500 dark:text-slate-400 max-w-2xl text-lg">
-                                Connect with top companies and find your next career move.
+                                {t.landing.oppsSubtitle}
                             </p>
                         </div>
                     </div>
@@ -201,8 +355,10 @@ export function LandingPage() {
                                 <Building className="h-8 w-8" />
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-slate-900 dark:text-white">15+</p>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Partner Companies</p>
+                                <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                                    <Counter value={realStats.partnerCompanies} />+
+                                </p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">{t.landing.partnerCompanies}</p>
                             </div>
                         </Card>
                         <Card className="bg-white dark:bg-slate-800 border-none shadow-sm p-6 flex items-center space-x-4">
@@ -210,35 +366,42 @@ export function LandingPage() {
                                 <Briefcase className="h-8 w-8" />
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-slate-900 dark:text-white">32+</p>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Active Internships</p>
+                                <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                                    <Counter value={realStats.activeInternships} />+
+                                </p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">{t.landing.activeInternships}</p>
                             </div>
                         </Card>
                         <div className="lg:col-span-2 space-y-4">
-                            <h3 className="font-semibold text-slate-900 dark:text-white">Latest Opportunities</h3>
+                            <h3 className="font-semibold text-slate-900 dark:text-white">{t.landing.latestOpps}</h3>
                             <div className="space-y-3">
-                                {[
-                                    { title: 'Software Engineer Intern', company: 'Tech Corp', loc: 'Nouakchott' },
-                                    { title: 'Data Analyst', company: 'Data Systems', loc: 'Nouadhibou' },
-                                    { title: 'Marketing Assistant', company: 'Creative Agency', loc: 'Nouakchott' }
-                                ].map((job, i) => (
-                                    <div key={i} className="flex items-center justify-between bg-white dark:bg-slate-800 p-3 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700">
+                                {latestInternships.length > 0 ? latestInternships.map((job, i) => (
+                                    <motion.div
+                                        key={i}
+                                        initial={{ opacity: 0, x: 50 }}
+                                        whileInView={{ opacity: 1, x: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ duration: 0.5, delay: i * 0.1 }}
+                                        className="flex items-center justify-between bg-white dark:bg-slate-800 p-3 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700"
+                                    >
                                         <div className="flex items-center gap-3">
                                             <div className="h-8 w-8 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500">
                                                 <Briefcase className="h-4 w-4" />
                                             </div>
                                             <div>
                                                 <p className="font-medium text-sm text-slate-900 dark:text-white">{job.title}</p>
-                                                <p className="text-xs text-slate-500">{job.company} • {job.loc}</p>
+                                                <p className="text-xs text-slate-500">{job.company} • {job.location}</p>
                                             </div>
                                         </div>
-                                        <Link to={user ? "/dashboard" : "/signin"}>
+                                        <Link to={user ? `/dashboard/apply/${job.id}` : "/signin"}>
                                             <button className="text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-3 py-1.5 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
-                                                {user ? "View" : "Apply"}
+                                                {user ? t.landing.view : t.landing.apply}
                                             </button>
                                         </Link>
-                                    </div>
-                                ))}
+                                    </motion.div>
+                                )) : (
+                                    <p className="text-sm text-slate-500 italic">{t.landing.noOpps}</p>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -250,99 +413,156 @@ export function LandingPage() {
                 <div className="container mx-auto px-4 md:px-6">
                     <div className="grid gap-8 lg:grid-cols-2">
                         {/* Students by Entry Year */}
-                        <Card className="shadow-sm border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-                            <CardContent className="p-6">
-                                <h3 className="text-xl font-bold mb-6 text-slate-800 dark:text-white flex items-center gap-2">
-                                    <Users className="h-5 w-5 text-teal-500" />
-                                    Students by Entry Year
-                                </h3>
-                                <div className="h-[300px] w-full">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={entryYearData}>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.3} />
-                                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8' }} />
-                                            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8' }} />
-                                            <Tooltip
-                                                cursor={{ fill: 'transparent' }}
-                                                contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                                itemStyle={{ color: '#1e293b' }}
-                                            />
-                                            <Bar dataKey="students" fill="#2dd4bf" radius={[4, 4, 0, 0]} barSize={50} />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            </CardContent>
-                        </Card>
+                        <motion.div
+                            initial={{ opacity: 0, x: -100 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 1.5 }}
+                        >
+                            <Card className="shadow-sm border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 h-full">
+                                <CardContent className="p-6">
+                                    <h3 className="text-xl font-bold mb-6 text-slate-800 dark:text-white flex items-center gap-2">
+                                        <Users className="h-5 w-5 text-teal-500" />
+                                        {t.landing.studentsByYear}
+                                    </h3>
+                                    <div className="h-[300px] w-full">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart data={entryYearData}>
+                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.3} />
+                                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8' }} />
+                                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8' }} />
+                                                <Tooltip
+                                                    cursor={{ fill: 'transparent' }}
+                                                    contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                                    itemStyle={{ color: '#1e293b' }}
+                                                />
+                                                <Bar
+                                                    dataKey="students"
+                                                    fill="#2dd4bf"
+                                                    radius={[4, 4, 0, 0]}
+                                                    barSize={50}
+                                                    isAnimationActive={true}
+                                                    animationDuration={3000}
+                                                    animationEasing="ease-out"
+                                                    name={t.stats.students}
+                                                />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </motion.div>
 
                         {/* Graduates by Promotion */}
-                        <Card className="shadow-sm border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-                            <CardContent className="p-6">
-                                <h3 className="text-xl font-bold mb-6 text-slate-800 dark:text-white flex items-center gap-2">
-                                    <GraduationCap className="h-5 w-5 text-teal-500" />
-                                    Graduates by Promotion
-                                </h3>
-                                <div className="h-[300px] w-full flex items-center justify-center">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <PieChart>
-                                            <Pie
-                                                data={promotionData}
-                                                cx="50%"
-                                                cy="50%"
-                                                innerRadius={60}
-                                                outerRadius={100}
-                                                paddingAngle={2}
-                                                dataKey="value"
-                                            >
-                                                {promotionData.map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={entry.color} strokeWidth={0} />
-                                                ))}
-                                            </Pie>
-                                            <Tooltip
-                                                contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                                itemStyle={{ color: '#1e293b' }}
-                                            />
-                                            <Legend verticalAlign="right" align="right" layout="vertical" iconType="circle" />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            </CardContent>
-                        </Card>
+                        <motion.div
+                            initial={{ opacity: 0, x: -100 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 1.5, delay: 0.2 }}
+                        >
+                            <Card className="shadow-sm border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 h-full">
+                                <CardContent className="p-6">
+                                    <h3 className="text-xl font-bold mb-6 text-slate-800 dark:text-white flex items-center gap-2">
+                                        <GraduationCap className="h-5 w-5 text-teal-500" />
+                                        {t.landing.graduatesByPromo}
+                                    </h3>
+                                    <div className="h-[300px] w-full flex items-center justify-center">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <PieChart>
+                                                <Pie
+                                                    data={promotionData}
+                                                    cx="50%"
+                                                    cy="50%"
+                                                    innerRadius={60}
+                                                    outerRadius={100}
+                                                    paddingAngle={2}
+                                                    dataKey="value"
+                                                    isAnimationActive={true}
+                                                    animationDuration={3000}
+                                                    animationBegin={200}
+                                                    animationEasing="ease-out"
+                                                >
+                                                    {promotionData.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={entry.color} strokeWidth={0} />
+                                                    ))}
+                                                </Pie>
+                                                <Tooltip
+                                                    contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                                    itemStyle={{ color: '#1e293b' }}
+                                                />
+                                                <Legend verticalAlign="right" align="right" layout="vertical" iconType="circle" />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </motion.div>
 
                         {/* Community Growth Over Years */}
-                        <Card className="shadow-sm border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 lg:col-span-2">
-                            <CardContent className="p-6">
-                                <h3 className="text-xl font-bold mb-6 text-slate-800 dark:text-white flex items-center gap-2">
-                                    <BarChart3 className="h-5 w-5 text-teal-500" />
-                                    Community Growth Over Years
-                                </h3>
-                                <div className="h-[300px] w-full">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <AreaChart data={growthData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                                            <defs>
-                                                <linearGradient id="colorStudents" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#2dd4bf" stopOpacity={0.3} />
-                                                    <stop offset="95%" stopColor="#2dd4bf" stopOpacity={0} />
-                                                </linearGradient>
-                                                <linearGradient id="colorGraduates" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#1e3a8a" stopOpacity={0.3} />
-                                                    <stop offset="95%" stopColor="#1e3a8a" stopOpacity={0} />
-                                                </linearGradient>
-                                            </defs>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.3} />
-                                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8' }} />
-                                            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8' }} />
-                                            <Tooltip
-                                                contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                                itemStyle={{ color: '#1e293b' }}
-                                            />
-                                            <Area type="monotone" dataKey="students" stroke="#2dd4bf" strokeWidth={3} fillOpacity={1} fill="url(#colorStudents)" name="Students" />
-                                            <Area type="monotone" dataKey="graduates" stroke="#1e3a8a" strokeWidth={3} fillOpacity={1} fill="url(#colorGraduates)" name="Graduates" />
-                                            <Legend iconType="circle" />
-                                        </AreaChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            </CardContent>
-                        </Card>
+                        <motion.div
+                            initial={{ opacity: 0, x: -100 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 1.5, delay: 0.4 }}
+                            className="lg:col-span-2"
+                        >
+                            <Card className="shadow-sm border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 h-full">
+                                <CardContent className="p-6">
+                                    <h3 className="text-xl font-bold mb-6 text-slate-800 dark:text-white flex items-center gap-2">
+                                        <BarChart3 className="h-5 w-5 text-teal-500" />
+                                        {t.landing.communityGrowth}
+                                    </h3>
+                                    <div className="h-[300px] w-full">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <AreaChart data={growthData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                                <defs>
+                                                    <linearGradient id="colorStudents" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor="#2dd4bf" stopOpacity={0.3} />
+                                                        <stop offset="95%" stopColor="#2dd4bf" stopOpacity={0} />
+                                                    </linearGradient>
+                                                    <linearGradient id="colorGraduates" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor="#1e3a8a" stopOpacity={0.3} />
+                                                        <stop offset="95%" stopColor="#1e3a8a" stopOpacity={0} />
+                                                    </linearGradient>
+                                                </defs>
+                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.3} />
+                                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8' }} />
+                                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8' }} />
+                                                <Tooltip
+                                                    contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                                    itemStyle={{ color: '#1e293b' }}
+                                                />
+                                                <Area
+                                                    type="monotone"
+                                                    dataKey="students"
+                                                    stroke="#2dd4bf"
+                                                    strokeWidth={3}
+                                                    fillOpacity={1}
+                                                    fill="url(#colorStudents)"
+                                                    name={t.stats.students}
+                                                    isAnimationActive={true}
+                                                    animationDuration={3000}
+                                                    animationEasing="ease-out"
+                                                />
+                                                <Area
+                                                    type="monotone"
+                                                    dataKey="graduates"
+                                                    stroke="#1e3a8a"
+                                                    strokeWidth={3}
+                                                    fillOpacity={1}
+                                                    fill="url(#colorGraduates)"
+                                                    name={t.stats.graduates}
+                                                    isAnimationActive={true}
+                                                    animationDuration={3000}
+                                                    animationEasing="ease-out"
+                                                />
+                                                <Legend iconType="circle" />
+                                            </AreaChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </motion.div>
                     </div>
                 </div>
             </section>
@@ -365,10 +585,14 @@ export function LandingPage() {
                     </div>
 
                     <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                        {upcomingEvents.map((event) => (
+                        {upcomingEvents.length > 0 ? upcomingEvents.map((event, index) => (
                             <motion.div
                                 key={event.id}
-                                whileHover={{ y: -5 }}
+                                initial={{ opacity: 0, x: -100 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                viewport={{ once: true, margin: "-100px" }}
+                                transition={{ duration: 1.5, delay: index * 0.1 }}
+                                whileHover={{ y: -5, transition: { duration: 0.2 } }}
                                 className="group"
                             >
                                 <Card className="overflow-hidden border-none shadow-sm h-full flex flex-col bg-white dark:bg-slate-800 transition-colors duration-300">
@@ -379,16 +603,16 @@ export function LandingPage() {
                                                 alt={event.title}
                                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                             />
-                                            <div className={`absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-bold text-white uppercase tracking-wider ${event.color} shadow-lg`}>
+                                            <div className={`absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-bold text-white uppercase tracking-wider ${event.color || 'bg-blue-600'} shadow-lg`}>
                                                 {event.type}
                                             </div>
                                         </div>
                                     ) : (
                                         <div className="p-6 pb-0 flex items-start justify-between">
-                                            <div className={`p-3 rounded-xl ${event.color} bg-opacity-10 text-blue-600 dark:text-blue-400`}>
+                                            <div className={`p-3 rounded-xl ${event.color || 'bg-blue-600'} bg-opacity-10 text-blue-600 dark:text-blue-400`}>
                                                 {event.type === 'Challenge' ? <Trophy className="h-6 w-6" /> : event.type === 'Contest' ? <Zap className="h-6 w-6" /> : <Calendar className="h-6 w-6" />}
                                             </div>
-                                            <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${event.color} text-white`}>
+                                            <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${event.color || 'bg-blue-600'} text-white`}>
                                                 {event.type}
                                             </span>
                                         </div>
@@ -397,7 +621,7 @@ export function LandingPage() {
                                     <CardContent className="p-6 flex-1 flex flex-col">
                                         <div className="flex items-center text-slate-500 dark:text-slate-400 text-sm mb-3">
                                             <Calendar className="h-4 w-4 mr-2" />
-                                            {event.date}
+                                            {new Date(event.date).toLocaleDateString()}
                                         </div>
                                         <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                                             {event.title}
@@ -405,15 +629,23 @@ export function LandingPage() {
                                         <p className="text-slate-500 dark:text-slate-400 mb-6 flex-1 line-clamp-3">
                                             {event.description}
                                         </p>
-                                        <Link to="/events" className="w-full">
-                                            <Button variant="outline" className="w-full border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700">
-                                                View Details
+                                        <div className="w-full">
+                                            <Button
+                                                variant="outline"
+                                                className="w-full border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
+                                                onClick={() => setSelectedEvent(event)}
+                                            >
+                                                {t.landing.viewDetails}
                                             </Button>
-                                        </Link>
+                                        </div>
                                     </CardContent>
                                 </Card>
                             </motion.div>
-                        ))}
+                        )) : (
+                            <div className="col-span-full text-center py-12">
+                                <p className="text-slate-500 dark:text-slate-400 italic">{t.landing.noEvents}</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </section>
@@ -442,6 +674,8 @@ export function LandingPage() {
                     </div>
                 </div>
             </section>
+
+            <EventModal event={selectedEvent} isOpen={!!selectedEvent} onClose={() => setSelectedEvent(null)} />
         </div>
     );
 }

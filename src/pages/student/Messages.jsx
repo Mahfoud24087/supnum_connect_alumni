@@ -1,212 +1,289 @@
-import { useState } from 'react';
-import { users } from '../../data/mockData';
+import { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
-import { Send, Image as ImageIcon, Users, Plus, X, Check } from 'lucide-react';
+import { Send, Image as ImageIcon, Users, Plus, X, Check, Search, MessageSquare } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { apiClient } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 
 export function Messages() {
-    const [selectedUser, setSelectedUser] = useState(users[0]);
-    const [message, setMessage] = useState('');
-    const [chatHistory, setChatHistory] = useState([
-        { id: 1, senderId: users[0].id, text: 'Hey! How are you doing?', timestamp: '10:00 AM' },
-        { id: 2, senderId: 'me', text: 'I am good, thanks! Working on the SupNum project.', timestamp: '10:05 AM' },
-        { id: 3, senderId: users[0].id, text: 'That sounds great! Need any help?', timestamp: '10:06 AM' },
-    ]);
-    const [isCreatingGroup, setIsCreatingGroup] = useState(false);
-    const [groupName, setGroupName] = useState('');
-    const [groups, setGroups] = useState([
-        { id: 'g1', name: 'Study Group A', members: 3 }
-    ]);
+    const { user: currentUser } = useAuth();
+    const { t } = useLanguage();
+    const location = useLocation();
+    const [conversations, setConversations] = useState([]);
+    const [selectedConv, setSelectedConv] = useState(null);
+    const [messages, setMessages] = useState([]);
+    const [newMessage, setNewMessage] = useState('');
+    const [loading, setLoading] = useState(true);
+    const messagesEndRef = useRef(null);
 
-    const handleSend = (e) => {
-        e.preventDefault();
-        if (!message.trim()) return;
-
-        setChatHistory([
-            ...chatHistory,
-            { id: Date.now(), senderId: 'me', text: message, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
-        ]);
-        setMessage('');
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
-    const handleCreateGroup = (e) => {
+    useEffect(() => {
+        fetchConversations();
+    }, []);
+
+    useEffect(() => {
+        if (selectedConv) {
+            fetchMessages(selectedConv._id);
+        }
+    }, [selectedConv]);
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
+
+    const fetchConversations = async () => {
+        try {
+            const response = await apiClient.get('/messages/conversations');
+            setConversations(response.conversations);
+
+            // Check if we were redirected with a recipientId
+            if (location.state?.recipientId) {
+                const existingConv = response.conversations.find(c => {
+                    if (!c.lastMessage) return false;
+                    const otherUserId = String(c.lastMessage.senderId) === String(currentUser.id)
+                        ? String(c.lastMessage.recipientId)
+                        : String(c.lastMessage.senderId);
+                    return otherUserId === String(location.state.recipientId);
+                });
+
+                if (existingConv) {
+                    setSelectedConv(existingConv);
+                } else {
+                    // Create a "virtual" conversation for the UI until first message is sent
+                    setSelectedConv({
+                        _id: 'new',
+                        virtual: true,
+                        recipientId: location.state.recipientId,
+                        recipientName: location.state.recipientName,
+                        otherUser: {
+                            id: location.state.recipientId,
+                            name: location.state.recipientName,
+                            avatar: null // We could fetch this if needed
+                        }
+                    });
+                }
+            }
+
+            setLoading(false);
+        } catch (error) {
+            console.error('Failed to fetch conversations:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchMessages = async (convId) => {
+        if (convId === 'new') {
+            setMessages([]);
+            return;
+        }
+        try {
+            const response = await apiClient.get(`/messages/${convId}`);
+            setMessages(response.messages);
+        } catch (error) {
+            console.error('Failed to fetch messages:', error);
+        }
+    };
+
+    const handleSend = async (e) => {
         e.preventDefault();
-        if (!groupName.trim()) return;
+        if (!newMessage.trim() || !selectedConv) return;
 
-        const newGroup = {
-            id: `g${Date.now()}`,
-            name: groupName,
-            members: 1
-        };
+        let recipientId;
+        if (selectedConv.virtual) {
+            recipientId = selectedConv.recipientId;
+        } else {
+            recipientId = String(selectedConv.lastMessage.senderId) === String(currentUser.id)
+                ? selectedConv.lastMessage.recipientId
+                : selectedConv.lastMessage.senderId;
+        }
 
-        setGroups([...groups, newGroup]);
-        setIsCreatingGroup(false);
-        setGroupName('');
+        try {
+            const response = await apiClient.post('/messages', {
+                recipientId,
+                content: newMessage
+            });
+
+            const sentMessage = response.message;
+
+            if (selectedConv.virtual) {
+                // Refresh conversations and find the new one
+                const convsRes = await apiClient.get('/messages/conversations');
+                const newConvs = convsRes.conversations;
+                setConversations(newConvs);
+
+                const newConv = newConvs.find(c => c._id === sentMessage.conversationId);
+                if (newConv) {
+                    setSelectedConv(newConv);
+                    setMessages([sentMessage]);
+                } else {
+                    // Fallback if not found yet
+                    setSelectedConv({ _id: sentMessage.conversationId, lastMessage: sentMessage });
+                    setMessages([sentMessage]);
+                }
+            } else {
+                setMessages(prev => [...prev, sentMessage]);
+                // Refresh sidebar to update last message and unread count
+                const convsRes = await apiClient.get('/messages/conversations');
+                setConversations(convsRes.conversations);
+            }
+
+            setNewMessage('');
+        } catch (error) {
+            alert(error.message || t.messages.error);
+        }
+    };
+
+    const getOtherUser = (conv) => {
+        if (conv.virtual) return conv.otherUser;
+        if (!conv.lastMessage) return { name: 'Unknown', avatar: null };
+        return String(conv.lastMessage.senderId) === String(currentUser.id)
+            ? conv.lastMessage.recipient
+            : conv.lastMessage.sender;
     };
 
     return (
-        <div className="h-[calc(100vh-8rem)] flex bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm transition-colors duration-300">
+        <div className="h-[calc(100vh-8rem)] flex bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
             {/* Sidebar */}
-            <div className="w-80 border-r border-slate-200 dark:border-slate-800 flex flex-col bg-white dark:bg-slate-900">
-                <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
-                    <h2 className="font-bold text-lg text-slate-900 dark:text-white">Messages</h2>
-                    <Button size="icon" variant="ghost" onClick={() => setIsCreatingGroup(true)} title="Create Group" className="text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
-                        <Plus className="h-5 w-5" />
-                    </Button>
+            <div className="w-80 border-r border-slate-200 dark:border-slate-800 flex flex-col">
+                <div className="p-4 border-b border-slate-200 dark:border-slate-800">
+                    <h2 className="font-bold text-lg text-slate-900 dark:text-white">{t.messages.title}</h2>
                 </div>
 
-                <AnimatePresence>
-                    {isCreatingGroup && (
-                        <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="p-4 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 overflow-hidden"
-                        >
-                            <form onSubmit={handleCreateGroup} className="space-y-2">
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-400">New Group</span>
-                                    <button type="button" onClick={() => setIsCreatingGroup(false)}><X className="h-4 w-4 text-slate-400" /></button>
-                                </div>
-                                <Input
-                                    placeholder="Group Name"
-                                    value={groupName}
-                                    onChange={(e) => setGroupName(e.target.value)}
-                                    className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
-                                />
-                                <Button size="sm" type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                                    <Check className="h-4 w-4 mr-2" /> Create Group
-                                </Button>
-                            </form>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
                 <div className="flex-1 overflow-y-auto">
-                    {users.slice(0, 3).map((user) => (
-                        <button
-                            key={user.id}
-                            onClick={() => setSelectedUser(user)}
-                            className={cn(
-                                "w-full p-4 flex items-center space-x-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left",
-                                selectedUser?.id === user.id ? "bg-slate-50 dark:bg-slate-800 border-r-2 border-supnum-blue" : ""
-                            )}
-                        >
-                            <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden flex-shrink-0">
-                                {user.avatar ? (
-                                    <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
-                                ) : (
-                                    <div className="h-full w-full flex items-center justify-center font-bold text-slate-400 dark:text-slate-500">
-                                        {user.name[0]}
+                    {loading ? (
+                        <div className="p-8 text-center">
+                            <div className="w-6 h-6 border-2 border-blue-600/30 border-t-blue-600 rounded-full animate-spin mx-auto" />
+                        </div>
+                    ) : conversations.length === 0 && !selectedConv?.virtual ? (
+                        <div className="p-8 text-center text-slate-500 text-sm">
+                            {t.messages.noConversations}
+                        </div>
+                    ) : (
+                        <>
+                            {selectedConv?.virtual && (
+                                <button
+                                    className="w-full p-4 flex items-center space-x-3 bg-blue-50/50 dark:bg-blue-900/10 border-r-2 border-blue-600 text-left border-b border-slate-50 dark:border-slate-800/50"
+                                >
+                                    <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden flex-shrink-0">
+                                        <div className="h-full w-full flex items-center justify-center font-bold text-slate-400">
+                                            {selectedConv.recipientName[0]}
+                                        </div>
                                     </div>
-                                )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="font-medium truncate text-slate-900 dark:text-white">{user.name}</p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Click to chat</p>
-                            </div>
-                        </button>
-                    ))}
-
-                    {/* Groups List */}
-                    {groups.map(group => (
-                        <button
-                            key={group.id}
-                            onClick={() => setSelectedUser({ ...group, isGroup: true })}
-                            className={cn(
-                                "w-full p-4 flex items-center space-x-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left",
-                                selectedUser?.id === group.id ? "bg-slate-50 dark:bg-slate-800 border-r-2 border-supnum-blue" : ""
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-medium truncate text-slate-900 dark:text-white">{selectedConv.recipientName}</p>
+                                        <p className="text-xs text-blue-600">{t.messages.newConversation}</p>
+                                    </div>
+                                </button>
                             )}
-                        >
-                            <div className="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-                                <Users className="h-5 w-5" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="font-medium truncate text-slate-900 dark:text-white">{group.name}</p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{group.members} members</p>
-                            </div>
-                        </button>
-                    ))}
+                            {conversations.map((conv) => {
+                                const otherUser = getOtherUser(conv);
+                                return (
+                                    <button
+                                        key={conv._id}
+                                        onClick={() => setSelectedConv(conv)}
+                                        className={cn(
+                                            "w-full p-4 flex items-center space-x-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left border-b border-slate-50 dark:border-slate-800/50",
+                                            selectedConv?._id === conv._id ? "bg-blue-50/50 dark:bg-blue-900/10 border-r-2 border-blue-600" : ""
+                                        )}
+                                    >
+                                        <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden flex-shrink-0">
+                                            {otherUser.avatar ? (
+                                                <img src={otherUser.avatar} alt="" className="h-full w-full object-cover" />
+                                            ) : (
+                                                <div className="h-full w-full flex items-center justify-center font-bold text-slate-400">
+                                                    {otherUser.name[0]}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex justify-between items-start">
+                                                <p className="font-medium truncate text-slate-900 dark:text-white">{otherUser.name}</p>
+                                                {conv.unreadCount > 0 && (
+                                                    <span className="bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                                                        {conv.unreadCount}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                                {conv.lastMessage.content}
+                                            </p>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </>
+                    )}
                 </div>
             </div>
 
             {/* Chat Area */}
-            <div className="flex-1 flex flex-col bg-white dark:bg-slate-900">
-                {selectedUser ? (
+            <div className="flex-1 flex flex-col bg-slate-50/30 dark:bg-slate-950/20">
+                {selectedConv ? (
                     <>
-                        <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                        <div className="p-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                             <div className="flex items-center space-x-3">
                                 <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-                                    {selectedUser.isGroup ? (
-                                        <div className="h-full w-full flex items-center justify-center bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
-                                            <Users className="h-5 w-5" />
-                                        </div>
-                                    ) : selectedUser.avatar ? (
-                                        <img src={selectedUser.avatar} alt={selectedUser.name} className="h-full w-full object-cover" />
+                                    {getOtherUser(selectedConv).avatar ? (
+                                        <img src={getOtherUser(selectedConv).avatar} alt="" className="h-full w-full object-cover" />
                                     ) : (
-                                        <div className="h-full w-full flex items-center justify-center font-bold text-slate-400 dark:text-slate-500">
-                                            {selectedUser.name[0]}
+                                        <div className="h-full w-full flex items-center justify-center font-bold text-slate-400">
+                                            {getOtherUser(selectedConv).name[0]}
                                         </div>
                                     )}
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-slate-900 dark:text-white">{selectedUser.name}</h3>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                                        {selectedUser.isGroup ? `${selectedUser.members} members` : 'Online'}
-                                    </p>
+                                    <h3 className="font-bold text-slate-900 dark:text-white">{getOtherUser(selectedConv).name}</h3>
+                                    <p className="text-xs text-green-500">{t.messages.activeNow}</p>
                                 </div>
                             </div>
-                            <Button variant="ghost" size="sm" title="Add people to chat" className="text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
-                                <Users className="h-4 w-4" />
-                            </Button>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50 dark:bg-slate-950/50">
-                            {chatHistory.map((msg) => {
-                                const isMe = msg.senderId === 'me';
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                            {messages.map((msg) => {
+                                const isMe = String(msg.senderId) === String(currentUser.id);
                                 return (
-                                    <motion.div
-                                        key={msg.id}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className={cn("flex", isMe ? "justify-end" : "justify-start")}
-                                    >
+                                    <div key={msg.id} className={cn("flex", isMe ? "justify-end" : "justify-start")}>
                                         <div className={cn(
                                             "max-w-[70%] rounded-2xl px-4 py-2 shadow-sm",
-                                            isMe ? "bg-supnum-blue text-white rounded-br-none" : "bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-bl-none"
+                                            isMe ? "bg-blue-600 text-white rounded-br-none" : "bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-bl-none"
                                         )}>
-                                            <p>{msg.text}</p>
-                                            <p className={cn("text-[10px] mt-1 opacity-70", isMe ? "text-blue-100" : "text-slate-400 dark:text-slate-500")}>
-                                                {msg.timestamp}
+                                            <p className="text-sm">{msg.content}</p>
+                                            <p className={cn("text-[10px] mt-1 opacity-70", isMe ? "text-blue-100" : "text-slate-400")}>
+                                                {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </p>
                                         </div>
-                                    </motion.div>
+                                    </div>
                                 );
                             })}
+                            <div ref={messagesEndRef} />
                         </div>
 
                         <div className="p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
                             <form onSubmit={handleSend} className="flex items-center space-x-2">
-                                <Button type="button" variant="ghost" size="icon" className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
-                                    <ImageIcon className="h-5 w-5" />
-                                </Button>
                                 <Input
-                                    value={message}
-                                    onChange={(e) => setMessage(e.target.value)}
-                                    placeholder="Type a message..."
-                                    className="flex-1 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
+                                    value={newMessage}
+                                    onChange={(e) => setNewMessage(e.target.value)}
+                                    placeholder={t.messages.placeholder}
+                                    className="flex-1 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
                                 />
-                                <Button type="submit" size="icon" disabled={!message.trim()} className="bg-supnum-blue hover:bg-blue-700 text-white">
+                                <Button type="submit" size="icon" disabled={!newMessage.trim()} className="bg-blue-600 hover:bg-blue-700 text-white">
                                     <Send className="h-4 w-4" />
                                 </Button>
                             </form>
                         </div>
                     </>
                 ) : (
-                    <div className="flex-1 flex items-center justify-center text-slate-400 dark:text-slate-500">
-                        Select a conversation to start messaging
+                    <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
+                        <MessageSquare className="h-12 w-12 mb-4 opacity-20" />
+                        <p>{t.messages.selectPrompt}</p>
                     </div>
                 )}
             </div>

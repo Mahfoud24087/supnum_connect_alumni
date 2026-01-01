@@ -19,6 +19,8 @@ import { Search } from './pages/student/Search';
 import { Friends } from './pages/student/Friends';
 import { Messages } from './pages/student/Messages';
 import { UserProfile } from './pages/UserProfile';
+import { FindFriends } from './pages/student/FindFriends';
+import { ApplyOpportunity } from './pages/student/ApplyOpportunity';
 
 // Admin Pages
 import { AdminOverview } from './pages/admin/AdminOverview';
@@ -26,6 +28,7 @@ import { ManageEvents } from './pages/admin/ManageEvents';
 import { ManageUsers } from './pages/admin/ManageUsers';
 import { ManageInternships } from './pages/admin/ManageInternships';
 import { ManageCompanies } from './pages/admin/ManageCompanies';
+import { ManageApplications } from './pages/admin/ManageApplications';
 
 function App() {
   return (
@@ -53,7 +56,9 @@ function App() {
               <Route path="profile/:id" element={<UserProfile />} />
               <Route path="search" element={<Search />} />
               <Route path="friends" element={<Friends />} />
+              <Route path="find-friends" element={<FindFriends />} />
               <Route path="messages" element={<Messages />} />
+              <Route path="apply/:id" element={<ApplyOpportunity />} />
             </Route>
 
             {/* Admin Routes */}
@@ -67,6 +72,8 @@ function App() {
               <Route path="users" element={<ManageUsers />} />
               <Route path="internships" element={<ManageInternships />} />
               <Route path="companies" element={<ManageCompanies />} />
+              <Route path="applications" element={<ManageApplications />} />
+              <Route path="messages" element={<Messages />} />
               <Route path="profile/:id" element={<UserProfile />} />
             </Route>
 

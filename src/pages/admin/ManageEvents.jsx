@@ -5,18 +5,17 @@ import { Card, CardContent } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Plus, Calendar, Edit, Trash2, ArrowRight, Trophy, Zap, X, Save, Image as ImageIcon, Clock, Briefcase, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { events as initialMockEvents } from '../../data/mockData';
+import { apiClient } from '../../services/api';
+import { EventModal } from '../../components/EventModal';
 
 export function ManageEvents() {
     const { t } = useLanguage();
-    const [events, setEvents] = useState(() => {
-        const saved = localStorage.getItem('supnum_events');
-        return saved ? JSON.parse(saved) : initialMockEvents;
-    });
-
+    const [events, setEvents] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [isAdding, setIsAdding] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [currentEventId, setCurrentEventId] = useState(null);
+    const [selectedEvent, setSelectedEvent] = useState(null);
 
     const [newEvent, setNewEvent] = useState({
         title: '',
@@ -29,9 +28,21 @@ export function ManageEvents() {
         color: 'bg-blue-600'
     });
 
+    const fetchEvents = async () => {
+        try {
+            setLoading(true);
+            const response = await apiClient.get('/events');
+            setEvents(response.events);
+        } catch (error) {
+            console.error('Failed to fetch events:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        localStorage.setItem('supnum_events', JSON.stringify(events));
-    }, [events]);
+        fetchEvents();
+    }, []);
 
     const handleImageUpload = (e) => {
         const file = e.target.files[0];
@@ -44,16 +55,21 @@ export function ManageEvents() {
         }
     };
 
-    const handleDelete = (id) => {
+    const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this event?')) {
-            setEvents(events.filter(e => e.id !== id));
+            try {
+                await apiClient.delete(`/events/${id}`);
+                fetchEvents();
+            } catch (error) {
+                alert('Failed to delete event');
+            }
         }
     };
 
     const handleEdit = (event) => {
         setNewEvent({
             title: event.title,
-            date: event.date,
+            date: event.date.split('T')[0], // Format for date input if needed, but the mock used strings
             type: event.type,
             description: event.description,
             image: event.image || '',
@@ -66,29 +82,20 @@ export function ManageEvents() {
         setIsAdding(true);
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-
-        if (isEditing) {
-            setEvents(events.map(ev => ev.id === currentEventId ? {
-                ...ev,
-                ...newEvent,
-                color: newEvent.type === 'Challenge' ? 'bg-sky-500' : newEvent.type === 'Contest' ? 'bg-amber-500' : 'bg-blue-600'
-            } : ev));
-            setIsEditing(false);
-            setCurrentEventId(null);
-        } else {
-            const event = {
-                id: Date.now(),
-                ...newEvent,
-                createdAt: new Date().toISOString(),
-                color: newEvent.type === 'Challenge' ? 'bg-sky-500' : newEvent.type === 'Contest' ? 'bg-amber-500' : 'bg-blue-600'
-            };
-            setEvents([event, ...events]);
+        try {
+            if (isEditing) {
+                await apiClient.put(`/events/${currentEventId}`, newEvent);
+            } else {
+                await apiClient.post('/events', newEvent);
+            }
+            fetchEvents();
+            setIsAdding(false);
+            resetForm();
+        } catch (error) {
+            alert(error.message || 'Failed to save event');
         }
-
-        setIsAdding(false);
-        resetForm();
     };
 
     const resetForm = () => {
@@ -105,6 +112,14 @@ export function ManageEvents() {
         setIsEditing(false);
         setCurrentEventId(null);
     };
+
+    if (loading) {
+        return (
+            <div className="flex justify-center py-12">
+                <div className="w-8 h-8 border-4 border-blue-600/30 border-t-blue-600 rounded-full animate-spin" />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-8">
@@ -305,7 +320,10 @@ export function ManageEvents() {
                                 </div>
 
                                 <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100 dark:border-slate-700">
-                                    <button className="flex items-center text-sm font-semibold text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                                    <button
+                                        onClick={() => setSelectedEvent(event)}
+                                        className="flex items-center text-sm font-semibold text-slate-900 dark:text-white hover:text-blue-600 dark:hover:bg-blue-400 transition-colors"
+                                    >
                                         {t.admin.events.learnMore} <ArrowRight className="ml-2 h-4 w-4" />
                                     </button>
                                     <div className="flex space-x-2">
@@ -331,6 +349,7 @@ export function ManageEvents() {
                     </motion.div>
                 ))}
             </div>
+            <EventModal event={selectedEvent} isOpen={!!selectedEvent} onClose={() => setSelectedEvent(null)} />
         </div>
     );
 }
