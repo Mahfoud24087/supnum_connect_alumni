@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
-import { Send, Image as ImageIcon, Users, Plus, X, Check, Search, MessageSquare } from 'lucide-react';
+import { Send, Image as ImageIcon, Users, Plus, X, Check, Search, MessageSquare, ArrowLeft } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiClient } from '../../services/api';
@@ -150,9 +150,12 @@ export function Messages() {
     };
 
     return (
-        <div className="h-[calc(100vh-8rem)] flex bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+        <div className="h-[calc(100vh-8rem)] flex bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm relative">
             {/* Sidebar */}
-            <div className="w-80 border-r border-slate-200 dark:border-slate-800 flex flex-col">
+            <div className={cn(
+                "w-full md:w-80 border-r border-slate-200 dark:border-slate-800 flex flex-col",
+                selectedConv ? "hidden md:flex" : "flex"
+            )}>
                 <div className="p-4 border-b border-slate-200 dark:border-slate-800">
                     <h2 className="font-bold text-lg text-slate-900 dark:text-white">{t.messages.title}</h2>
                 </div>
@@ -170,6 +173,7 @@ export function Messages() {
                         <>
                             {selectedConv?.virtual && (
                                 <button
+                                    onClick={() => setSelectedConv(selectedConv)}
                                     className="w-full p-4 flex items-center space-x-3 bg-blue-50/50 dark:bg-blue-900/10 border-r-2 border-blue-600 text-left border-b border-slate-50 dark:border-slate-800/50"
                                 >
                                     <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden flex-shrink-0">
@@ -213,7 +217,7 @@ export function Messages() {
                                                 )}
                                             </div>
                                             <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                                                {conv.lastMessage.content}
+                                                {conv.lastMessage?.content}
                                             </p>
                                         </div>
                                     </button>
@@ -225,11 +229,22 @@ export function Messages() {
             </div>
 
             {/* Chat Area */}
-            <div className="flex-1 flex flex-col bg-slate-50/30 dark:bg-slate-950/20">
+            <div className={cn(
+                "flex-1 flex flex-col bg-slate-50/30 dark:bg-slate-950/20",
+                !selectedConv ? "hidden md:flex" : "flex"
+            )}>
                 {selectedConv ? (
                     <>
                         <div className="p-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                             <div className="flex items-center space-x-3">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="md:hidden -ml-2 h-8 w-8 text-slate-500"
+                                    onClick={() => setSelectedConv(null)}
+                                >
+                                    <ArrowLeft className="h-5 w-5" />
+                                </Button>
                                 <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
                                     {getOtherUser(selectedConv).avatar ? (
                                         <img src={getOtherUser(selectedConv).avatar} alt="" className="h-full w-full object-cover" />
@@ -252,7 +267,7 @@ export function Messages() {
                                 return (
                                     <div key={msg.id} className={cn("flex", isMe ? "justify-end" : "justify-start")}>
                                         <div className={cn(
-                                            "max-w-[70%] rounded-2xl px-4 py-2 shadow-sm",
+                                            "max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-2 shadow-sm",
                                             isMe ? "bg-blue-600 text-white rounded-br-none" : "bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-bl-none"
                                         )}>
                                             <p className="text-sm">{msg.content}</p>
