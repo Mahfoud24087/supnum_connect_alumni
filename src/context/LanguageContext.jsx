@@ -6,7 +6,7 @@ export const translations = {
     EN: {
         nav: { home: 'Home', events: 'Events', about: 'About', signin: 'Sign In', signup: 'Sign Up' },
         dashboard: {
-            nav: { dashboard: 'Dashboard', profile: 'Profile', users: 'Users', friends: 'Friends', messages: 'Messages' },
+            nav: { dashboard: 'Dashboard', profile: 'Profile', users: 'Users', friends: 'Friends', messages: 'Messages', feed: 'Feed' },
             welcome: 'Welcome,',
             welcomeSubtitle: "Here's what's happening in your SupNum network.",
             stats: { totalUsers: 'Total Users', friends: 'Your Friends', pending: 'Pending Requests' },
@@ -33,7 +33,89 @@ export const translations = {
                 internships: 'Internships'
             },
             events: { title: 'Recent Events', create: 'Create Event', edit: 'Edit', delete: 'Delete', learnMore: 'Learn More', days: 'Days' },
-            users: { title: 'Manage Users', search: 'Search users...', role: 'Role', actions: 'Actions', remove: 'Remove' }
+            users: { title: 'Manage Users', search: 'Search users...', role: 'Role', actions: 'Actions', remove: 'Remove' },
+            manageUsers: {
+                title: 'User Management',
+                allStatus: 'All Status',
+                verified: 'Verified',
+                pending: 'Pending',
+                suspended: 'Suspended',
+                exportCSV: 'Export CSV',
+                approve: 'Approve',
+                suspend: 'Suspend',
+                reactivate: 'Reactivate',
+                viewProfile: 'View Profile',
+                removeUser: 'Remove User',
+                noUsers: 'No users found.',
+                confirmDelete: 'Are you sure you want to remove this user?',
+                failedDelete: 'Failed to delete user',
+                failedUpdate: 'Failed to update status',
+                exportFailed: 'Export failed'
+            },
+            manageInternships: {
+                title: 'Internships & Opportunities',
+                postOpportunity: 'Post Opportunity',
+                searchPlaceholder: 'Search internships...',
+                active: 'Active',
+                closed: 'Closed',
+                editOpportunity: 'Edit Opportunity',
+                view: 'View',
+                delete: 'Delete',
+                confirmDelete: 'Are you sure you want to delete this opportunity?',
+                failedDelete: 'Failed to delete internship',
+                failedToggle: 'Failed to toggle status',
+                form: {
+                    jobTitle: 'Job Title',
+                    company: 'Company',
+                    type: 'Type',
+                    location: 'Location',
+                    appRequirements: 'Application Requirements',
+                    requireCv: 'Require CV',
+                    requireMessage: 'Require Message',
+                    requirePhone: 'Require Phone',
+                    activeListing: 'Active Listing',
+                    customQuestions: 'Custom Questions',
+                    addQuestion: 'Add Question',
+                    noQuestions: 'No custom questions added.',
+                    saveChanges: 'Save Changes',
+                    cancel: 'Cancel',
+                    questionLabel: 'Question Label (e.g. Portfolio Link)',
+                    options: 'Options (comma separated)',
+                    required: 'Required'
+                }
+            },
+            manageApplications: {
+                title: 'Job Applications',
+                all: 'All',
+                pending: 'Pending',
+                accepted: 'Accepted',
+                rejected: 'Rejected',
+                contact: 'Applicant Contact & Message',
+                additionalQuestions: 'Additional Questions',
+                viewCv: 'View CV / Portfolio',
+                noCv: 'No CV provided',
+                reject: 'Reject',
+                accept: 'Accept',
+                noApplications: 'No applications found',
+                noApplicationsDesc: 'Applications for internships and jobs will appear here.'
+            },
+            manageCompanies: {
+                title: 'Partner Companies',
+                addCompany: 'Add Company',
+                editCompany: 'Edit Company',
+                searchPlaceholder: 'Search companies...',
+                partner: 'Partner',
+                confirmDelete: 'Are you sure you want to remove this company?',
+                form: {
+                    name: 'Company Name',
+                    industry: 'Industry',
+                    location: 'Location',
+                    website: 'Website',
+                    save: 'Save Changes',
+                    add: 'Add Company',
+                    cancel: 'Cancel'
+                }
+            }
         },
         profile: {
             title: 'My Profile',
@@ -50,7 +132,11 @@ export const translations = {
             bioPlaceholder: 'Tell us about yourself...',
             locationPlaceholder: 'e.g. Nouakchott, Mauritania',
             jobPlaceholder: 'e.g. Software Engineer',
-            companyPlaceholder: 'e.g. Tech Corp'
+            companyPlaceholder: 'e.g. Tech Corp',
+            cv: 'CV / Resume',
+            uploadCv: 'Upload CV (PDF)',
+            gallery: 'Image Gallery',
+            addGalleryImage: 'Add Image'
         },
         hero: {
             welcome: 'Welcome to the SupNum Community',
@@ -110,6 +196,19 @@ export const translations = {
             eventsTitle: 'Events & Challenges'
         },
         common: {
+            roles: {
+                student: 'Student',
+                admin: 'Admin',
+                graduate: 'Graduate',
+                company: 'Company'
+            },
+            statusLabels: {
+                verified: 'Verified',
+                pending: 'Pending',
+                suspended: 'Suspended',
+                active: 'Active',
+                inactive: 'Inactive'
+            },
             close: 'Close',
             back: 'Back'
         },
@@ -217,12 +316,35 @@ export const translations = {
             messagePlaceholder: 'Briefly explain why you are applying...',
             submitting: 'Submitting...',
             submit: 'Submit Application'
+        },
+        feed: {
+            title: 'Community Feed',
+            subtitle: 'Share your thoughts, ask questions, and connect with the community.',
+            placeholder: "What's on your mind?",
+            post: 'Post',
+            question: 'Ask Question',
+            liked: 'Liked',
+            like: 'Like',
+            comment: 'Comment',
+            comments: 'Comments',
+            noPosts: 'No posts yet. Be the first to share something!',
+            deleteConfirm: 'Are you sure you want to delete this post?',
+            justNow: 'Just now',
+            writeComment: 'Write a comment...',
+            reply: 'Reply',
+            replies: 'Replies',
+            share: 'Share',
+            confirmDeleteTitle: 'Delete Post',
+            confirmDeleteMessage: 'This action cannot be undone. Are you sure you want to delete this post?',
+            cancel: 'Cancel',
+            delete: 'Delete',
+            copied: 'Link copied to clipboard!'
         }
     },
     FR: {
         nav: { home: 'Accueil', events: 'Événements', about: 'À propos', signin: 'Se connecter', signup: "S'inscrire" },
         dashboard: {
-            nav: { dashboard: 'Tableau de bord', profile: 'Profil', users: 'Utilisateurs', friends: 'Amis', messages: 'Messages' },
+            nav: { dashboard: 'Tableau de bord', profile: 'Profil', users: 'Utilisateurs', friends: 'Amis', messages: 'Messages', feed: 'Flux' },
             welcome: 'Bienvenue,',
             welcomeSubtitle: "Voici ce qui se passe dans votre réseau SupNum.",
             stats: { totalUsers: 'Total Utilisateurs', friends: 'Vos Amis', pending: 'Demandes en attente' },
@@ -251,7 +373,89 @@ export const translations = {
                 internships: 'Stages'
             },
             events: { title: 'Événements Récents', create: 'Créer un événement', edit: 'Modifier', delete: 'Supprimer', learnMore: 'En savoir plus', days: 'Jours' },
-            users: { title: 'Gérer les utilisateurs', search: 'Rechercher...', role: 'Rôle', actions: 'Actions', remove: 'Supprimer' }
+            users: { title: 'Gérer les utilisateurs', search: 'Rechercher...', role: 'Rôle', actions: 'Actions', remove: 'Supprimer' },
+            manageUsers: {
+                title: 'Gestion des Utilisateurs',
+                allStatus: 'Tous les statuts',
+                verified: 'Vérifié',
+                pending: 'En attente',
+                suspended: 'Suspendu',
+                exportCSV: 'Exporter CSV',
+                approve: 'Approuver',
+                suspend: 'Suspendre',
+                reactivate: 'Réactiver',
+                viewProfile: 'Voir le profil',
+                removeUser: 'Supprimer l\'utilisateur',
+                noUsers: 'Aucun utilisateur trouvé.',
+                confirmDelete: 'Êtes-vous sûr de vouloir supprimer cet utilisateur ?',
+                failedDelete: 'Échec de la suppression de l\'utilisateur',
+                failedUpdate: 'Échec de la mise à jour du statut',
+                exportFailed: 'Échec de l\'exportation'
+            },
+            manageInternships: {
+                title: 'Stages & Opportunités',
+                postOpportunity: 'Publier une opportunité',
+                searchPlaceholder: 'Rechercher des stages...',
+                active: 'Actif',
+                closed: 'Fermé',
+                editOpportunity: 'Modifier l\'opportunité',
+                view: 'Voir',
+                delete: 'Supprimer',
+                confirmDelete: 'Êtes-vous sûr de vouloir supprimer cette opportunité ?',
+                failedDelete: 'Échec de la suppression du stage',
+                failedToggle: 'Échec du changement de statut',
+                form: {
+                    jobTitle: 'Intitulé du poste',
+                    company: 'Entreprise',
+                    type: 'Type',
+                    location: 'Lieu',
+                    appRequirements: 'Exigences de candidature',
+                    requireCv: 'Exiger un CV',
+                    requireMessage: 'Exiger un message',
+                    requirePhone: 'Exiger un téléphone',
+                    activeListing: 'Annonce active',
+                    customQuestions: 'Questions personnalisées',
+                    addQuestion: 'Ajouter une question',
+                    noQuestions: 'Aucune question personnalisée ajoutée.',
+                    saveChanges: 'Enregistrer',
+                    cancel: 'Annuler',
+                    questionLabel: 'Libellé de la question (ex : Lien Portfolio)',
+                    options: 'Options (séparées par des virgules)',
+                    required: 'Obligatoire'
+                }
+            },
+            manageApplications: {
+                title: 'Candidatures',
+                all: 'Tout',
+                pending: 'En attente',
+                accepted: 'Accepté',
+                rejected: 'Rejeté',
+                contact: 'Contact & Message du candidat',
+                additionalQuestions: 'Questions supplémentaires',
+                viewCv: 'Voir CV / Portfolio',
+                noCv: 'Aucun CV fourni',
+                reject: 'Rejeter',
+                accept: 'Accepter',
+                noApplications: 'Aucune candidature trouvée',
+                noApplicationsDesc: 'Les candidatures aux stages et emplois apparaîtront ici.'
+            },
+            manageCompanies: {
+                title: 'Entreprises Partenaires',
+                addCompany: 'Ajouter une entreprise',
+                editCompany: 'Modifier l\'entreprise',
+                searchPlaceholder: 'Rechercher des entreprises...',
+                partner: 'Partenaire',
+                confirmDelete: 'Êtes-vous sûr de vouloir supprimer cette entreprise ?',
+                form: {
+                    name: 'Nom de l\'entreprise',
+                    industry: 'Secteur',
+                    location: 'Lieu',
+                    website: 'Site web',
+                    save: 'Enregistrer',
+                    add: 'Ajouter',
+                    cancel: 'Annuler'
+                }
+            }
         },
         profile: {
             title: 'Mon Profil',
@@ -268,7 +472,11 @@ export const translations = {
             bioPlaceholder: 'Parlez-nous de vous...',
             locationPlaceholder: 'ex: Nouakchott, Mauritanie',
             jobPlaceholder: 'ex: Ingénieur Logiciel',
-            companyPlaceholder: 'ex: Tech Corp'
+            companyPlaceholder: 'ex: Tech Corp',
+            cv: 'CV / Resume',
+            uploadCv: 'Télécharger CV (PDF)',
+            gallery: 'Galerie d\'images',
+            addGalleryImage: 'Ajouter une image'
         },
         hero: {
             welcome: 'Bienvenue dans la communauté SupNum',
@@ -328,6 +536,19 @@ export const translations = {
             eventsTitle: 'Événements & Défis'
         },
         common: {
+            roles: {
+                student: 'Étudiant',
+                admin: 'Admin',
+                graduate: 'Diplômé',
+                company: 'Entreprise'
+            },
+            statusLabels: {
+                verified: 'Vérifié',
+                pending: 'En attente',
+                suspended: 'Suspendu',
+                active: 'Actif',
+                inactive: 'Inactif'
+            },
             save: 'Enregistrer les modifications',
             saving: 'Enregistrement...',
             saved: 'Modifications enregistrées avec succès !',
@@ -476,12 +697,35 @@ export const translations = {
             messagePlaceholder: 'Expliquez brièvement pourquoi vous postulez...',
             submitting: 'Envoi en cours...',
             submit: 'Soumettre la candidature'
+        },
+        feed: {
+            title: 'Fil d\'actualité',
+            subtitle: 'Partagez vos pensées, posez des questions et connectez-vous avec la communauté.',
+            placeholder: "Quoi de neuf ?",
+            post: 'Publier',
+            question: 'Poser une question',
+            liked: 'Aimé',
+            like: 'J\'aime',
+            comment: 'Commenter',
+            comments: 'Commentaires',
+            noPosts: 'Aucune publication pour le moment. Soyez le premier à partager !',
+            deleteConfirm: 'Êtes-vous sûr de vouloir supprimer cette publication ?',
+            justNow: 'À l\'instant',
+            writeComment: 'Écrire un commentaire...',
+            reply: 'Répondre',
+            replies: 'Réponses',
+            share: 'Partager',
+            confirmDeleteTitle: 'Supprimer la publication',
+            confirmDeleteMessage: 'Cette action ne peut pas être annulée. Êtes-vous sûr de vouloir supprimer cette publication ?',
+            cancel: 'Annuler',
+            delete: 'Supprimer',
+            copied: 'Lien copié dans le presse-papiers !'
         }
     },
     AR: {
         nav: { home: 'الرئيسية', events: 'الأحداث', about: 'حول', signin: 'تسجيل الدخول', signup: 'إنشاء حساب' },
         dashboard: {
-            nav: { dashboard: 'لوحة التحكم', profile: 'الملف الشخصي', users: 'المستخدمين', friends: 'الأصدقاء', messages: 'الرسائل' },
+            nav: { dashboard: 'لوحة التحكم', profile: 'الملف الشخصي', users: 'المستخدمين', friends: 'الأصدقاء', messages: 'الرسائل', feed: 'آخر الأخبار' },
             welcome: 'مرحبًا،',
             welcomeSubtitle: 'إليك ما يحدث في شبكة SupNum الخاصة بك.',
             stats: { totalUsers: 'إجمالي المستخدمين', friends: 'أصدقاؤك', pending: 'طلبات معلقة' },
@@ -510,7 +754,89 @@ export const translations = {
                 internships: 'تدريب'
             },
             events: { title: 'الأحداث الأخيرة', create: 'إنشاء حدث', edit: 'تعديل', delete: 'حذف', learnMore: 'المزيد', days: 'أيام' },
-            users: { title: 'إدارة المستخدمين', search: 'البحث عن مستخدمين...', role: 'الدور', actions: 'إجراءات', remove: 'إزالة' }
+            users: { title: 'إدارة المستخدمين', search: 'البحث عن مستخدمين...', role: 'الدور', actions: 'إجراءات', remove: 'إزالة' },
+            manageUsers: {
+                title: 'إدارة المستخدمين',
+                allStatus: 'كل الحالات',
+                verified: 'موثق',
+                pending: 'معلق',
+                suspended: 'موقوف',
+                exportCSV: 'تصدير CSV',
+                approve: 'قبول',
+                suspend: 'إيقاف',
+                reactivate: 'إعادة تفعيل',
+                viewProfile: 'عرض الملف الشخصي',
+                removeUser: 'حذف المستخدم',
+                noUsers: 'لم يتم العثور على مستخدمين.',
+                confirmDelete: 'هل أنت متأكد أنك تريد حذف هذا المستخدم؟',
+                failedDelete: 'فشل حذف المستخدم',
+                failedUpdate: 'فشل تحديث الحالة',
+                exportFailed: 'فشل التصدير'
+            },
+            manageInternships: {
+                title: 'التدريب والفرص',
+                postOpportunity: 'نشر فرصة',
+                searchPlaceholder: 'البحث عن فرص...',
+                active: 'نشط',
+                closed: 'مغلق',
+                editOpportunity: 'تعديل الفرصة',
+                view: 'عرض',
+                delete: 'حذف',
+                confirmDelete: 'هل أنت متأكد أنك تريد حذف هذه الفرصة؟',
+                failedDelete: 'فشل حذف الفرصة',
+                failedToggle: 'فشل تغيير الحالة',
+                form: {
+                    jobTitle: 'مسمى الوظيفة',
+                    company: 'الشركة',
+                    type: 'النوع',
+                    location: 'الموقع',
+                    appRequirements: 'متطلبات التقديم',
+                    requireCv: 'طلب السيرة الذاتية',
+                    requireMessage: 'طلب رسالة',
+                    requirePhone: 'طلب رقم الهاتف',
+                    activeListing: 'إعلان نشط',
+                    customQuestions: 'أسئلة مخصصة',
+                    addQuestion: 'إضافة سؤال',
+                    noQuestions: 'لم تتم إضافة أسئلة مخصصة.',
+                    saveChanges: 'حفظ التغييرات',
+                    cancel: 'إلغاء',
+                    questionLabel: 'نص السؤال (مثال: رابط المعرض)',
+                    options: 'الخيارات (مفصولة بفاصلة)',
+                    required: 'مطلوب'
+                }
+            },
+            manageApplications: {
+                title: 'طلبات التوظيف',
+                all: 'الكل',
+                pending: 'قيد الانتظار',
+                accepted: 'مقبول',
+                rejected: 'مرفوض',
+                contact: 'بيانات الاتصال والرسالة',
+                additionalQuestions: 'أسئلة إضافية',
+                viewCv: 'عرض السيرة الذاتية / بورتفوليو',
+                noCv: 'لم يتم تقديم سيرة ذاتية',
+                reject: 'رفض',
+                accept: 'قبول',
+                noApplications: 'لا توجد طلبات',
+                noApplicationsDesc: 'ستظهر طلبات التدريب والوظائف هنا.'
+            },
+            manageCompanies: {
+                title: 'الشركات الشريكة',
+                addCompany: 'إضافة شركة',
+                editCompany: 'تعديل الشركة',
+                searchPlaceholder: 'البحث عن شركات...',
+                partner: 'شريك',
+                confirmDelete: 'هل أنت متأكد أنك تريد حذف هذه الشركة؟',
+                form: {
+                    name: 'اسم الشركة',
+                    industry: 'المجال',
+                    location: 'الموقع',
+                    website: 'الموقع الإلكتروني',
+                    save: 'حفظ التغييرات',
+                    add: 'إضافة شركة',
+                    cancel: 'إلغاء'
+                }
+            }
         },
         profile: {
             title: 'ملفي الشخصي',
@@ -527,7 +853,11 @@ export const translations = {
             bioPlaceholder: 'أخبرنا عن نفسك...',
             locationPlaceholder: 'مثال: نواكشوط، موريتانيا',
             jobPlaceholder: 'مثال: مهندس برمجيات',
-            companyPlaceholder: 'مثال: شركة تقنية'
+            companyPlaceholder: 'مثال: شركة تقنية',
+            cv: 'السيرة الذاتية',
+            uploadCv: 'رفع السيرة الذاتية (PDF)',
+            gallery: 'معرض الصور',
+            addGalleryImage: 'إضافة صورة'
         },
         hero: {
             welcome: 'مرحبًا بكم في مجتمع SupNum',
@@ -587,6 +917,19 @@ export const translations = {
             eventsTitle: 'الأحداث والتحديات'
         },
         common: {
+            roles: {
+                student: 'طالب',
+                admin: 'مسؤول',
+                graduate: 'خريج',
+                company: 'شركة'
+            },
+            statusLabels: {
+                verified: 'تم التحقق',
+                pending: 'قيد الانتظار',
+                suspended: 'موقوف',
+                active: 'نشط',
+                inactive: 'غير نشط'
+            },
             save: 'حفظ التغييرات',
             saving: 'جاري الحفظ...',
             saved: 'تم حفظ التغييرات بنجاح!',
@@ -736,6 +1079,29 @@ export const translations = {
             messagePlaceholder: 'اشرح باختصار سبب تقدمك...',
             submitting: 'جاري الإرسال...',
             submit: 'تقديم الطلب'
+        },
+        feed: {
+            title: 'آخر الأخبار',
+            subtitle: 'شارك أفكارك، اطرح الأسئلة، وتواصل مع المجتمع.',
+            placeholder: "بماذا تفكر؟",
+            post: 'نشر',
+            question: 'اطرح سؤالاً',
+            liked: 'أعجبني',
+            like: 'إعجاب',
+            comment: 'تعليق',
+            comments: 'تعليقات',
+            noPosts: 'لا توجد منشورات بعد. كن أول من يشارك شيئاً!',
+            deleteConfirm: 'هل أنت متأكد من حذف هذا المنشور؟',
+            justNow: 'الآن',
+            writeComment: 'اكتب تعليقاً...',
+            reply: 'رد',
+            replies: 'ردود',
+            share: 'مشاركة',
+            confirmDeleteTitle: 'حذف المنشور',
+            confirmDeleteMessage: 'لا يمكن التراجع عن هذا الإجراء. هل أنت متأكد من حذف هذا المنشور؟',
+            cancel: 'إلغاء',
+            delete: 'حذف',
+            copied: 'تم نسخ الرابط!'
         }
     }
 };

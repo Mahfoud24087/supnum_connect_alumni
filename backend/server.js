@@ -16,6 +16,7 @@ const internshipRoutes = require('./routes/internships');
 const messageRoutes = require('./routes/messages');
 const applicationRoutes = require('./routes/applications');
 const notificationRoutes = require('./routes/notifications');
+const postRoutes = require('./routes/posts');
 
 const app = express();
 
@@ -96,9 +97,14 @@ app.disable('x-powered-by'); // Extra precaution to hide server type
 // Compression middleware
 app.use(compression());
 
+const path = require('path');
+
 // Body parser
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Serve static files
+app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -109,6 +115,7 @@ app.use('/api/internships', internshipRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/posts', postRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -127,11 +134,17 @@ app.use((req, res) => {
 // Error handler (must be last)
 app.use(errorHandler);
 
+const http = require('http');
+const { initSocket } = require('./utils/socket');
+
+const server = http.createServer(app);
+const io = initSocket(server);
+
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, '0.0.0.0', () => {
+server.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
     console.log(`📝 API Documentation: http://localhost:${PORT}/api/health`);
 });
 
-module.exports = app;
+module.exports = { app, server };

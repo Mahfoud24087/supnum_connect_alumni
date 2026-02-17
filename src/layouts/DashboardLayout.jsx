@@ -18,7 +18,8 @@ import {
     Briefcase,
     Building,
     Home,
-    UserPlus
+    UserPlus,
+    Newspaper
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { cn } from '../lib/utils';
@@ -66,6 +67,7 @@ export function DashboardLayout() {
         { name: t.footer.findAlumni, path: '/dashboard/find-friends', icon: UserPlus },
         { name: t.dashboard.nav.friends, path: '/dashboard/friends', icon: Users },
         { name: t.dashboard.nav.messages, path: '/dashboard/messages', icon: MessageSquare },
+        { name: t.dashboard.nav.feed, path: '/dashboard/feed', icon: Newspaper },
     ];
 
     useEffect(() => {

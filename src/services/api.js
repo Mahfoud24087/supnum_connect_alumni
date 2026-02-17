@@ -8,16 +8,22 @@ class ApiClient {
 
     async request(endpoint, options = {}) {
         const url = `${this.baseURL}${endpoint}`;
-        console.log(`API Request: ${options.method || 'GET'} ${url}`);
+        // console.log(`API Request: ${options.method || 'GET'} ${url}`);
         const token = localStorage.getItem('auth_token');
+
+        const headers = {
+            ...(token && { 'Authorization': `Bearer ${token}` }),
+            ...options.headers,
+        };
+
+        // Only set Content-Type to application/json if body is NOT FormData
+        if (!(options.body instanceof FormData) && !headers['Content-Type']) {
+            headers['Content-Type'] = 'application/json';
+        }
 
         const config = {
             ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                ...(token && { 'Authorization': `Bearer ${token}` }),
-                ...options.headers,
-            },
+            headers,
         };
 
         try {
@@ -39,17 +45,19 @@ class ApiClient {
         return this.request(endpoint, { method: 'GET' });
     }
 
-    post(endpoint, data) {
+    post(endpoint, data, options = {}) {
         return this.request(endpoint, {
             method: 'POST',
-            body: JSON.stringify(data),
+            body: data instanceof FormData ? data : JSON.stringify(data),
+            ...options
         });
     }
 
-    put(endpoint, data) {
+    put(endpoint, data, options = {}) {
         return this.request(endpoint, {
             method: 'PUT',
-            body: JSON.stringify(data),
+            body: data instanceof FormData ? data : JSON.stringify(data),
+            ...options
         });
     }
 
@@ -57,10 +65,11 @@ class ApiClient {
         return this.request(endpoint, { method: 'DELETE' });
     }
 
-    patch(endpoint, data) {
+    patch(endpoint, data, options = {}) {
         return this.request(endpoint, {
             method: 'PATCH',
-            body: JSON.stringify(data),
+            body: data instanceof FormData ? data : JSON.stringify(data),
+            ...options
         });
     }
 }

@@ -56,13 +56,11 @@ export function ManageEvents() {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this event?')) {
-            try {
-                await apiClient.delete(`/events/${id}`);
-                fetchEvents();
-            } catch (error) {
-                alert('Failed to delete event');
-            }
+        try {
+            await apiClient.delete(`/events/${id}`);
+            fetchEvents();
+        } catch (error) {
+            console.error(error);
         }
     };
 
@@ -94,7 +92,7 @@ export function ManageEvents() {
             setIsAdding(false);
             resetForm();
         } catch (error) {
-            alert(error.message || 'Failed to save event');
+            console.error(error);
         }
     };
 

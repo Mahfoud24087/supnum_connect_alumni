@@ -42,7 +42,7 @@ export function DashboardHome() {
             await apiClient.patch(`/users/connect/${requestId}/accept`);
             fetchData();
         } catch (error) {
-            alert('Failed to accept request');
+            console.error('Failed to accept request');
         }
     };
 
@@ -51,7 +51,7 @@ export function DashboardHome() {
             await apiClient.patch(`/users/connect/${requestId}/reject`);
             fetchData();
         } catch (error) {
-            alert('Failed to reject request');
+            console.error('Failed to reject request');
         }
     };
 
@@ -61,7 +61,7 @@ export function DashboardHome() {
             // Remove from suggestions
             setSuggestions(suggestions.filter(s => s.id !== userId));
         } catch (error) {
-            alert('Failed to send request');
+            console.error('Failed to send request');
         }
     };
 

@@ -89,6 +89,14 @@ const User = sequelize.define('User', {
     socialFacebook: {
         type: DataTypes.STRING,
         defaultValue: ''
+    },
+    cvUrl: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
+    gallery: {
+        type: DataTypes.JSONB,
+        defaultValue: []
     }
 }, {
     timestamps: true,
@@ -127,6 +135,10 @@ User.prototype.toJSON = function () {
     delete values.socialLinkedin;
     delete values.socialGithub;
     delete values.socialFacebook;
+
+    // Include new fields
+    values.cvUrl = values.cvUrl || null;
+    values.gallery = values.gallery || [];
 
     return values;
 };

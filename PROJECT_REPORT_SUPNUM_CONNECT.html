@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport de Projet - SupNum Connect</title>
+    <style>
+        body {
+            font-family: 'Calibri', 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #000;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        .page-break {
+            page-break-after: always;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        h1 {
+            color: #2E74B5;
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #1F4E79;
+            border-bottom: 1px solid #1F4E79;
+            padding-bottom: 10px;
+            margin-top: 40px;
+            page-break-inside: avoid;
+        }
+
+        h3 {
+            color: #2E74B5;
+            margin-top: 25px;
+            page-break-inside: avoid;
+        }
+
+        .subtitle {
+            font-size: 24px;
+            text-align: center;
+            color: #444;
+            margin-bottom: 60px;
+        }
+
+        .authors {
+            text-align: center;
+            font-size: 14px;
+            margin-top: auto;
+        }
+
+        .toc-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .toc-dots {
+            border-bottom: 1px dotted #999;
+            flex-grow: 1;
+            margin: 0 5px;
+            position: relative;
+            top: -5px;
+        }
+
+        .screenshot-placeholder {
+            border: 2px dashed #999;
+            background-color: #f9f9f9;
+            color: #666;
+            padding: 80px 20px;
+            text-align: center;
+            margin: 20px 0;
+            font-style: italic;
+        }
+
+        code,
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            display: block;
+        }
+
+        ul,
+        ol {
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .note-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            padding: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="note-box">
+        INSTRUCTIONS POUR L'EXPORTATION WORD (.docx)<br>
+        1. Ouvrez ce fichier dans votre navigateur (Chrome, Edge, etc.).<br>
+        2. Sélectionnez tout (Ctrl+A) et Copiez (Ctrl+C).<br>
+        3. Ouvrez un nouveau document Microsoft Word.<br>
+        4. Collez (Ctrl+V).<br>
+        5. Remplacez les rectangles "[SCREENSHOT]" par vos propres captures d'écran.
+    </div>
+
+    <!-- Page de Garde -->
+    <div class="page-break" style="justify-content: center; text-align: center;">
+        <h1>SupNum Connect</h1>
+        <div class="subtitle">Plateforme de Réseautage des Anciens<br>Institut Supérieur Numérique (SupNum)</div>
+
+        <br><br><br>
+
+        <div style="font-size: 18px; margin-bottom: 40px;">
+            <strong>Rapport Complet de Projet</strong>
+        </div>
+
+        <div class="authors">
+            <strong>Réalisé par :</strong><br>
+            Groupe d'Étudiants SupNum<br>
+            <br>
+            <strong>Année Académique :</strong><br>
+            2025-2026
+        </div>
+    </div>
+
+    <!-- Table des Matières -->
+    <div class="page-break" style="justify-content: flex-start;">
+        <h2>Table des Matières</h2>
+
+        <div class="toc-item"><span>1. Introduction</span><span class="toc-dots"></span><span>3</span></div>
+        <div class="toc-item"><span>2. Objectifs du Projet</span><span class="toc-dots"></span><span>4</span></div>
+        <div class="toc-item"><span>3. Architecture Technique</span><span class="toc-dots"></span><span>5</span></div>
+        <div class="toc-item"><span>4. Technologies Frontend</span><span class="toc-dots"></span><span>7</span></div>
+        <div class="toc-item"><span>5. Technologies Backend</span><span class="toc-dots"></span><span>9</span></div>
+        <div class="toc-item"><span>6. Fonctionnalités et Démonstrations</span><span
+                class="toc-dots"></span><span>11</span></div>
+        <div class="toc-item"><span>7. Sécurité et Performance</span><span class="toc-dots"></span><span>18</span></div>
+        <div class="toc-item"><span>8. Conclusion et Perspectives</span><span class="toc-dots"></span><span>20</span>
+        </div>
+    </div>
+
+    <!-- Contenu Principal -->
+
+    <h2>1. Introduction</h2>
+    <p>
+        <strong>SupNum Connect</strong> est une plateforme sociale et professionnelle innovante conçue spécifiquement
+        pour la communauté de l'Institut Supérieur Numérique (SupNum).
+        Dans un contexte éducatif en constante évolution, le maintien d'un lien fort entre l'établissement, ses
+        étudiants actuels et ses diplômés (alumni) est devenu une priorité stratégique.
+    </p>
+    <p>
+        Ce projet répond à un besoin crucial : l'absence d'un espace centralisé pour le réseautage, le partage
+        d'opportunités professionnelles (stages, emplois) et la gestion des événements académiques.
+        En connectant les générations de diplômés, SupNum Connect vise à favoriser l'entraide, le mentorat et
+        l'insertion professionnelle des étudiants.
+    </p>
+
+    <h2>2. Objectifs du Projet</h2>
+    <p>Les objectifs principaux qui ont guidé le développement de cette application sont les suivants :</p>
+    <ul>
+        <li><strong>Réseautage Professionnel :</strong> Créer un annuaire dynamique permettant aux étudiants de
+            contacter facilement les anciens diplômés pour des conseils ou des opportunités.</li>
+        <li><strong>Centralisation des Offres :</strong> Regrouper sur une plateforme unique les offres de stages et
+            d'emplois pertinentes pour les profils numériques formés à SupNum.</li>
+        <li><strong>Gestion des Événements :</strong> Faciliter l'organisation, la promotion et l'inscription aux
+            événements de l'institut (conférences, hackathons, remises de diplômes).</li>
+        <li><strong>Communication Temps Réel :</strong> Intégrer un système de messagerie instantanée pour fluidifier
+            les échanges entre les membres.</li>
+        <li><strong>Accessibilité et Internationalisation :</strong> Offrir une interface moderne, responsive et
+            multilingue (Français, Arabe, Anglais) pour inclure l'ensemble de la communauté.</li>
+    </ul>
+
+    <h2>3. Architecture Technique</h2>
+    <p>L'application repose sur une architecture moderne <strong>Client-Serveur</strong> séparée (Headless),
+        garantissant scalabilité et flexibilité.</p>
+
+    <h3>Structure Globale :</h3>
+    <ul>
+        <li><strong>Frontend (Client) :</strong> Une Single Page Application (SPA) développée avec React et Vite,
+            communiquant avec l'API via des requêtes HTTP asynchrones.</li>
+        <li><strong>Backend (Serveur) :</strong> Une API RESTful construite avec Node.js et Express, gérant la logique
+            métier et la sécurité.</li>
+        <li><strong>Base de Données :</strong> PostgreSQL avec Sequelize comme ORM pour la persistance des données
+            relationnelles.</li>
+    </ul>
+
+    <h3>Flux de Données :</h3>
+    <pre>
+Frontend (React) 
+   │
+   ├── Requête HTTP (Axios/Fetch) + Token JWT
+   │
+   ▼
+Backend (Node.js/Express)
+   │
+   ├── Validation (Middleware)
+   ├── Logique Métier (Controllers)
+   │
+   ▼
+Base de Données (PostgreSQL)
+    </pre>
+
+    <h2>4. Technologies Frontend</h2>
+    <p>Le développement de l'interface utilisateur a privilégié la performance et l'expérience utilisateur (UX).</p>
+
+    <h3>Technologies Clés :</h3>
+    <ul>
+        <li><strong>React 18 :</strong> Bibliothèque principale pour la création de composants réactifs.</li>
+        <li><strong>Vite :</strong> Outil de build nouvelle génération pour un développement ultra-rapide.</li>
+        <li><strong>Tailwind CSS :</strong> Framework CSS utilitaire pour un design sur-mesure rapide et responsive.
+        </li>
+        <li><strong>React Router DOM :</strong> Pour la gestion de la navigation côté client (SPA).</li>
+        <li><strong>Context API :</strong> Gestion de l'état global (Authentification, Thème, Langue) sans bibliothèques
+            tierces lourdes comme Redux.</li>
+    </ul>
+
+    <h3>Structure du Projet (Frontend) :</h3>
+    <pre>
+src/
+├── components/   # Composants réutilisables (Boutons, Cartes...)
+├── context/      # États globaux (AuthContext, LanguageContext)
+├── pages/        # Vues principales (Dashboard, Profil...)
+├── services/     # Logique d'appel API (authService.js...)
+└── App.jsx       # Point d'entrée et configuration des routes
+    </pre>
+
+    <div class="page-break"></div> <!-- Saut de page pour le backend -->
+
+    <h2>5. Technologies Backend</h2>
+    <p>Le backend assure la robustesse, la sécurité et la gestion des données de l'application.</p>
+
+    <h3>Technologies Clés :</h3>
+    <ul>
+        <li><strong>Node.js & Express :</strong> Pour la création du serveur web et des routes API.</li>
+        <li><strong>PostgreSQL :</strong> Base de données relationnelle puissante et open-source.</li>
+        <li><strong>Sequelize :</strong> ORM (Object-Relational Mapper) pour interagir avec la base de données en
+            utilisant du JavaScript (classes et objets) plutôt que du SQL brut.</li>
+        <li><strong>JSON Web Tokens (JWT) :</strong> Pour l'authentification sécurisée sans état (stateless) des
+            utilisateurs.</li>
+        <li><strong>Bcrypt.js :</strong> Pour le hachage sécurisé des mots de passe avant stockage.</li>
+        <li><strong>Multer :</strong> Middleware pour la gestion des téléchargements de fichiers (photos de profil,
+            CVs).</li>
+    </ul>
+
+    <h2>6. Fonctionnalités et Démonstrations</h2>
+
+    <h3>a. Page d'Accueil (Landing Page)</h3>
+    <p>La vitrine de l'application, présentant les statistiques clés et invitant à l'inscription.</p>
+    <div class="screenshot-placeholder">
+        [SCREENSHOT]: Insérez ici une capture de la Page d'Accueil (LandingPage).
+    </div>
+
+    <h3>b. Tableau de Bord Étudiant</h3>
+    <p>L'espace central de l'utilisateur connecté, affichant les raccourcis et notifications.</p>
+    <div class="screenshot-placeholder">
+        [SCREENSHOT]: Insérez ici une capture du Dashboard Étudiant.
+    </div>
+
+    <h3>c. Profil Utilisateur</h3>
+    <p>Gestion des informations personnelles, parcours académique et compétences.</p>
+    <div class="screenshot-placeholder">
+        [SCREENSHOT]: Insérez ici une capture de la page Profil.
+    </div>
+
+    <h3>d. Messagerie</h3>
+    <p>Interface de discussion instantanée entre les membres de la communauté.</p>
+    <div class="screenshot-placeholder">
+        [SCREENSHOT]: Insérez ici une capture de l'interface de Messagerie.
+    </div>
+
+    <h3>e. Gestion des Événements (Admin)</h3>
+    <p>Interface d'administration pour créer et gérer les événements de l'institut.</p>
+    <div class="screenshot-placeholder">
+        [SCREENSHOT]: Insérez ici une capture de la page de gestion des événements.
+    </div>
+
+    <h2>7. Sécurité et Performance</h2>
+
+    <h3>Mesures de Sécurité :</h3>
+    <ul>
+        <li><strong>Authentification JWT :</strong> Les sessions sont gérées via des tokens sécurisés, éliminant le
+            besoin de stocker des sessions côté serveur.</li>
+        <li><strong>Hachage des Mots de Passe :</strong> Utilisation de l'algorithme bcrypt pour garantir que les mots
+            de passe ne sont jamais stockés en clair.</li>
+        <li><strong>Protection des Routes (Protected Routes) :</strong> Middleware frontend empêchant l'accès aux pages
+            sensibles sans connexion valide (voir <code>ProtectedRoute.jsx</code>).</li>
+        <li><strong>Validation des Données :</strong> Vérification rigoureuse des entrées (emails, formulaires) côté
+            client et serveur.</li>
+    </ul>
+
+    <h3>Optimisation des Performances :</h3>
+    <ul>
+        <li><strong>Code Splitting :</strong> Chargement différé des composants (Lazy Loading) pour réduire le temps de
+            chargement initial.</li>
+        <li><strong>Vite :</strong> Utilisation de modules ES natifs pour un chargement instantané en développement.
+        </li>
+        <li><strong>Assets Optimisés :</strong> Compression des images et minification automatique du code CSS/JS en
+            production.</li>
+    </ul>
+
+    <h2>8. Conclusion et Perspectives</h2>
+    <p>
+        <strong>SupNum Connect</strong> représente une avancée significative pour l'écosystème de l'Institut Supérieur
+        Numérique.
+        En digitalisant les interactions entre étudiants et diplômés, la plateforme renforce non seulement le réseau
+        professionnel de ses membres, mais aussi l'image de marque de l'institut.
+    </p>
+    <p>
+        <strong>Perspectives d'évolution :</strong>
+    <ul>
+        <li>Développement d'une application mobile native (React Native).</li>
+        <li>Intégration de forums de discussion thématiques.</li>
+        <li>Système de mentorat avancé avec prise de rendez-vous vidéo.</li>
+        <li>Partenariats directs avec les entreprises pour le dépôt d'offres automatisé.</li>
+    </ul>
+    </p>
+    <p>
+        Ce projet témoigne de la maîtrise des technologies web modernes par les étudiants de SupNum et de leur capacité
+        à concevoir des solutions concrètes répondant à des besoins réels.
+    </p>
+
+</body>
+
+</html>

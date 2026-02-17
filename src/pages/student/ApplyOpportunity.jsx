@@ -52,7 +52,7 @@ export function ApplyOpportunity() {
         const file = e.target.files[0];
         if (file) {
             if (file.size > 5 * 1024 * 1024) {
-                alert('File size too large. Max 5MB.');
+                console.warn('File size too large. Max 5MB.');
                 return;
             }
             setFormData({ ...formData, cvFile: file });
@@ -81,7 +81,7 @@ export function ApplyOpportunity() {
                 navigate('/dashboard');
             }, 3000);
         } catch (error) {
-            alert(error.message || t.common.error);
+            console.error(error);
         } finally {
             setIsSubmitting(false);
         }

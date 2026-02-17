@@ -41,13 +41,11 @@ export function ManageUsers() {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to remove this user?')) {
-            try {
-                await apiClient.delete(`/users/${id}`);
-                setUsers(users.filter(u => u.id !== id));
-            } catch (error) {
-                alert('Failed to delete user');
-            }
+        try {
+            await apiClient.delete(`/users/${id}`);
+            setUsers(users.filter(u => u.id !== id));
+        } catch (error) {
+            console.error(error);
         }
     };
 
@@ -56,7 +54,7 @@ export function ManageUsers() {
             await apiClient.patch(`/users/${id}/status`, { status: newStatus });
             setUsers(users.map(u => u.id === id ? { ...u, status: newStatus } : u));
         } catch (error) {
-            alert('Failed to update status');
+            console.error(error);
         }
     };
 
@@ -70,7 +68,7 @@ export function ManageUsers() {
             a.download = 'supnum_users.csv';
             a.click();
         } catch (error) {
-            alert('Export failed');
+            console.error(error);
         }
     };
 
@@ -81,11 +79,11 @@ export function ManageUsers() {
                     <Link to="/admin" className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-600 dark:text-slate-400 flex-shrink-0">
                         <ArrowLeft className="h-6 w-6" />
                     </Link>
-                    <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white truncate">User Management</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white truncate">{t.admin.manageUsers.title}</h1>
                 </div>
                 <div className="flex gap-2 w-full sm:w-auto">
                     <Button variant="outline" onClick={handleExportCSV} className="w-full sm:w-auto justify-center">
-                        <Download className="h-4 w-4 mr-2" /> Export CSV
+                        <Download className="h-4 w-4 mr-2" /> {t.admin.manageUsers.exportCSV}
                     </Button>
                 </div>
             </div>
@@ -105,10 +103,10 @@ export function ManageUsers() {
                     onChange={(e) => setStatusFilter(e.target.value)}
                     className="h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-sm outline-none text-slate-700 dark:text-slate-300"
                 >
-                    <option value="All">All Status</option>
-                    <option value="Verified">Verified</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Suspended">Suspended</option>
+                    <option value="All">{t.admin.manageUsers.allStatus}</option>
+                    <option value="Verified">{t.admin.manageUsers.verified}</option>
+                    <option value="Pending">{t.admin.manageUsers.pending}</option>
+                    <option value="Suspended">{t.admin.manageUsers.suspended}</option>
                 </select>
             </div>
 
@@ -117,11 +115,11 @@ export function ManageUsers() {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
-                                <th className="p-4 md:p-6 font-semibold text-slate-900 dark:text-white">User</th>
-                                <th className="p-4 md:p-6 font-semibold text-slate-900 dark:text-white hidden sm:table-cell">SupNum ID</th>
-                                <th className="p-4 md:p-6 font-semibold text-slate-900 dark:text-white hidden lg:table-cell">Role</th>
-                                <th className="p-4 md:p-6 font-semibold text-slate-900 dark:text-white">Status</th>
-                                <th className="p-4 md:p-6 font-semibold text-slate-900 dark:text-white text-right">Actions</th>
+                                <th className="p-4 md:p-6 font-semibold text-slate-900 dark:text-white">{t.admin.users.role}</th>
+                                <th className="p-4 md:p-6 font-semibold text-slate-900 dark:text-white hidden sm:table-cell">{t.profile.supnumId}</th>
+                                <th className="p-4 md:p-6 font-semibold text-slate-900 dark:text-white hidden lg:table-cell">{t.admin.users.role}</th>
+                                <th className="p-4 md:p-6 font-semibold text-slate-900 dark:text-white">{t.common.status}</th>
+                                <th className="p-4 md:p-6 font-semibold text-slate-900 dark:text-white text-right">{t.admin.users.actions}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -133,7 +131,7 @@ export function ManageUsers() {
                                 </tr>
                             ) : users.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className="p-12 text-center text-slate-500">No users found.</td>
+                                    <td colSpan="5" className="p-12 text-center text-slate-500">{t.admin.manageUsers.noUsers}</td>
                                 </tr>
                             ) : (
                                 users.map((user) => (
@@ -161,7 +159,7 @@ export function ManageUsers() {
                                                 ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
                                                 : user.role === 'admin' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' : 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300'
                                                 }`}>
-                                                {user.role}
+                                                {t.common?.roles?.[user.role?.toLowerCase()] || user.role}
                                             </span>
                                         </td>
                                         <td className="p-4 md:p-6">
@@ -172,28 +170,28 @@ export function ManageUsers() {
                                                 {user.status === 'Verified' && <CheckCircle className="h-2.5 w-2.5 md:h-3 md:w-3" />}
                                                 {user.status === 'Pending' && <AlertTriangle className="h-2.5 w-2.5 md:h-3 md:w-3" />}
                                                 {user.status === 'Suspended' && <XCircle className="h-2.5 w-2.5 md:h-3 md:w-3" />}
-                                                <span className="truncate">{user.status}</span>
+                                                <span className="truncate">{t.common?.statusLabels?.[user.status?.toLowerCase()] || user.status}</span>
                                             </span>
                                         </td>
                                         <td className="p-4 md:p-6 text-right">
                                             <div className="flex justify-end gap-2">
                                                 {user.status === 'Pending' && (
                                                     <Button size="sm" onClick={() => handleStatusChange(user.id, 'Verified')} className="bg-green-600 hover:bg-green-700 text-white">
-                                                        Approve
+                                                        {t.admin.manageUsers.approve}
                                                     </Button>
                                                 )}
                                                 {user.status === 'Verified' && user.role !== 'admin' && (
                                                     <Button size="sm" variant="outline" onClick={() => handleStatusChange(user.id, 'Suspended')} className="text-red-600 border-red-100 hover:bg-red-50">
-                                                        Suspend
+                                                        {t.admin.manageUsers.suspend}
                                                     </Button>
                                                 )}
                                                 {user.status === 'Suspended' && (
                                                     <Button size="sm" onClick={() => handleStatusChange(user.id, 'Verified')} className="bg-blue-600 hover:bg-blue-700 text-white">
-                                                        Reactivate
+                                                        {t.admin.manageUsers.reactivate}
                                                     </Button>
                                                 )}
                                                 <Link to={`/admin/profile/${user.id}`}>
-                                                    <Button size="sm" variant="outline" className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300" title="View Profile">
+                                                    <Button size="sm" variant="outline" className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300" title={t.admin.manageUsers.viewProfile}>
                                                         <Eye className="h-4 w-4" />
                                                     </Button>
                                                 </Link>
@@ -202,7 +200,7 @@ export function ManageUsers() {
                                                         onClick={() => handleDelete(user.id)}
                                                         size="sm"
                                                         className="bg-red-500 hover:bg-red-600 text-white border-none shadow-sm"
-                                                        title="Remove User"
+                                                        title={t.admin.manageUsers.removeUser}
                                                     >
                                                         <Trash2 className="h-4 w-4" />
                                                     </Button>

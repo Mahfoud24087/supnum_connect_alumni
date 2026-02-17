@@ -39,7 +39,7 @@ export function FindFriends() {
             await apiClient.post(`/users/connect/${userId}`);
             fetchGraduates(search); // Refresh list
         } catch (error) {
-            alert(error.message || t.common.error);
+            console.error(error);
         }
     };
 

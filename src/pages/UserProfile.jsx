@@ -58,7 +58,7 @@ export function UserProfile() {
             setConnectionStatus('pending');
             setIsRequester(true);
         } catch (error) {
-            alert(error.message || t.common.error);
+            console.error(error);
         }
     };
 

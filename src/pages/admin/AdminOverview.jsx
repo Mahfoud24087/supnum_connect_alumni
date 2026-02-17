@@ -118,12 +118,12 @@ export function AdminOverview() {
     }
 
     const stats = [
-        { title: t?.admin?.stats?.totalUsers || "Total Users", value: s.totalUsers || 0, icon: Users, color: "bg-blue-500", subtext: "Total registered" },
+        { title: t?.admin?.stats?.totalUsers || "Total Users", value: s.totalUsers || 0, icon: Users, color: "bg-blue-500", subtext: t?.admin?.charts?.userGrowth || "Total registered" },
         { title: "Verified Graduates", value: s.verifiedGraduates || 0, icon: CheckCircle, color: "bg-green-500", subtext: `${Math.round((s.verifiedGraduates / s.totalGraduates) * 100) || 0}% verification rate` },
         { title: t?.dashboard?.stats?.pending || "Pending Requests", value: s.pendingUserRequests || 0, icon: Clock, color: "bg-amber-500", subtext: "Requires attention" },
         { title: t?.landing?.partnerCompanies || "Partner Companies", value: s.partnerCompanies || 0, icon: Building, color: "bg-indigo-500", subtext: "Active partnerships" },
         { title: t?.landing?.activeInternships || "Active Internships", value: s.activeInternships || 0, icon: Briefcase, color: "bg-purple-500", subtext: "Currently active" },
-        { title: "Applications", value: s.totalApplications || 0, icon: FileText, color: "bg-orange-500", subtext: "Total submissions" },
+        { title: t?.admin?.nav?.applications || "Applications", value: s.totalApplications || 0, icon: FileText, color: "bg-orange-500", subtext: "Total submissions" },
         { title: t?.admin?.events?.title || "Active Events", value: s.activeEvents || 0, icon: Calendar, color: "bg-pink-500", subtext: "Upcoming events" },
     ];
 

@@ -30,10 +30,7 @@ const Message = sequelize.define('Message', {
     },
     content: {
         type: DataTypes.TEXT,
-        allowNull: false,
-        validate: {
-            notEmpty: { msg: 'Message content is required' }
-        }
+        allowNull: true
     },
     read: {
         type: DataTypes.BOOLEAN,
@@ -42,6 +39,30 @@ const Message = sequelize.define('Message', {
     readAt: {
         type: DataTypes.DATE,
         allowNull: true
+    },
+    type: {
+        type: DataTypes.STRING,
+        defaultValue: 'text'
+    },
+    fileUrl: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    isEdited: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    isDeleted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    replyToId: {
+        type: DataTypes.UUID,
+        allowNull: true,
+        references: {
+            model: 'Messages',
+            key: 'id'
+        }
     }
 }, {
     timestamps: true,

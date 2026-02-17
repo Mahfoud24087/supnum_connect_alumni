@@ -40,9 +40,8 @@ export function Search() {
     const handleConnect = async (userId) => {
         try {
             await apiClient.post(`/users/connect/${userId}`);
-            alert(t.search.requestSent);
         } catch (error) {
-            alert(error.message || t.common.error);
+            console.error(error);
         }
     };
 

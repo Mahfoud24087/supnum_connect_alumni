@@ -67,7 +67,7 @@ const connectDB = async () => {
 
         // Sync all models (creates tables if they don't exist)
         // Use alter only in development to avoid production data loss
-        await sequelize.sync({ alter: false });
+        await sequelize.sync({ alter: true });
         console.log('✅ Database synced');
         return true;
     } catch (error) {

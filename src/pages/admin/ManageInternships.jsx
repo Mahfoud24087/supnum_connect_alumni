@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Briefcase, Plus, Search, MapPin, Building, Trash2, Edit, X } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
@@ -6,11 +7,17 @@ import { Input } from '../../components/ui/Input';
 import { apiClient } from '../../services/api';
 
 export function ManageInternships() {
+    const { t } = useLanguage();
     const [internships, setInternships] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentInternship, setCurrentInternship] = useState(null);
+
+    // Safety check for translations
+    if (!t || !t.admin.manageInternships) {
+        return <div className="p-8 text-center">Loading translations...</div>;
+    }
     const [formData, setFormData] = useState({
         title: '',
         company: '',
@@ -94,18 +101,16 @@ export function ManageInternships() {
             fetchInternships();
             handleCloseModal();
         } catch (error) {
-            alert(error.message || 'Failed to save internship');
+            console.error(error);
         }
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this opportunity?')) {
-            try {
-                await apiClient.delete(`/internships/${id}`);
-                fetchInternships();
-            } catch (error) {
-                alert('Failed to delete internship');
-            }
+        try {
+            await apiClient.delete(`/internships/${id}`);
+            fetchInternships();
+        } catch (error) {
+            console.error(error);
         }
     };
 
@@ -114,16 +119,16 @@ export function ManageInternships() {
             await apiClient.patch(`/internships/${id}/toggle`);
             fetchInternships();
         } catch (error) {
-            alert('Failed to toggle status');
+            console.error(error);
         }
     };
 
     return (
         <div className="space-y-8 relative">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Internships & Opportunities</h1>
+                <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{t.admin.manageInternships.title}</h1>
                 <Button onClick={() => handleOpenModal()} className="bg-blue-600 hover:bg-blue-700 text-white">
-                    <Plus className="mr-2 h-4 w-4" /> Post Opportunity
+                    <Plus className="mr-2 h-4 w-4" /> {t.admin.manageInternships.postOpportunity}
                 </Button>
             </div>
 
@@ -131,7 +136,7 @@ export function ManageInternships() {
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
                     <Input
-                        placeholder="Search internships..."
+                        placeholder={t.admin.manageInternships.searchPlaceholder}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-10 bg-slate-50 dark:bg-slate-900 border-none"
@@ -161,7 +166,7 @@ export function ManageInternships() {
                                     onClick={() => toggleActive(internship.id)}
                                     className={`px-3 py-1 rounded-full text-xs font-bold uppercase transition-colors ${internship.active ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
                                 >
-                                    {internship.active ? 'Active' : 'Closed'}
+                                    {internship.active ? t.admin.manageInternships.active : t.admin.manageInternships.closed}
                                 </button>
                                 <Button onClick={() => handleOpenModal(internship)} variant="outline" size="sm">
                                     <Edit className="h-4 w-4" />
@@ -181,7 +186,7 @@ export function ManageInternships() {
                     <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                         <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
                             <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                                {currentInternship ? 'Edit Opportunity' : 'Post Opportunity'}
+                                {currentInternship ? t.admin.manageInternships.editOpportunity : t.admin.manageInternships.postOpportunity}
                             </h2>
                             <button onClick={handleCloseModal} className="text-slate-400 hover:text-slate-600">
                                 <X className="h-5 w-5" />
@@ -190,7 +195,7 @@ export function ManageInternships() {
                         <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2 col-span-2">
-                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Job Title</label>
+                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t.admin.manageInternships.form.jobTitle}</label>
                                     <Input
                                         required
                                         value={formData.title}
@@ -201,7 +206,7 @@ export function ManageInternships() {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Company</label>
+                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t.admin.manageInternships.form.company}</label>
                                 <Input
                                     required
                                     value={formData.company}
@@ -212,7 +217,7 @@ export function ManageInternships() {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Type</label>
+                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t.admin.manageInternships.form.type}</label>
                                     <select
                                         className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
                                         value={formData.type}
@@ -225,7 +230,7 @@ export function ManageInternships() {
                                     </select>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Location</label>
+                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t.admin.manageInternships.form.location}</label>
                                     <Input
                                         required
                                         value={formData.location}
@@ -236,7 +241,7 @@ export function ManageInternships() {
                             </div>
 
                             <div className="space-y-4 py-4 border-t border-b border-slate-100 dark:border-slate-800">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Application Requirements</label>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">{t.admin.manageInternships.form.appRequirements}</label>
                                 <div className="grid grid-cols-2 gap-y-3">
                                     <div className="flex items-center space-x-2">
                                         <input
@@ -246,7 +251,7 @@ export function ManageInternships() {
                                             onChange={(e) => setFormData({ ...formData, requireCv: e.target.checked })}
                                             className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                                         />
-                                        <label htmlFor="requireCv" className="text-sm text-slate-700 dark:text-slate-300">Require CV</label>
+                                        <label htmlFor="requireCv" className="text-sm text-slate-700 dark:text-slate-300">{t.admin.manageInternships.form.requireCv}</label>
                                     </div>
                                     <div className="flex items-center space-x-2">
                                         <input
@@ -256,7 +261,7 @@ export function ManageInternships() {
                                             onChange={(e) => setFormData({ ...formData, requireMessage: e.target.checked })}
                                             className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                                         />
-                                        <label htmlFor="requireMessage" className="text-sm text-slate-700 dark:text-slate-300">Require Message</label>
+                                        <label htmlFor="requireMessage" className="text-sm text-slate-700 dark:text-slate-300">{t.admin.manageInternships.form.requireMessage}</label>
                                     </div>
                                     <div className="flex items-center space-x-2">
                                         <input
@@ -266,7 +271,7 @@ export function ManageInternships() {
                                             onChange={(e) => setFormData({ ...formData, requirePhone: e.target.checked })}
                                             className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                                         />
-                                        <label htmlFor="requirePhone" className="text-sm text-slate-700 dark:text-slate-300">Require Phone</label>
+                                        <label htmlFor="requirePhone" className="text-sm text-slate-700 dark:text-slate-300">{t.admin.manageInternships.form.requirePhone}</label>
                                     </div>
                                     <div className="flex items-center space-x-2">
                                         <input
@@ -276,14 +281,14 @@ export function ManageInternships() {
                                             onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
                                             className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                                         />
-                                        <label htmlFor="active" className="text-sm font-bold text-blue-600">Active Listing</label>
+                                        <label htmlFor="active" className="text-sm font-bold text-blue-600">{t.admin.manageInternships.form.activeListing}</label>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
                                 <div className="flex justify-between items-center">
-                                    <label className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Custom Questions</label>
+                                    <label className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">{t.admin.manageInternships.form.customQuestions}</label>
                                     <Button
                                         type="button"
                                         size="sm"
@@ -291,7 +296,7 @@ export function ManageInternships() {
                                         onClick={() => setFormData({ ...formData, customQuestions: [...formData.customQuestions, { label: '', type: 'text', required: true }] })}
                                         className="h-8 text-xs"
                                     >
-                                        <Plus className="h-3 w-3 mr-1" /> Add Question
+                                        <Plus className="h-3 w-3 mr-1" /> {t.admin.manageInternships.form.addQuestion}
                                     </Button>
                                 </div>
                                 <div className="space-y-3">
@@ -310,7 +315,7 @@ export function ManageInternships() {
                                             </button>
                                             <Input
                                                 required
-                                                placeholder="Question Label (e.g. Portfolio Link)"
+                                                placeholder={t.admin.manageInternships.form.questionLabel}
                                                 value={q.label}
                                                 onChange={(e) => {
                                                     const newQs = [...formData.customQuestions];
@@ -336,7 +341,7 @@ export function ManageInternships() {
                                                 </select>
                                                 {q.type === 'select' && (
                                                     <Input
-                                                        placeholder="Options (comma separated)"
+                                                        placeholder={t.admin.manageInternships.form.options}
                                                         value={q.options || ''}
                                                         onChange={(e) => {
                                                             const newQs = [...formData.customQuestions];
@@ -356,7 +361,7 @@ export function ManageInternships() {
                                                             setFormData({ ...formData, customQuestions: newQs });
                                                         }}
                                                     />
-                                                    Required
+                                                    {t.admin.manageInternships.form.required}
                                                 </label>
                                             </div>
                                         </div>
@@ -367,9 +372,9 @@ export function ManageInternships() {
                                 </div>
                             </div>
                             <div className="pt-4 flex gap-3">
-                                <Button type="button" variant="outline" onClick={handleCloseModal} className="flex-1">Cancel</Button>
+                                <Button type="button" variant="outline" onClick={handleCloseModal} className="flex-1">{t.admin.manageInternships.form.cancel}</Button>
                                 <Button type="submit" className="flex-1 bg-blue-600 text-white hover:bg-blue-700">
-                                    {currentInternship ? 'Save Changes' : 'Post Opportunity'}
+                                    {currentInternship ? t.admin.manageInternships.form.saveChanges : t.admin.manageInternships.postOpportunity}
                                 </Button>
                             </div>
                         </form>

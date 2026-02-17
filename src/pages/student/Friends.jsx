@@ -39,7 +39,7 @@ export function Friends() {
             await apiClient.patch(`/users/connect/${requestId}/accept`);
             fetchData();
         } catch (error) {
-            alert(t.common.error);
+            console.error(error);
         }
     };
 
@@ -48,7 +48,7 @@ export function Friends() {
             await apiClient.patch(`/users/connect/${requestId}/reject`);
             fetchData();
         } catch (error) {
-            alert(t.common.error);
+            console.error(error);
         }
     };
 

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { FileText, User as UserIcon, Calendar, Building, Link as LinkIcon, CheckCircle, XCircle, Clock, Phone, Mail } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { apiClient } from '../../services/api';
 
 export function ManageApplications() {
+    const { t } = useLanguage();
     const [applications, setApplications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
@@ -30,9 +32,14 @@ export function ManageApplications() {
             await apiClient.patch(`/applications/${id}/status`, { status });
             fetchApplications();
         } catch (error) {
-            alert('Failed to update status');
+            console.error(error);
         }
     };
+
+    // Safety check for translations
+    if (!t || !t.admin || !t.admin.manageApplications) {
+        return <div className="p-8 text-center bg-white dark:bg-slate-800 rounded-2xl shadow-sm">Loading components...</div>;
+    }
 
     const filteredApplications = applications.filter(app =>
         filter === 'all' || app.status === filter
@@ -46,10 +53,19 @@ export function ManageApplications() {
         );
     }
 
+    const getStatusLabel = (status) => {
+        switch (status) {
+            case 'pending': return t.admin.manageApplications.pending;
+            case 'accepted': return t.admin.manageApplications.accepted;
+            case 'rejected': return t.admin.manageApplications.rejected;
+            default: return status;
+        }
+    };
+
     return (
         <div className="space-y-8">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Job Applications</h1>
+                <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{t.admin.manageApplications.title}</h1>
                 <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
                     {['all', 'pending', 'accepted', 'rejected'].map((s) => (
                         <button
@@ -57,7 +73,7 @@ export function ManageApplications() {
                             onClick={() => setFilter(s)}
                             className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all ${filter === s ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                         >
-                            {s}
+                            {t.admin.manageApplications[s]}
                         </button>
                     ))}
                 </div>
@@ -77,7 +93,7 @@ export function ManageApplications() {
                                             app.status === 'rejected' ? 'bg-red-100 text-red-700' :
                                                 'bg-blue-100 text-blue-700'
                                             }`}>
-                                            {app.status}
+                                            {getStatusLabel(app.status)}
                                         </span>
                                     </div>
                                     <p className="text-slate-500 dark:text-slate-400 flex items-center gap-1">
@@ -97,7 +113,7 @@ export function ManageApplications() {
                         <CardContent className="p-6">
                             <div className="space-y-4">
                                 <div>
-                                    <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-2">Applicant Contact & Message</h4>
+                                    <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-2">{t.admin.manageApplications.contact}</h4>
                                     <div className="flex flex-wrap gap-4 mb-3">
                                         <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 px-3 py-1.5 rounded-lg">
                                             <Mail className="h-4 w-4 text-blue-500" /> {app.email}
@@ -117,7 +133,7 @@ export function ManageApplications() {
 
                                 {app.customAnswers && Object.keys(app.customAnswers).length > 0 && (
                                     <div className="pt-4 space-y-3">
-                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Additional Questions</h4>
+                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">{t.admin.manageApplications.additionalQuestions}</h4>
                                         <div className="grid gap-3">
                                             {Object.entries(app.customAnswers).map(([question, answer]) => (
                                                 <div key={question} className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-700">
@@ -146,10 +162,10 @@ export function ManageApplications() {
                                             <div className="p-2 bg-blue-50 group-hover:bg-blue-100 rounded-lg transition-colors">
                                                 <LinkIcon className="h-4 w-4" />
                                             </div>
-                                            View CV / Portfolio
+                                            {t.admin.manageApplications.viewCv}
                                         </a>
                                     ) : (
-                                        <div className="text-slate-400 text-sm italic">No CV provided</div>
+                                        <div className="text-slate-400 text-sm italic">{t.admin.manageApplications.noCv}</div>
                                     )}
 
                                     <div className="flex items-center gap-2">
@@ -160,7 +176,7 @@ export function ManageApplications() {
                                             onClick={() => handleStatusUpdate(app.id, 'rejected')}
                                             disabled={app.status === 'rejected'}
                                         >
-                                            <XCircle className="mr-2 h-4 w-4" /> Reject
+                                            <XCircle className="mr-2 h-4 w-4" /> {t.admin.manageApplications.reject}
                                         </Button>
                                         <Button
                                             size="sm"
@@ -168,7 +184,7 @@ export function ManageApplications() {
                                             onClick={() => handleStatusUpdate(app.id, 'accepted')}
                                             disabled={app.status === 'accepted'}
                                         >
-                                            <CheckCircle className="mr-2 h-4 w-4" /> Accept
+                                            <CheckCircle className="mr-2 h-4 w-4" /> {t.admin.manageApplications.accept}
                                         </Button>
                                     </div>
                                 </div>
@@ -178,8 +194,8 @@ export function ManageApplications() {
                 )) : (
                     <div className="text-center py-20 bg-white dark:bg-slate-800 rounded-2xl shadow-sm">
                         <FileText className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                        <h3 className="text-lg font-medium text-slate-900 dark:text-white">No applications found</h3>
-                        <p className="text-slate-500">Applications for internships and jobs will appear here.</p>
+                        <h3 className="text-lg font-medium text-slate-900 dark:text-white">{t.admin.manageApplications.noApplications}</h3>
+                        <p className="text-slate-500">{t.admin.manageApplications.noApplicationsDesc}</p>
                     </div>
                 )}
             </div>

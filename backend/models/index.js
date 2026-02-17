@@ -6,6 +6,8 @@ const Message = require('./Message');
 const Connection = require('./Connection');
 const Application = require('./Application');
 const Notification = require('./Notification');
+const Post = require('./Post');
+const Comment = require('./Comment');
 const { sequelize } = require('../config/database');
 
 // Define associations
@@ -19,6 +21,7 @@ Message.belongsTo(User, { as: 'sender', foreignKey: 'senderId' });
 Message.belongsTo(User, { as: 'recipient', foreignKey: 'recipientId' });
 User.hasMany(Message, { as: 'sentMessages', foreignKey: 'senderId' });
 User.hasMany(Message, { as: 'receivedMessages', foreignKey: 'recipientId' });
+Message.belongsTo(Message, { as: 'replyTo', foreignKey: 'replyToId' });
 
 // Connection associations
 User.hasMany(Connection, { as: 'sentRequests', foreignKey: 'requesterId' });
@@ -36,6 +39,17 @@ Internship.hasMany(Application, { foreignKey: 'internshipId' });
 Notification.belongsTo(User, { as: 'user', foreignKey: 'userId' });
 User.hasMany(Notification, { foreignKey: 'userId' });
 
+// Post associations
+Post.belongsTo(User, { as: 'author', foreignKey: 'userId' });
+User.hasMany(Post, { foreignKey: 'userId' });
+Post.belongsTo(Post, { as: 'sharedPost', foreignKey: 'sharedPostId' });
+Post.hasMany(Comment, { as: 'comments', foreignKey: 'postId', onDelete: 'CASCADE' });
+Comment.belongsTo(Post, { foreignKey: 'postId' });
+Comment.belongsTo(User, { as: 'author', foreignKey: 'userId' });
+User.hasMany(Comment, { foreignKey: 'userId' });
+Comment.hasMany(Comment, { as: 'replies', foreignKey: 'parentId', onDelete: 'CASCADE' });
+Comment.belongsTo(Comment, { as: 'parent', foreignKey: 'parentId' });
+
 module.exports = {
     User,
     Event,
@@ -45,5 +59,7 @@ module.exports = {
     Connection,
     Application,
     Notification,
+    Post,
+    Comment,
     sequelize
 };

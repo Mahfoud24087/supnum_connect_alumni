@@ -4,7 +4,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
-import { Camera, Save, Linkedin, Github, Facebook, GraduationCap, Mail, User, Briefcase, Calendar, Phone, Building } from 'lucide-react';
+import { Camera, Save, Linkedin, Github, Facebook, GraduationCap, Mail, User, Briefcase, Calendar, Phone, Building, FileText, Image as ImageIcon, Plus, Trash2, Download, Paperclip, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export function Profile() {
@@ -21,8 +21,10 @@ export function Profile() {
         birthday: '',
         workStatus: '',
         jobTitle: '',
-        company: ''
+        company: '',
+        cvUrl: ''
     });
+    const [gallery, setGallery] = useState([]);
     const [previewImage, setPreviewImage] = useState(null);
     const [isDirty, setIsDirty] = useState(false);
     const [saveStatus, setSaveStatus] = useState(''); // 'saving', 'success', 'error'
@@ -41,9 +43,11 @@ export function Profile() {
                 birthday: user.birthday ? user.birthday.split('T')[0] : '',
                 workStatus: user.workStatus || '',
                 jobTitle: user.jobTitle || '',
-                company: user.company || ''
+                company: user.company || '',
+                cvUrl: user.cvUrl || ''
             });
             setPreviewImage(user.avatar || null);
+            setGallery(user.gallery || []);
         }
     }, [user]);
 
@@ -61,7 +65,9 @@ export function Profile() {
             formData.workStatus !== (user.workStatus || '') ||
             formData.jobTitle !== (user.jobTitle || '') ||
             formData.company !== (user.company || '') ||
-            previewImage !== (user.avatar || null);
+            formData.cvUrl !== (user.cvUrl || '') ||
+            previewImage !== (user.avatar || null) ||
+            JSON.stringify(gallery) !== JSON.stringify(user.gallery || []);
 
         setIsDirty(isChanged);
     }, [formData, previewImage, user]);
@@ -75,6 +81,36 @@ export function Profile() {
             };
             reader.readAsDataURL(file);
         }
+    };
+
+    const handleCvChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.type !== 'application/pdf') {
+                console.error('Only PDF files are allowed');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setFormData({ ...formData, cvUrl: reader.result });
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleGalleryImageAdd = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setGallery([...gallery, reader.result]);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleGalleryImageDelete = (index) => {
+        setGallery(gallery.filter((_, i) => i !== index));
     };
 
     const handleSubmit = async (e) => {
@@ -92,6 +128,8 @@ export function Profile() {
                 workStatus: formData.workStatus,
                 jobTitle: formData.jobTitle,
                 company: formData.company,
+                cvUrl: formData.cvUrl,
+                gallery: gallery,
                 social: {
                     linkedin: formData.linkedin,
                     github: formData.github,
@@ -292,7 +330,9 @@ export function Profile() {
                 {/* Social Links */}
                 <Card className="border-none shadow-lg bg-white dark:bg-slate-800">
                     <CardHeader>
-                        <CardTitle className="text-xl text-slate-900 dark:text-white">{t.profile.socialLinks}</CardTitle>
+                        <CardTitle className="text-xl text-slate-900 dark:text-white flex items-center gap-2">
+                            <Linkedin className="h-5 w-5 text-[#0077b5]" /> {t.profile.socialLinks}
+                        </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div className="space-y-2">
@@ -327,6 +367,92 @@ export function Profile() {
                                 placeholder="https://facebook.com/username"
                                 className="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
                             />
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* CV Section */}
+                <Card className="border-none shadow-lg bg-white dark:bg-slate-800">
+                    <CardHeader>
+                        <CardTitle className="text-xl text-slate-900 dark:text-white flex items-center gap-2">
+                            <FileText className="h-5 w-5 text-blue-500" /> {t.profile.cv}
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex flex-col sm:flex-row items-center gap-4">
+                            {formData.cvUrl ? (
+                                <div className="flex-1 flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                                            <FileText className="h-6 w-6 text-red-500" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-slate-900 dark:text-white">Curriculum Vitae.pdf</p>
+                                            <p className="text-xs text-slate-500">PDF Document</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <a
+                                            href={formData.cvUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="p-2 text-slate-400 hover:text-blue-500 transition-colors"
+                                        >
+                                            <ExternalLink className="h-5 w-5" />
+                                        </a>
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, cvUrl: '' })}
+                                            className="p-2 text-slate-400 hover:text-red-500 transition-colors"
+                                        >
+                                            <Trash2 className="h-5 w-5" />
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <label className="flex-1 flex flex-col items-center justify-center p-8 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900 transition-all group">
+                                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-full group-hover:scale-110 transition-transform">
+                                        <Paperclip className="h-8 w-8 text-blue-500" />
+                                    </div>
+                                    <span className="mt-4 text-sm font-medium text-slate-600 dark:text-slate-400">{t.profile.uploadCv}</span>
+                                    <span className="mt-1 text-xs text-slate-400">PDF (Max 5MB)</span>
+                                    <input type="file" className="hidden" accept="application/pdf" onChange={handleCvChange} />
+                                </label>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Gallery Section */}
+                <Card className="border-none shadow-lg bg-white dark:bg-slate-800">
+                    <CardHeader>
+                        <CardTitle className="text-xl text-slate-900 dark:text-white flex items-center gap-2">
+                            <ImageIcon className="h-5 w-5 text-purple-500" /> {t.profile.gallery}
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                            {gallery.map((img, index) => (
+                                <div key={index} className="relative aspect-square rounded-xl overflow-hidden group border border-slate-100 dark:border-slate-700 bg-slate-100 dark:bg-slate-900">
+                                    <img src={img} alt={`Gallery ${index}`} className="h-full w-full object-cover" />
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleGalleryImageDelete(index)}
+                                            className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors shadow-lg"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                            <label className="aspect-square border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900 transition-all group">
+                                <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-full group-hover:scale-110 transition-transform">
+                                    <Plus className="h-6 w-6 text-slate-500" />
+                                </div>
+                                <span className="mt-2 text-xs font-medium text-slate-500 uppercase tracking-wider">{t.profile.addGalleryImage}</span>
+                                <input type="file" className="hidden" accept="image/*" onChange={handleGalleryImageAdd} />
+                            </label>
                         </div>
                     </CardContent>
                 </Card>

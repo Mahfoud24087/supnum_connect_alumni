@@ -107,7 +107,7 @@ router.get('/me', protect, async (req, res) => {
 // @access  Private
 router.put('/profile', protect, async (req, res, next) => {
     try {
-        const allowedUpdates = ['name', 'bio', 'location', 'avatar', 'phone', 'birthday', 'workStatus', 'jobTitle', 'company'];
+        const allowedUpdates = ['name', 'bio', 'location', 'avatar', 'phone', 'birthday', 'workStatus', 'jobTitle', 'company', 'cvUrl', 'gallery'];
         const updates = {};
 
         allowedUpdates.forEach(field => {

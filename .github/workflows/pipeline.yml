@@ -1,0 +1,68 @@
+name: SupNum Connect CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  lint-and-build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install Frontend Dependencies
+        run: npm install
+        
+      - name: Lint Frontend
+        run: npm run lint
+        
+      - name: Build Frontend
+        run: npm run build
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+
+  verify-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: './backend/package-lock.json'
+          
+      - name: Install Backend Dependencies
+        run: |
+          cd backend
+          npm install
+          
+      - name: Check Backend Syntax
+        run: |
+          cd backend
+          node --check server.js
+
+  deploy:
+    needs: [lint-and-build-frontend, verify-backend]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render Backend Deployment
+        if: env.RENDER_DEPLOY_HOOK != ''
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+          
+      - name: Deployment Instructions
+        run: |
+          echo "Pipeline successful! Deployment is handled automatically by connected services (Vercel/Render)."
+          echo "Ensure you have added RENDER_DEPLOY_HOOK to your GitHub Repository Secrets for manual triggers."

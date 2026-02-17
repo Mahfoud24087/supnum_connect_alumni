@@ -3,6 +3,36 @@ const router = express.Router();
 const { Message, User, Connection, sequelize } = require('../models');
 const { protect } = require('../middleware/auth');
 const { Op } = require('sequelize');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const { emitToUser } = require('../utils/socket');
+
+// Configure Multer for message images
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = 'uploads/messages/';
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        cb(null, `msg-${Date.now()}${path.extname(file.originalname)}`);
+    }
+});
+
+const upload = multer({
+    storage,
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit for audio
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('audio/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only images and audio files are allowed'));
+        }
+    }
+});
 
 // @route   GET /api/messages/conversations
 // @desc    Get all conversations for current user
@@ -31,8 +61,14 @@ router.get('/conversations', protect, async (req, res, next) => {
                 where: { conversationId: conv.conversationId },
                 order: [['createdAt', 'DESC']],
                 include: [
-                    { model: User, as: 'sender', attributes: ['id', 'name', 'avatar'] },
-                    { model: User, as: 'recipient', attributes: ['id', 'name', 'avatar'] }
+                    { model: User, as: 'sender', attributes: ['id', 'name', 'avatar', 'role'] },
+                    { model: User, as: 'recipient', attributes: ['id', 'name', 'avatar', 'role'] },
+                    {
+                        model: Message,
+                        as: 'replyTo',
+                        attributes: ['id', 'content', 'type', 'fileUrl'],
+                        include: [{ model: User, as: 'sender', attributes: ['id', 'name'] }]
+                    }
                 ]
             });
 
@@ -65,8 +101,14 @@ router.get('/:conversationId', protect, async (req, res, next) => {
         const messages = await Message.findAll({
             where: { conversationId: req.params.conversationId },
             include: [
-                { model: User, as: 'sender', attributes: ['id', 'name', 'avatar'] },
-                { model: User, as: 'recipient', attributes: ['id', 'name', 'avatar'] }
+                { model: User, as: 'sender', attributes: ['id', 'name', 'avatar', 'role'] },
+                { model: User, as: 'recipient', attributes: ['id', 'name', 'avatar', 'role'] },
+                {
+                    model: Message,
+                    as: 'replyTo',
+                    attributes: ['id', 'content', 'type', 'fileUrl'],
+                    include: [{ model: User, as: 'sender', attributes: ['id', 'name'] }]
+                }
             ],
             order: [['createdAt', 'ASC']]
         });
@@ -92,9 +134,15 @@ router.get('/:conversationId', protect, async (req, res, next) => {
 // @route   POST /api/messages
 // @desc    Send a message
 // @access  Private
-router.post('/', protect, async (req, res, next) => {
+router.post('/', protect, upload.single('file'), async (req, res, next) => {
     try {
-        const { recipientId, content } = req.body;
+        const { recipientId, content, replyToId } = req.body;
+        const file = req.file;
+
+        // Validation: Must have either content or file
+        if (!content && !file) {
+            return res.status(400).json({ message: 'Message must have text, image or voice' });
+        }
 
         // CHECK IF FRIENDS (Admins can message anyone, and anyone can message admins)
         if (req.user.role !== 'admin') {
@@ -135,21 +183,40 @@ router.post('/', protect, async (req, res, next) => {
         // Generate conversation ID (sorted user IDs to ensure uniqueness)
         const conversationId = [req.user.id, recipientId].sort().join('_');
 
+        let type = 'text';
+        if (file) {
+            type = file.mimetype.startsWith('image/') ? 'image' : 'audio';
+        }
+
         const message = await Message.create({
             conversationId,
             senderId: req.user.id,
             recipientId,
-            content
+            content: content || '',
+            type,
+            fileUrl: file ? `/uploads/messages/${file.filename}` : null,
+            replyToId: replyToId || null
         });
 
         const populatedMessage = await Message.findByPk(message.id, {
             include: [
                 { model: User, as: 'sender', attributes: ['id', 'name', 'avatar'] },
-                { model: User, as: 'recipient', attributes: ['id', 'name', 'avatar'] }
+                { model: User, as: 'recipient', attributes: ['id', 'name', 'avatar'] },
+                {
+                    model: Message,
+                    as: 'replyTo',
+                    attributes: ['id', 'content', 'type', 'fileUrl'],
+                    include: [{ model: User, as: 'sender', attributes: ['id', 'name'] }]
+                }
             ]
         });
 
         res.status(201).json({ message: populatedMessage });
+
+        // Emit socket event to recipient
+        emitToUser(String(recipientId), 'new_message', populatedMessage);
+        // Also emit to sender (in case they have multiple sessions/tabs)
+        emitToUser(String(req.user.id), 'new_message', populatedMessage);
     } catch (error) {
         next(error);
     }
@@ -171,8 +238,72 @@ router.delete('/:id', protect, async (req, res, next) => {
             return res.status(403).json({ message: 'Not authorized' });
         }
 
-        await message.destroy();
-        res.json({ message: 'Message deleted' });
+        // Soft delete
+        await message.update({
+            isDeleted: true,
+            content: '', // Clear content for privacy
+            fileUrl: null
+        });
+
+        const updatedMessage = await Message.findByPk(message.id, {
+            include: [
+                { model: User, as: 'sender', attributes: ['id', 'name', 'avatar'] },
+                { model: User, as: 'recipient', attributes: ['id', 'name', 'avatar'] }
+            ]
+        });
+
+        res.json({ message: updatedMessage });
+
+        // Emit delete event
+        emitToUser(String(message.recipientId), 'message_deleted', { messageId: message.id, conversationId: message.conversationId });
+        emitToUser(String(req.user.id), 'message_deleted', { messageId: message.id, conversationId: message.conversationId });
+    } catch (error) {
+        next(error);
+    }
+});
+
+// @route   PUT /api/messages/:id
+// @desc    Edit a message
+// @access  Private
+router.put('/:id', protect, async (req, res, next) => {
+    try {
+        const { content } = req.body;
+        const message = await Message.findByPk(req.params.id);
+
+        if (!message) {
+            return res.status(404).json({ message: 'Message not found' });
+        }
+
+        // Only sender can edit
+        if (message.senderId !== req.user.id) {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        if (message.isDeleted) {
+            return res.status(400).json({ message: 'Cannot edit deleted message' });
+        }
+
+        if (message.type === 'image') {
+            return res.status(400).json({ message: 'Cannot edit image messages' });
+        }
+
+        await message.update({
+            content,
+            isEdited: true
+        });
+
+        const updatedMessage = await Message.findByPk(message.id, {
+            include: [
+                { model: User, as: 'sender', attributes: ['id', 'name', 'avatar'] },
+                { model: User, as: 'recipient', attributes: ['id', 'name', 'avatar'] }
+            ]
+        });
+
+        res.json({ message: updatedMessage });
+
+        // Emit edit event
+        emitToUser(String(message.recipientId), 'message_edited', updatedMessage);
+        emitToUser(String(req.user.id), 'message_edited', updatedMessage);
     } catch (error) {
         next(error);
     }
