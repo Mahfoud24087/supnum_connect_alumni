@@ -22,14 +22,14 @@ export function ManageCompanies() {
     const [currentCompany, setCurrentCompany] = useState(null); // For editing
     const [formData, setFormData] = useState({ name: '', industry: '', location: '', website: '' });
 
+    useEffect(() => {
+        localStorage.setItem('supnum_companies', JSON.stringify(companies));
+    }, [companies]);
+
     // Safety check for translations
     if (!t || !t.admin.manageCompanies) {
         return <div className="p-8 text-center">Loading translations...</div>;
     }
-
-    useEffect(() => {
-        localStorage.setItem('supnum_companies', JSON.stringify(companies));
-    }, [companies]);
 
     const filteredCompanies = companies.filter(c =>
         c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

@@ -14,10 +14,6 @@ export function ManageInternships() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentInternship, setCurrentInternship] = useState(null);
 
-    // Safety check for translations
-    if (!t || !t.admin.manageInternships) {
-        return <div className="p-8 text-center">Loading translations...</div>;
-    }
     const [formData, setFormData] = useState({
         title: '',
         company: '',
@@ -46,6 +42,11 @@ export function ManageInternships() {
     useEffect(() => {
         fetchInternships();
     }, []);
+
+    // Safety check for translations
+    if (!t || !t.admin.manageInternships) {
+        return <div className="p-8 text-center">Loading translations...</div>;
+    }
 
     const filteredInternships = internships.filter(i =>
         i.title.toLowerCase().includes(searchTerm.toLowerCase()) ||

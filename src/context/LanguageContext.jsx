@@ -972,8 +972,7 @@ export const translations = {
                 seeking: 'يبحث عن فرص',
                 studying: 'يواصل الدراسة',
                 freelance: 'عمل حر (Freelance)'
-            },
-            noSocial: 'لا توجد روابط اجتماعية عامة.'
+            }
         },
         aboutPage: {
             title: 'حول SupNum Connect',

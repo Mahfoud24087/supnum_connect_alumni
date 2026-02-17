@@ -18,7 +18,7 @@ export const SocketProvider = ({ children }) => {
 
     const ENDPOINT = import.meta.env.VITE_API_URL
         ? import.meta.env.VITE_API_URL.replace('/api', '')
-        : 'http://localhost:3000';
+        : 'http://127.0.0.1:3000';
 
     useEffect(() => {
         if (user && user.id) {
