@@ -83,8 +83,8 @@ export function SignUp() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-6 sm:p-10 lg:p-14 flex items-center justify-center font-sans">
-            <div className="w-full max-w-[1600px] h-full min-h-[85vh] grid lg:grid-cols-2 bg-white dark:bg-slate-900 rounded-[3rem] shadow-2xl shadow-blue-500/10 overflow-hidden border border-slate-100 dark:border-slate-800">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-3 sm:p-8 lg:p-14 flex items-center justify-center font-sans">
+            <div className="w-full max-w-[1600px] h-full min-h-[85vh] grid lg:grid-cols-2 bg-white dark:bg-slate-900 rounded-[2.5rem] sm:rounded-[3rem] shadow-2xl shadow-blue-500/10 overflow-hidden border border-slate-100 dark:border-slate-800">
                 {/* Left Side: Premium Image Gallery View */}
                 <motion.div
                     initial={{ opacity: 0 }}
@@ -159,7 +159,7 @@ export function SignUp() {
                     variants={formVariants}
                     initial="hidden"
                     animate="visible"
-                    className="flex items-center justify-center px-10 py-12 sm:px-20 sm:py-16 lg:px-32 lg:py-24 overflow-y-auto bg-white dark:bg-slate-950/20"
+                    className="flex items-center justify-center px-6 py-10 sm:px-16 lg:px-32 lg:py-24 overflow-y-auto bg-white dark:bg-slate-950/20"
                 >
                     <div className="w-full max-w-md space-y-8 py-8">
                         {/* Seamless Logo Implementation */}
