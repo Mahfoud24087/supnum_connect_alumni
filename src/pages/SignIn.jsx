@@ -100,7 +100,7 @@ export function SignIn() {
                 </motion.div>
 
                 {/* Right Side: High-End Form Section */}
-                <div className="flex-1 flex items-center justify-center px-6 py-10 sm:px-16 lg:px-32 lg:py-24 bg-white dark:bg-slate-950">
+                <div className="w-full h-full flex items-center justify-center px-6 py-10 sm:px-16 lg:px-32 lg:py-24 bg-white dark:bg-slate-950 relative z-10">
                     <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -159,8 +159,8 @@ export function SignIn() {
                                             {field.label}
                                         </label>
                                         <div className="relative group">
-                                            <div className="absolute inset-0 bg-blue-500/5 rounded-xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
-                                            <field.icon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+                                            <div className="absolute inset-0 bg-blue-500/5 rounded-xl opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none" />
+                                            <field.icon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-blue-600 transition-colors pointer-events-none z-10" />
                                             <Input
                                                 type={field.type}
                                                 placeholder={field.placeholder}
@@ -173,7 +173,7 @@ export function SignIn() {
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowPassword(!showPassword)}
-                                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 transition-colors"
+                                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 transition-colors z-20"
                                                 >
                                                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                                                 </button>

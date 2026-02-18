@@ -159,7 +159,7 @@ export function SignUp() {
                     variants={formVariants}
                     initial="hidden"
                     animate="visible"
-                    className="flex items-center justify-center px-6 py-10 sm:px-16 lg:px-32 lg:py-24 overflow-y-auto bg-white dark:bg-slate-950/20"
+                    className="w-full h-full flex items-center justify-center px-6 py-10 sm:px-16 lg:px-32 lg:py-24 overflow-y-auto bg-white dark:bg-slate-950/20 relative z-10"
                 >
                     <div className="w-full max-w-md space-y-8 py-8">
                         {/* Seamless Logo Implementation */}
@@ -216,7 +216,7 @@ export function SignUp() {
                                 >
                                     <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t.auth.signup.fullName}</label>
                                     <div className="relative">
-                                        <User className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+                                        <User className="absolute left-3 top-3 h-5 w-5 text-slate-400 pointer-events-none z-10" />
                                         <Input
                                             name="fullName"
                                             placeholder="John Doe"
@@ -235,7 +235,7 @@ export function SignUp() {
                                 >
                                     <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t.auth.signup.supnumId}</label>
                                     <div className="relative">
-                                        <Hash className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+                                        <Hash className="absolute left-3 top-3 h-5 w-5 text-slate-400 pointer-events-none z-10" />
                                         <Input
                                             name="supnumId"
                                             placeholder="2YXXX"
@@ -256,7 +256,7 @@ export function SignUp() {
                             >
                                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t.auth.signup.email}</label>
                                 <div className="relative">
-                                    <Mail className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+                                    <Mail className="absolute left-3 top-3 h-5 w-5 text-slate-400 pointer-events-none z-10" />
                                     <Input
                                         name="email"
                                         type="email"
@@ -278,7 +278,7 @@ export function SignUp() {
                             >
                                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t.auth.signup.password}</label>
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+                                    <Lock className="absolute left-3 top-3 h-5 w-5 text-slate-400 pointer-events-none z-10" />
                                     <Input
                                         name="password"
                                         type={showPassword ? "text" : "password"}
@@ -292,7 +292,7 @@ export function SignUp() {
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                                        className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors z-20"
                                     >
                                         {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                                     </button>
