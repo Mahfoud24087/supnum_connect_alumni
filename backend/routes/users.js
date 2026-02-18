@@ -185,6 +185,379 @@ router.get('/admin/stats', protect, admin, async (req, res, next) => {
     }
 });
 
+// @route   POST /api/users/create-admin
+// @desc    Create a new admin user (admin only)
+// @access  Private/Admin
+router.post('/create-admin', protect, admin, async (req, res, next) => {
+    try {
+        const { name, email, password } = req.body;
+
+        // Validation
+        if (!name || !email || !password) {
+            return res.status(400).json({ message: 'Please provide name, email, and password' });
+        }
+
+        // Check if user already exists
+        const existingUser = await User.findOne({ where: { email } });
+        if (existingUser) {
+            return res.status(400).json({ message: 'User with this email already exists' });
+        }
+
+        // Password validation
+        if (password.length < 6) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters' });
+        }
+
+        // Generate unique admin ID
+        const adminUsers = await User.findAll({
+            where: { role: 'admin' },
+            attributes: ['supnumId']
+        });
+
+        // Extract numbers from existing admin IDs and find the highest
+        const adminNumbers = adminUsers
+            .map(u => u.supnumId ? parseInt(u.supnumId.replace(/\D/g, '')) : 0)
+            .filter(n => !isNaN(n));
+
+        const nextAdminNumber = adminNumbers.length > 0 ? Math.max(...adminNumbers) + 1 : 1;
+        const adminId = `ADMIN${String(nextAdminNumber).padStart(3, '0')}`;
+
+        // Create admin user (password will be hashed by the User model's beforeCreate hook)
+        const newAdmin = await User.create({
+            name,
+            email,
+            password, // Don't hash manually - let the model hook do it
+            role: 'admin',
+            status: 'Verified',
+            supnumId: adminId
+        });
+
+        res.status(201).json({
+            message: 'Admin user created successfully',
+            user: {
+                id: newAdmin.id,
+                name: newAdmin.name,
+                email: newAdmin.email,
+                role: newAdmin.role,
+                status: newAdmin.status,
+                supnumId: newAdmin.supnumId
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+
+
+// @route   GET /api/users/export/pdf
+// @desc    Export users to PDF (admin only)
+// @access  Private/Admin
+router.get('/export/pdf', protect, admin, async (req, res, next) => {
+    try {
+        const { lang = 'EN' } = req.query;
+
+        // Translation object
+        const translations = {
+            EN: {
+                title: 'SupNum Connect',
+                subtitle: 'User Management Report',
+                generated: 'Generated',
+                summary: 'Executive Summary',
+                summaryDesc: 'Overview of current user base statistics',
+                totalUsers: 'Total Users',
+                students: 'Students',
+                graduates: 'Graduates',
+                verified: 'Verified',
+                detailedList: 'Detailed User List',
+                name: 'Name',
+                email: 'Email',
+                supnumId: 'SupNum ID',
+                role: 'Role',
+                status: 'Status',
+                joined: 'Joined',
+                page: 'Page',
+                of: 'of',
+                confidential: 'SupNum Connect - Confidential',
+                student: 'Student',
+                graduate: 'Graduate',
+                admin: 'Admin'
+            },
+            FR: {
+                title: 'SupNum Connect',
+                subtitle: 'Rapport de Gestion des Utilisateurs',
+                generated: 'Généré le',
+                summary: 'Résumé Exécutif',
+                summaryDesc: 'Aperçu des statistiques actuelles de la base d\'utilisateurs',
+                totalUsers: 'Total Utilisateurs',
+                students: 'Étudiants',
+                graduates: 'Diplômés',
+                verified: 'Vérifiés',
+                detailedList: 'Liste Détaillée des Utilisateurs',
+                name: 'Nom',
+                email: 'Email',
+                supnumId: 'ID SupNum',
+                role: 'Rôle',
+                status: 'Statut',
+                joined: 'Inscrit',
+                page: 'Page',
+                of: 'sur',
+                confidential: 'SupNum Connect - Confidentiel',
+                student: 'Étudiant',
+                graduate: 'Diplômé',
+                admin: 'Admin'
+            },
+            AR: {
+                title: 'SupNum Connect',
+                subtitle: 'تقرير إدارة المستخدمين',
+                generated: 'تم الإنشاء في',
+                summary: 'الملخص التنفيذي',
+                summaryDesc: 'نظرة عامة على إحصائيات قاعدة المستخدمين الحالية',
+                totalUsers: 'إجمالي المستخدمين',
+                students: 'الطلاب',
+                graduates: 'الخريجين',
+                verified: 'تم التحقق',
+                detailedList: 'قائمة المستخدمين التفصيلية',
+                name: 'الاسم',
+                email: 'البريد الإلكتروني',
+                supnumId: 'معرف SupNum',
+                role: 'الدور',
+                status: 'الحالة',
+                joined: 'تاريخ الانضمام',
+                page: 'صفحة',
+                of: 'من',
+                confidential: 'SupNum Connect - سري',
+                student: 'طالب',
+                graduate: 'خريج',
+                admin: 'مسؤول'
+            }
+        };
+
+        const t = translations[lang] || translations.EN;
+
+        const allUsers = await User.findAll({
+            attributes: ['id', 'name', 'email', 'supnumId', 'role', 'status', 'createdAt'],
+            order: [['createdAt', 'DESC']]
+        });
+
+        // Filter out test users (emails with 'test-' pattern or name 'Test User')
+        const users = allUsers.filter(user => {
+            const isTestEmail = user.email && user.email.includes('test-');
+            const isTestName = user.name && user.name.toLowerCase() === 'test user';
+            return !isTestEmail && !isTestName;
+        });
+
+        // Fetch statistics (excluding test users)
+        const stats = {
+            total: users.length,
+            students: users.filter(u => u.role === 'student').length,
+            graduates: users.filter(u => u.role === 'graduate').length,
+            verified: users.filter(u => u.status === 'Verified').length
+        };
+
+        const PDFDocument = require('pdfkit');
+        const doc = new PDFDocument({
+            margin: 40,
+            size: 'A4',
+            bufferPages: true
+        });
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename=supnum_users_report.pdf');
+
+        doc.pipe(res);
+
+        // --- HEADER ---
+        doc.rect(0, 0, doc.page.width, 80).fill('#2563eb');
+        doc.fillColor('white')
+            .fontSize(22)
+            .font('Helvetica-Bold')
+            .text(t.title, 40, 25, { width: doc.page.width - 80 });
+
+        doc.fontSize(12)
+            .font('Helvetica')
+            .text(t.subtitle, 40, 50);
+
+        doc.fontSize(9)
+            .text(`${t.generated}: ${new Date().toLocaleDateString(lang === 'AR' ? 'ar-EG' : lang === 'FR' ? 'fr-FR' : 'en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            })}`, 40, 50, {
+                align: 'right',
+                width: doc.page.width - 80
+            });
+
+        doc.fillColor('#000000');
+
+        // --- SUMMARY SECTION ---
+        let currentY = 110;
+        doc.fontSize(16)
+            .font('Helvetica-Bold')
+            .text(t.summary, 40, currentY);
+
+        currentY += 25;
+        doc.fontSize(10)
+            .font('Helvetica')
+            .fillColor('#64748b')
+            .text(t.summaryDesc, 40, currentY);
+
+        currentY += 30;
+
+        // Summary boxes
+        const summaryData = [
+            { label: t.totalUsers, value: stats.total, color: '#dbeafe', textColor: '#1e40af' },
+            { label: t.students, value: stats.students, color: '#e0f2fe', textColor: '#0369a1' },
+            { label: t.graduates, value: stats.graduates, color: '#ede9fe', textColor: '#6d28d9' },
+            { label: t.verified, value: stats.verified, color: '#d1fae5', textColor: '#047857' }
+        ];
+
+        const boxWidth = 125;
+        const boxHeight = 70;
+        const spacing = 10;
+        let startX = 40;
+
+        summaryData.forEach((item) => {
+            doc.rect(startX, currentY, boxWidth, boxHeight)
+                .fill(item.color);
+
+            doc.fillColor('#475569')
+                .fontSize(10)
+                .font('Helvetica')
+                .text(item.label, startX + 10, currentY + 15, {
+                    width: boxWidth - 20,
+                    align: 'left'
+                });
+
+            doc.fillColor(item.textColor)
+                .fontSize(28)
+                .font('Helvetica-Bold')
+                .text(String(item.value), startX + 10, currentY + 35, {
+                    width: boxWidth - 20,
+                    align: 'left'
+                });
+
+            startX += boxWidth + spacing;
+        });
+
+        currentY += boxHeight + 40;
+
+        // --- TABLE SECTION ---
+        doc.fillColor('#000000')
+            .fontSize(14)
+            .font('Helvetica-Bold')
+            .text(t.detailedList, 40, currentY);
+
+        currentY += 30;
+
+        // Table configuration
+        const tableTop = currentY;
+        const tableLeft = 40;
+        const rowHeight = 25;
+        const headerHeight = 30;
+
+        const columns = [
+            { header: t.name, width: 100, key: 'name' },
+            { header: t.email, width: 140, key: 'email' },
+            { header: t.supnumId, width: 70, key: 'supnumId' },
+            { header: t.role, width: 70, key: 'role' },
+            { header: t.status, width: 70, key: 'status' },
+            { header: t.joined, width: 65, key: 'joined' }
+        ];
+
+        // Draw table header
+        let xPos = tableLeft;
+        doc.rect(tableLeft, tableTop, 515, headerHeight).fill('#1e40af');
+
+        columns.forEach(col => {
+            doc.fillColor('#ffffff')
+                .fontSize(9)
+                .font('Helvetica-Bold')
+                .text(col.header, xPos + 5, tableTop + 10, {
+                    width: col.width - 10,
+                    align: 'left'
+                });
+            xPos += col.width;
+        });
+
+        currentY = tableTop + headerHeight;
+
+        // Draw table rows
+        users.forEach((user, index) => {
+            // Check if we need a new page
+            if (currentY + rowHeight > doc.page.height - 80) {
+                doc.addPage();
+                currentY = 40;
+            }
+
+            // Alternate row background
+            if (index % 2 === 0) {
+                doc.rect(tableLeft, currentY, 515, rowHeight).fill('#f8fafc');
+            } else {
+                doc.rect(tableLeft, currentY, 515, rowHeight).fill('#ffffff');
+            }
+
+            // Draw cell borders
+            doc.strokeColor('#e2e8f0').lineWidth(0.5);
+            doc.rect(tableLeft, currentY, 515, rowHeight).stroke();
+
+            xPos = tableLeft;
+            const rowData = {
+                name: user.name,
+                email: user.email,
+                supnumId: user.role === 'admin' ? '------' : (user.supnumId ? user.supnumId.replace(/\D/g, '') || 'N/A' : 'N/A'),
+                role: t[user.role.toLowerCase()] || user.role,
+                status: user.status,
+                joined: new Date(user.createdAt).toLocaleDateString(lang === 'AR' ? 'ar-EG' : lang === 'FR' ? 'fr-FR' : 'en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                })
+            };
+
+            columns.forEach(col => {
+                doc.fillColor('#1f2937')
+                    .fontSize(8)
+                    .font('Helvetica')
+                    .text(rowData[col.key], xPos + 5, currentY + 8, {
+                        width: col.width - 10,
+                        align: 'left',
+                        ellipsis: true
+                    });
+                xPos += col.width;
+            });
+
+            currentY += rowHeight;
+        });
+
+        // --- FOOTER (on all pages) ---
+        const range = doc.bufferedPageRange();
+        for (let i = 0; i < range.count; i++) {
+            doc.switchToPage(i);
+
+            doc.fontSize(8)
+                .fillColor('#94a3b8')
+                .text(
+                    `${t.page} ${i + 1} ${t.of} ${range.count}`,
+                    40,
+                    doc.page.height - 50,
+                    { align: 'center', width: doc.page.width - 80 }
+                );
+
+            doc.text(
+                t.confidential,
+                40,
+                doc.page.height - 35,
+                { align: 'center', width: doc.page.width - 80 }
+            );
+        }
+
+        doc.end();
+    } catch (error) {
+        next(error);
+    }
+});
+
 // @route   GET /api/users/suggestions
 // @desc    Get user suggestions
 // @access  Private
@@ -527,29 +900,113 @@ router.delete('/:id', protect, admin, async (req, res, next) => {
     }
 });
 
-// @route   GET /api/users/export/csv
-// @desc    Export users to CSV (admin only)
-// @access  Private/Admin
-router.get('/export/csv', protect, admin, async (req, res, next) => {
+// @route   GET /api/users/:id/export-cv
+// @desc    Export user CV as PDF
+// @access  Private
+router.get('/:id/export-cv', protect, async (req, res, next) => {
     try {
-        const users = await User.findAll({
-            attributes: ['id', 'name', 'email', 'supnumId', 'role', 'status', 'createdAt']
+        const { id } = req.params;
+        const { lang = 'EN' } = req.query;
+
+        const user = await User.findByPk(id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const translations = {
+            EN: { cv: 'Curriculum Vitae', contactInfo: 'Contact Information', professionalInfo: 'Professional Information', social: 'Social Media', email: 'Email', phone: 'Phone', location: 'Location', jobTitle: 'Job Title', company: 'Company', workStatus: 'Work Status', bio: 'About Me', linkedin: 'LinkedIn', github: 'GitHub', facebook: 'Facebook', student: 'Student', graduate: 'Graduate', admin: 'Administrator' },
+            FR: { cv: 'Curriculum Vitae', contactInfo: 'Coordonnées', professionalInfo: 'Informations Professionnelles', social: 'Réseaux Sociaux', email: 'Email', phone: 'Téléphone', location: 'Localisation', jobTitle: 'Poste', company: 'Entreprise', workStatus: 'Statut Professionnel', bio: 'À Propos', linkedin: 'LinkedIn', github: 'GitHub', facebook: 'Facebook', student: 'Étudiant', graduate: 'Diplômé', admin: 'Administrateur' },
+            AR: { cv: 'السيرة الذاتية', contactInfo: 'معلومات الاتصال', professionalInfo: 'المعلومات المهنية', social: 'وسائل التواصل الاجتماعي', email: 'البريد الإلكتروني', phone: 'الهاتف', location: 'الموقع', jobTitle: 'المسمى الوظيفي', company: 'الشركة', workStatus: 'حالة العمل', bio: 'نبذة عني', linkedin: 'لينكد إن', github: 'جيت هاب', facebook: 'فيسبوك', student: 'طالب', graduate: 'خريج', admin: 'مسؤول' }
+        };
+
+        const t = translations[lang] || translations.EN;
+        const PDFDocument = require('pdfkit');
+        const doc = new PDFDocument({ margin: 50, size: 'A4' });
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=${user.name.replace(/\s+/g, '_')}_CV.pdf`);
+        doc.pipe(res);
+
+        // Header
+        doc.rect(0, 0, doc.page.width, 120).fill('#1e40af');
+        doc.fillColor('white').fontSize(28).font('Helvetica-Bold').text(user.name, 50, 40);
+        doc.fontSize(14).font('Helvetica').text(t[user.role.toLowerCase()] || user.role, 50, 75);
+        doc.fontSize(10).text(user.supnumId, 50, 95);
+        doc.fillColor('#000000');
+        let currentY = 150;
+
+        // Bio
+        if (user.bio) {
+            doc.fontSize(16).font('Helvetica-Bold').text(t.bio, 50, currentY);
+            currentY += 25;
+            doc.fontSize(11).font('Helvetica').fillColor('#374151').text(user.bio, 50, currentY, { width: doc.page.width - 100, align: 'justify' });
+            currentY = doc.y + 20;
+        }
+
+        // Contact
+        doc.fontSize(16).font('Helvetica-Bold').fillColor('#000000').text(t.contactInfo, 50, currentY);
+        currentY += 25;
+        [
+            { label: t.email, value: user.email },
+            { label: t.phone, value: user.phone || 'N/A' },
+            { label: t.location, value: user.location || 'Nouakchott, Mauritania' }
+        ].forEach(item => {
+            doc.fontSize(11).font('Helvetica-Bold').fillColor('#1e40af').text(`${item.label}: `, 50, currentY, { continued: true })
+                .font('Helvetica').fillColor('#374151').text(item.value);
+            currentY += 20;
         });
+        currentY += 10;
 
-        // CSV Header
-        let csv = 'ID,Name,Email,SupNum ID,Role,Status,Joined Date\n';
+        // Professional
+        if (user.jobTitle || user.company || user.workStatus) {
+            doc.fontSize(16).font('Helvetica-Bold').fillColor('#000000').text(t.professionalInfo, 50, currentY);
+            currentY += 25;
+            if (user.jobTitle) {
+                doc.fontSize(11).font('Helvetica-Bold').fillColor('#1e40af').text(`${t.jobTitle}: `, 50, currentY, { continued: true })
+                    .font('Helvetica').fillColor('#374151').text(user.jobTitle);
+                currentY += 20;
+            }
+            if (user.company) {
+                doc.fontSize(11).font('Helvetica-Bold').fillColor('#1e40af').text(`${t.company}: `, 50, currentY, { continued: true })
+                    .font('Helvetica').fillColor('#374151').text(user.company);
+                currentY += 20;
+            }
+            if (user.workStatus) {
+                doc.fontSize(11).font('Helvetica-Bold').fillColor('#1e40af').text(`${t.workStatus}: `, 50, currentY, { continued: true })
+                    .font('Helvetica').fillColor('#374151').text(user.workStatus);
+                currentY += 20;
+            }
+            currentY += 10;
+        }
 
-        // CSV Rows
-        users.forEach(user => {
-            csv += `${user.id},"${user.name}",${user.email},${user.supnumId},${user.role},${user.status},${user.createdAt}\n`;
-        });
+        // Social
+        if (user.socialLinkedin || user.socialGithub || user.socialFacebook) {
+            doc.fontSize(16).font('Helvetica-Bold').fillColor('#000000').text(t.social, 50, currentY);
+            currentY += 25;
+            if (user.socialLinkedin) {
+                doc.fontSize(11).font('Helvetica-Bold').fillColor('#1e40af').text(`${t.linkedin}: `, 50, currentY, { continued: true })
+                    .font('Helvetica').fillColor('#0077b5').text(user.socialLinkedin, { link: user.socialLinkedin, underline: true });
+                currentY += 20;
+            }
+            if (user.socialGithub) {
+                doc.fontSize(11).font('Helvetica-Bold').fillColor('#1e40af').text(`${t.github}: `, 50, currentY, { continued: true })
+                    .font('Helvetica').fillColor('#374151').text(user.socialGithub, { link: user.socialGithub, underline: true });
+                currentY += 20;
+            }
+            if (user.socialFacebook) {
+                doc.fontSize(11).font('Helvetica-Bold').fillColor('#1e40af').text(`${t.facebook}: `, 50, currentY, { continued: true })
+                    .font('Helvetica').fillColor('#1877F2').text(user.socialFacebook, { link: user.socialFacebook, underline: true });
+                currentY += 20;
+            }
+        }
 
-        res.setHeader('Content-Type', 'text/csv');
-        res.setHeader('Content-Disposition', 'attachment; filename=supnum_users.csv');
-        res.status(200).send(csv);
+        // Footer
+        doc.fontSize(8).fillColor('#94a3b8').text(`Generated from SupNum Connect on ${new Date().toLocaleDateString()}`, 50, doc.page.height - 50, { align: 'center', width: doc.page.width - 100 });
+        doc.end();
     } catch (error) {
         next(error);
     }
 });
+
 
 module.exports = router;

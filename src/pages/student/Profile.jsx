@@ -155,6 +155,32 @@ export function Profile() {
         }
     };
 
+    const handleExportCV = async () => {
+        try {
+            const token = localStorage.getItem('auth_token');
+            const currentLang = localStorage.getItem('language') || 'FR';
+            const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:3000/api'}/users/${user.id}/export-cv?lang=${currentLang}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!res.ok) throw new Error('Failed to download CV');
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${user.name.replace(/\s+/g, '_')}_CV.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (error) {
+            console.error('Export failed:', error);
+        }
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -163,6 +189,9 @@ export function Profile() {
         >
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{t.profile.title}</h1>
+                <Button onClick={handleExportCV} variant="outline" className="shadow-md">
+                    <Download className="mr-2 h-4 w-4" /> Export CV
+                </Button>
             </div>
 
             {/* Profile Header Card */}

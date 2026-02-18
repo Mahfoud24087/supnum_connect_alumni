@@ -14,6 +14,10 @@ export function ManageUsers() {
     const [statusFilter, setStatusFilter] = useState('All');
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [formData, setFormData] = useState({ name: '', email: '', password: '' });
+    const [formError, setFormError] = useState('');
+    const [formLoading, setFormLoading] = useState(false);
 
     const fetchUsers = async () => {
         setLoading(true);
@@ -41,11 +45,24 @@ export function ManageUsers() {
     };
 
     const handleDelete = async (id) => {
+        const userToDelete = users.find(u => u.id === id);
+
+        // Extra confirmation for admin users
+        if (userToDelete?.role === 'admin') {
+            const confirmAdmin = window.confirm(
+                `⚠️ WARNING: You are about to delete an ADMIN user!\n\nUser: ${userToDelete.name}\nEmail: ${userToDelete.email}\n\nThis action cannot be undone. Are you absolutely sure?`
+            );
+            if (!confirmAdmin) return;
+        } else {
+            if (!window.confirm(t.admin.manageUsers.confirmDelete)) return;
+        }
+
         try {
             await apiClient.delete(`/users/${id}`);
             setUsers(users.filter(u => u.id !== id));
         } catch (error) {
             console.error(error);
+            alert(t.admin.manageUsers.failedDelete || 'Failed to delete user');
         }
     };
 
@@ -58,17 +75,47 @@ export function ManageUsers() {
         }
     };
 
-    const handleExportCSV = async () => {
+    const handleExportPDF = async () => {
         try {
-            const response = await apiClient.get('/users/export/csv');
-            const blob = new Blob([response], { type: 'text/csv' });
+            const token = localStorage.getItem('auth_token');
+            const currentLang = localStorage.getItem('language') || 'FR';
+            const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:3000/api'}/users/export/pdf?lang=${currentLang}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!res.ok) throw new Error('Failed to download PDF');
+
+            const blob = await res.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'supnum_users.csv';
+            a.download = 'supnum_users_report.pdf';
+            document.body.appendChild(a);
             a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
         } catch (error) {
-            console.error(error);
+            console.error('Export failed:', error);
+        }
+    };
+
+    const handleCreateAdmin = async (e) => {
+        e.preventDefault();
+        setFormError('');
+        setFormLoading(true);
+
+        try {
+            const response = await apiClient.post('/users/create-admin', formData);
+            setShowCreateModal(false);
+            setFormData({ name: '', email: '', password: '' });
+            fetchUsers(); // Refresh the user list
+            alert('Admin user created successfully!');
+        } catch (error) {
+            setFormError(error.message || 'Failed to create admin user');
+        } finally {
+            setFormLoading(false);
         }
     };
 
@@ -82,8 +129,11 @@ export function ManageUsers() {
                     <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white truncate">{t.admin.manageUsers.title}</h1>
                 </div>
                 <div className="flex gap-2 w-full sm:w-auto">
-                    <Button variant="outline" onClick={handleExportCSV} className="w-full sm:w-auto justify-center">
-                        <Download className="h-4 w-4 mr-2" /> {t.admin.manageUsers.exportCSV}
+                    <Button variant="outline" onClick={() => setShowCreateModal(true)} className="w-full sm:w-auto justify-center">
+                        <Plus className="h-4 w-4 mr-2" /> Create Admin
+                    </Button>
+                    <Button variant="outline" onClick={handleExportPDF} className="w-full sm:w-auto justify-center">
+                        <Download className="h-4 w-4 mr-2" /> Export PDF
                     </Button>
                 </div>
             </div>
@@ -195,15 +245,20 @@ export function ManageUsers() {
                                                         <Eye className="h-4 w-4" />
                                                     </Button>
                                                 </Link>
-                                                {user.role !== 'admin' && (
-                                                    <Button
-                                                        onClick={() => handleDelete(user.id)}
-                                                        size="sm"
-                                                        className="bg-red-500 hover:bg-red-600 text-white border-none shadow-sm"
-                                                        title={t.admin.manageUsers.removeUser}
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
+                                                <Button
+                                                    onClick={() => handleDelete(user.id)}
+                                                    size="sm"
+                                                    className="bg-red-500 hover:bg-red-600 text-white border-none shadow-sm"
+                                                    title={t.admin.manageUsers.removeUser}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                                {user.cvUrl && (
+                                                    <a href={user.cvUrl} target="_blank" rel="noopener noreferrer" download>
+                                                        <Button size="sm" variant="outline" className="border-blue-200 hover:bg-blue-50 text-blue-600" title={t.profile?.downloadCv || "Download CV"}>
+                                                            <Download className="h-4 w-4" />
+                                                        </Button>
+                                                    </a>
                                                 )}
                                             </div>
                                         </td>
@@ -214,6 +269,103 @@ export function ManageUsers() {
                     </table>
                 </div>
             </Card>
+
+            {/* Create Admin Modal */}
+            <AnimatePresence>
+                {showCreateModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                        onClick={() => setShowCreateModal(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-md w-full p-6"
+                        >
+                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Create Admin User</h2>
+
+                            {formError && (
+                                <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm">
+                                    {formError}
+                                </div>
+                            )}
+
+                            <form onSubmit={handleCreateAdmin} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                        Name
+                                    </label>
+                                    <Input
+                                        type="text"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        required
+                                        placeholder="Enter admin name"
+                                        className="w-full"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                        Email
+                                    </label>
+                                    <Input
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                        required
+                                        placeholder="admin@supnum.mr"
+                                        className="w-full"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                        Password
+                                    </label>
+                                    <Input
+                                        type="password"
+                                        value={formData.password}
+                                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                        required
+                                        placeholder="Minimum 6 characters"
+                                        minLength={6}
+                                        className="w-full"
+                                    />
+                                </div>
+
+                                <div className="flex gap-3 pt-4">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => {
+                                            setShowCreateModal(false);
+                                            setFormData({ name: '', email: '', password: '' });
+                                            setFormError('');
+                                        }}
+                                        className="flex-1"
+                                        disabled={formLoading}
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        type="submit"
+                                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                                        disabled={formLoading}
+                                    >
+                                        {formLoading ? 'Creating...' : 'Create Admin'}
+                                    </Button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

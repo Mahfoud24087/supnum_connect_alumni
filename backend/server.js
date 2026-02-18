@@ -54,7 +54,9 @@ const initApp = async () => {
         }
     }
 };
-initApp();
+if (require.main === module) {
+    initApp();
+}
 
 // Request logger
 app.use((req, res, next) => {
@@ -142,9 +144,11 @@ const io = initSocket(server);
 
 const PORT = process.env.PORT || 3000;
 
-server.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
-    console.log(`📝 API Documentation: http://localhost:${PORT}/api/health`);
-});
+if (require.main === module) {
+    server.listen(PORT, '0.0.0.0', () => {
+        console.log(`🚀 Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
+        console.log(`📝 API Documentation: http://localhost:${PORT}/api/health`);
+    });
+}
 
 module.exports = { app, server };

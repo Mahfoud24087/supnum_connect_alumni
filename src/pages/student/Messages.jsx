@@ -471,7 +471,7 @@ export function Messages() {
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                            {messages.map((msg) => {
+                            {messages.map((msg, index) => {
                                 const isMe = String(msg.senderId) === String(currentUser.id);
                                 return (
                                     <div
@@ -491,72 +491,36 @@ export function Messages() {
                                             <AnimatePresence>
                                                 {openActionId === msg.id && !msg.isDeleted && (
                                                     <motion.div
-                                                        initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                                                        initial={{ opacity: 0, scale: 0.9, y: index < 2 ? -5 : 5 }}
                                                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                                                        exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                                                        exit={{ opacity: 0, scale: 0.9, y: index < 2 ? -5 : 5 }}
                                                         className={cn(
-                                                            "absolute bottom-full mb-2 w-36 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-100 dark:border-slate-700 z-[100] overflow-hidden",
-                                                            isMe ? "right-0" : "left-0"
+                                                            "absolute w-40 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-slate-700/50 z-[100] p-1",
+                                                            isMe ? "right-0" : "left-0",
+                                                            index < 2 ? "top-full mt-1" : "bottom-full mb-1"
                                                         )}
                                                         onClick={(e) => e.stopPropagation()}
                                                     >
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setReplyTo(msg);
-                                                                setOpenActionId(null);
-                                                            }}
-                                                            className="w-full px-4 py-3 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 text-slate-700 dark:text-slate-300 transition-colors"
-                                                        >
-                                                            <Reply className="h-4 w-4 text-emerald-500" /> Reply
-                                                        </button>
-
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setForwardingMessage(msg);
-                                                                setOpenActionId(null);
-                                                            }}
-                                                            className="w-full px-4 py-3 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 text-slate-700 dark:text-slate-300 transition-colors border-t border-slate-50 dark:border-slate-700/50"
-                                                        >
-                                                            <Share2 className="h-4 w-4 text-blue-500" /> Transmettre
-                                                        </button>
-
-                                                        {msg.type === 'image' && (
+                                                        {[
+                                                            { label: 'Reply', icon: Reply, color: 'text-emerald-500', action: () => setReplyTo(msg) },
+                                                            { label: 'Forward', icon: Share2, color: 'text-blue-500', action: () => setForwardingMessage(msg) },
+                                                            ...(msg.type === 'image' ? [{ label: 'View Image', icon: Eye, color: 'text-purple-500', action: () => setPreviewImage(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:3000/api'}${msg.fileUrl}`) }] : []),
+                                                            ...(isMe && msg.type !== 'image' && msg.type !== 'audio' ? [{ label: 'Edit', icon: Edit2, color: 'text-blue-500', action: () => startEditing(msg) }] : []),
+                                                            ...(isMe ? [{ label: 'Delete', icon: Trash2, color: 'text-red-500', action: () => handleDeleteMessage(msg.id) }] : [])
+                                                        ].map((item, i) => (
                                                             <button
+                                                                key={i}
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    setPreviewImage(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:3000/api'}${msg.fileUrl}`);
+                                                                    item.action();
                                                                     setOpenActionId(null);
                                                                 }}
-                                                                className="w-full px-4 py-3 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 text-slate-700 dark:text-slate-300 transition-colors border-t border-slate-50 dark:border-slate-700/50"
+                                                                className="w-full px-3 py-2 text-left text-[13px] font-medium hover:bg-slate-100 dark:hover:bg-slate-700/50 flex items-center gap-2.5 text-slate-700 dark:text-slate-200 transition-all rounded-xl active:scale-95"
                                                             >
-                                                                <Eye className="h-4 w-4 text-purple-500" /> View Image
+                                                                <item.icon className={cn("h-4 w-4", item.color)} />
+                                                                {item.label}
                                                             </button>
-                                                        )}
-
-                                                        {isMe && msg.type !== 'image' && msg.type !== 'audio' && (
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    startEditing(msg);
-                                                                }}
-                                                                className="w-full px-4 py-3 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 text-slate-700 dark:text-slate-300 transition-colors border-t border-slate-50 dark:border-slate-700/50"
-                                                            >
-                                                                <Edit2 className="h-4 w-4 text-blue-500" /> Edit Message
-                                                            </button>
-                                                        )}
-                                                        {isMe && (
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleDeleteMessage(msg.id);
-                                                                }}
-                                                                className="w-full px-4 py-3 text-left text-sm hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2 text-red-600 transition-colors border-t border-slate-50 dark:border-slate-700/50"
-                                                            >
-                                                                <Trash2 className="h-4 w-4" /> Delete Message
-                                                            </button>
-                                                        )}
+                                                        ))}
                                                     </motion.div>
                                                 )}
                                             </AnimatePresence>
@@ -841,6 +805,6 @@ export function Messages() {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </div>
+        </div >
     );
 }

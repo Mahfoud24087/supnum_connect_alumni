@@ -28,13 +28,21 @@ class ApiClient {
 
         try {
             const response = await fetch(url, config);
+            const contentType = response.headers.get('content-type');
 
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Request failed');
+                if (contentType && contentType.includes('application/json')) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Request failed');
+                }
+                throw new Error(response.statusText || 'Request failed');
             }
 
-            return await response.json();
+            if (contentType && contentType.includes('application/json')) {
+                return await response.json();
+            } else {
+                return await response.text();
+            }
         } catch (error) {
             console.error('API Error:', error);
             throw error;

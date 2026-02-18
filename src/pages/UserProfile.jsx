@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
-import { Github, Linkedin, Facebook, ArrowLeft, MessageSquare, UserPlus, Mail, GraduationCap, MapPin, Calendar, Briefcase, Building, Phone } from 'lucide-react';
+import { Github, Linkedin, Facebook, ArrowLeft, MessageSquare, UserPlus, Mail, GraduationCap, MapPin, Calendar, Briefcase, Building, Phone, FileText, Download } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { apiClient } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -67,6 +67,32 @@ export function UserProfile() {
         navigate(`${basePath}/messages`, { state: { recipientId: id, recipientName: user.name } });
     };
 
+    const handleExportCV = async () => {
+        try {
+            const token = localStorage.getItem('auth_token');
+            const currentLang = localStorage.getItem('language') || 'FR';
+            const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:3000/api'}/users/${id}/export-cv?lang=${currentLang}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!res.ok) throw new Error('Failed to download CV');
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${user.name.replace(/\s+/g, '_')}_CV.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (error) {
+            console.error('Export failed:', error);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex justify-center py-12">
@@ -109,6 +135,9 @@ export function UserProfile() {
                 </div>
 
                 <div className="absolute top-4 right-4 md:top-auto md:bottom-4 md:right-8 flex gap-3">
+                    <Button onClick={handleExportCV} variant="outline" className="shadow-lg backdrop-blur-md bg-white/90 dark:bg-slate-800/90 hover:bg-white dark:hover:bg-slate-800 border-none text-slate-900 dark:text-white">
+                        <Download className="mr-2 h-4 w-4" /> Export CV
+                    </Button>
                     {currentUser.id !== user.id && (
                         <div className="flex gap-3">
                             {connectionStatus === 'accepted' ? (
@@ -250,6 +279,42 @@ export function UserProfile() {
                             </div>
                         </CardContent>
                     </Card>
+
+                    {/* CV Download Section */}
+                    {user.cvUrl && (
+                        <Card className="border-none shadow-md bg-white dark:bg-slate-800">
+                            <CardHeader>
+                                <CardTitle className="text-slate-900 dark:text-white flex items-center gap-2">
+                                    <FileText className="h-5 w-5 text-blue-500" /> {t.profile?.cv || "Curriculum Vitae"}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-700">
+                                    <div className="flex items-center gap-3 overflow-hidden">
+                                        <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg flex-shrink-0">
+                                            <FileText className="h-5 w-5 text-red-500" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
+                                                CV_{user.name ? user.name.replace(/\s+/g, '_') : 'User'}.pdf
+                                            </p>
+                                            <p className="text-xs text-slate-500">PDF Document</p>
+                                        </div>
+                                    </div>
+                                    <a
+                                        href={user.cvUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        download // Add download attribute
+                                        className="p-2 text-slate-400 hover:text-blue-500 transition-colors"
+                                        title={t.common?.download || "Download"}
+                                    >
+                                        <Download className="h-5 w-5" />
+                                    </a>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
             </div>
         </motion.div>
