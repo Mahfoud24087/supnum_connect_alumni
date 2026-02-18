@@ -84,39 +84,29 @@ export function SignUp() {
 
     return (
         <div className="min-h-screen grid lg:grid-cols-2 bg-white dark:bg-slate-900 overflow-hidden">
-            {/* Left Side - Branding */}
+            {/* Left Side - Building Image */}
             <motion.div
-                variants={brandingVariants}
-                initial="hidden"
-                animate="visible"
-                className="hidden lg:flex flex-col justify-between p-12 bg-slate-900 relative overflow-hidden"
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                className="hidden lg:flex flex-col justify-end p-12 bg-slate-900 relative overflow-hidden"
             >
-                <div className="absolute inset-0 bg-gradient-to-bl from-indigo-900 to-blue-800 opacity-90" />
-                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center mix-blend-overlay opacity-40" />
+                <div className="absolute inset-0 bg-gradient-to-t from-blue-900/90 via-blue-900/20 to-transparent z-10" />
+                <div
+                    className="absolute inset-0 bg-cover bg-center transition-transform duration-10000 hover:scale-110"
+                    style={{ backgroundImage: "url('/building.jpg')" }}
+                />
 
-                <div className="relative z-10">
+                <div className="relative z-20 space-y-4">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.5, duration: 1 }}
                         className="flex items-center space-x-3 text-white"
                     >
-                        <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
-                            <GraduationCap className="h-8 w-8" />
-                        </div>
-                        <span className="text-2xl font-bold tracking-tight">SupNum Connect</span>
+                        <h2 className="text-4xl font-bold text-white leading-tight">SupNum Connect</h2>
                     </motion.div>
-                </div>
 
-                <div className="relative z-10 max-w-lg space-y-8">
-                    <motion.h2
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.7, duration: 1 }}
-                        className="text-4xl font-bold text-white leading-tight"
-                    >
-                        {t.auth.signup.brandingTitle}
-                    </motion.h2>
                     <div className="space-y-4">
                         {Object.values(t.auth.signup.features).map((item, i) => (
                             <motion.div
@@ -133,42 +123,44 @@ export function SignUp() {
                         ))}
                     </div>
                 </div>
-
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1.5, duration: 2 }}
-                    className="relative z-10 text-blue-200 text-sm"
-                >
-                    © 2024 SupNum. {t.footer.rights}
-                </motion.div>
             </motion.div>
 
-            {/* Right Side - Form */}
+            {/* Right Side - Form Section */}
             <motion.div
                 variants={formVariants}
                 initial="hidden"
                 animate="visible"
-                className="flex items-center justify-center p-8 sm:p-12 lg:p-24 overflow-y-auto"
+                className="flex items-center justify-center p-8 sm:p-12 lg:p-20 overflow-y-auto bg-slate-50 dark:bg-slate-950/20"
             >
                 <div className="w-full max-w-md space-y-8">
-                    <div className="text-center lg:text-left">
-                        <motion.h1
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.5, duration: 0.8 }}
-                            className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight"
+                    {/* Logo on top */}
+                    <div className="flex flex-col items-center">
+                        <motion.div
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.5 }}
+                            className="mb-4"
                         >
-                            {t.auth.signup.title}
-                        </motion.h1>
-                        <motion.p
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.7, duration: 1 }}
-                            className="mt-2 text-slate-500 dark:text-slate-400"
-                        >
-                            {t.auth.signup.subtitle}
-                        </motion.p>
+                            <img src="/logo.png" alt="SupNum Logo" className="h-20 w-auto drop-shadow-md" />
+                        </motion.div>
+                        <div className="text-center">
+                            <motion.h1
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.5, duration: 0.8 }}
+                                className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight"
+                            >
+                                {t.auth.signup.title}
+                            </motion.h1>
+                            <motion.p
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.7, duration: 1 }}
+                                className="mt-2 text-slate-500 dark:text-slate-400"
+                            >
+                                {t.auth.signup.subtitle}
+                            </motion.p>
+                        </div>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
