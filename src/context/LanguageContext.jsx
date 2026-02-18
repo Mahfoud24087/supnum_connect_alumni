@@ -285,6 +285,9 @@ export const translations = {
             verifiedProfiles: 'Verified Profiles',
             invalidCredentials: 'Invalid email or password',
             unexpectedError: 'An unexpected error occurred. Please try again.',
+            ecosystemTitle: 'Advanced Digital Ecosystem',
+            ecosystemSubtitle: 'Experience the full spectrum of innovation. Connecting our elite community through state-of-the-art technology.',
+            futureTech: 'The Future of technologies made here',
             signup: {
                 title: 'Create your account',
                 subtitle: 'Start your journey with SupNum Connect today',
@@ -667,6 +670,9 @@ export const translations = {
             verifiedProfiles: "Profils vérifiés",
             invalidCredentials: 'Email ou mot de passe invalide',
             unexpectedError: 'Une erreur est survenue. Veuillez réessayer.',
+            ecosystemTitle: 'Écosystème Numérique Avancé',
+            ecosystemSubtitle: 'Découvrez tout le spectre de l\'innovation. Connecter notre communauté d\'élite grâce à une technologie de pointe.',
+            futureTech: 'L\'avenir des technologies créées ici',
             signup: {
                 title: 'Créez votre compte',
                 subtitle: 'Commencez votre voyage avec SupNum Connect dès aujourd\'hui',
@@ -1049,6 +1055,9 @@ export const translations = {
             verifiedProfiles: "ملفات شخصية موثقة",
             invalidCredentials: 'البريد الإلكتروني أو كلمة المرور غير صالحة',
             unexpectedError: 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.',
+            ecosystemTitle: 'نظام رقمي متطور',
+            ecosystemSubtitle: 'اختبر الطيف الكامل للابتكار. ربط مجتمع النخبة لدينا من خلال أحدث التقنيات.',
+            futureTech: 'مستقبل التقنيات المصنوعة هنا',
             signup: {
                 title: 'إنشاء حسابك',
                 subtitle: 'ابدأ رحلتك مع SupNum Connect اليوم',
