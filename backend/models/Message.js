@@ -63,6 +63,10 @@ const Message = sequelize.define('Message', {
             model: 'Messages',
             key: 'id'
         }
+    },
+    tempId: {
+        type: DataTypes.STRING,
+        allowNull: true
     }
 }, {
     timestamps: true,

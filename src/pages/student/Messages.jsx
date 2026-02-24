@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { memo, useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
@@ -13,7 +13,7 @@ import { useToast } from '../../components/Toast';
 import { ConfirmationModal } from '../../components/ConfirmationModal';
 
 // Helper component for Audio Playback
-function AudioPlayer({ url, isMe }) {
+const AudioPlayer = memo(function AudioPlayer({ url, isMe, sending }) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
@@ -21,6 +21,7 @@ function AudioPlayer({ url, isMe }) {
 
     const togglePlay = (e) => {
         e.stopPropagation();
+        if (sending) return;
         if (isPlaying) {
             audioRef.current.pause();
         } else {
@@ -46,7 +47,8 @@ function AudioPlayer({ url, isMe }) {
     return (
         <div className={cn(
             "flex items-center gap-3 p-3 rounded-xl min-w-[200px]",
-            isMe ? "bg-blue-700/50 text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white"
+            isMe ? "bg-blue-700/50 text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white",
+            sending && "opacity-70 grayscale-[50%]"
         )}>
             <audio
                 ref={audioRef}
@@ -58,12 +60,18 @@ function AudioPlayer({ url, isMe }) {
             />
             <button
                 onClick={togglePlay}
+                disabled={sending}
                 className={cn(
                     "h-10 w-10 rounded-full flex items-center justify-center transition-all",
-                    isMe ? "bg-white text-blue-600 hover:bg-blue-50" : "bg-blue-600 text-white hover:bg-blue-700"
+                    isMe ? "bg-white text-blue-600 hover:bg-blue-50" : "bg-blue-600 text-white hover:bg-blue-700",
+                    sending && "cursor-not-allowed"
                 )}
             >
-                {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ml-1" />}
+                {sending ? (
+                    <div className="h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                    isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ml-1" />
+                )}
             </button>
             <div className="flex-1">
                 <div className="h-1.5 w-full bg-slate-300/30 rounded-full overflow-hidden">
@@ -74,12 +82,12 @@ function AudioPlayer({ url, isMe }) {
                 </div>
                 <div className="flex justify-between mt-1.5 text-[10px] opacity-70 font-medium">
                     <span>{formatTime(currentTime)}</span>
-                    <span>{formatTime(duration)}</span>
+                    <span>{sending ? 'Sending...' : formatTime(duration)}</span>
                 </div>
             </div>
         </div>
     );
-}
+});
 
 export function Messages() {
     const { user: currentUser } = useAuth();
@@ -138,11 +146,35 @@ export function Messages() {
         socket.on('new_message', (message) => {
             if (selectedConv && message.conversationId === selectedConv._id) {
                 setMessages(prev => {
-                    if (prev.find(m => m.id === message.id)) return prev;
+                    // Update the sending placeholder if it exists
+                    const existingIdx = prev.findIndex(m => m.tempId === message.tempId || m.id === message.id);
+                    if (existingIdx !== -1) {
+                        const newMessages = [...prev];
+                        newMessages[existingIdx] = message;
+                        return newMessages;
+                    }
                     return [...prev, message];
                 });
             }
-            fetchConversations();
+            // Smart update of conversation list without full fetch if possible
+            setConversations(prev => {
+                const convoIdx = prev.findIndex(c => c._id === message.conversationId);
+                if (convoIdx !== -1) {
+                    const newConvos = [...prev];
+                    newConvos[convoIdx] = {
+                        ...newConvos[convoIdx],
+                        lastMessage: message,
+                        unreadCount: (message.conversationId !== selectedConv?._id && message.recipientId === currentUser.id)
+                            ? (newConvos[convoIdx].unreadCount || 0) + 1
+                            : newConvos[convoIdx].unreadCount
+                    };
+                    // Sort by date
+                    return newConvos.sort((a, b) => new Date(b.lastMessage.createdAt) - new Date(a.lastMessage.createdAt));
+                }
+                // If not in list, fetch to get the profile of the new person
+                fetchConversations();
+                return prev;
+            });
         });
 
         socket.on('message_deleted', ({ messageId, conversationId }) => {
@@ -285,7 +317,25 @@ export function Messages() {
             recipientId = otherUser.id;
         }
 
-        // Optimistic UI: Clear input immediately for snappier feel
+        // Optimistic UI: Create temporary message
+        const tempId = `temp-${Date.now()}`;
+        const optimisticMsg = {
+            id: tempId,
+            tempId,
+            senderId: currentUser.id,
+            recipientId,
+            content: newMessage,
+            type: selectedFile ? 'image' : (audioBlob ? 'audio' : 'text'),
+            fileUrl: selectedFile ? URL.createObjectURL(selectedFile) : (audioBlob ? URL.createObjectURL(audioBlob) : null),
+            createdAt: new Date().toISOString(),
+            sending: true
+        };
+
+        if (!selectedConv.virtual) {
+            setMessages(prev => [...prev, optimisticMsg]);
+        }
+
+        // Optimistic UI: Clear input immediately
         setNewMessage('');
         setSelectedFile(null);
         setAudioBlob(null);
@@ -295,7 +345,8 @@ export function Messages() {
         try {
             const formData = new FormData();
             formData.append('recipientId', recipientId);
-            if (newMessage.trim()) formData.append('content', newMessage);
+            if (optimisticMsg.content.trim()) formData.append('content', optimisticMsg.content);
+            formData.append('tempId', tempId); // Send tempId to backend for matching
 
             if (selectedFile) {
                 formData.append('file', selectedFile);
@@ -320,7 +371,7 @@ export function Messages() {
             }
         } catch (error) {
             console.error('Failed to send message:', error);
-            // Optional: Restore message on error
+            setMessages(prev => prev.filter(m => m.id !== tempId));
             showToast('Failed to send message', 'error');
         }
     };
@@ -634,18 +685,33 @@ export function Messages() {
                                                     )}
 
                                                     {msg.type === 'image' && msg.fileUrl && (
-                                                        <div className="mb-2 rounded-lg overflow-hidden relative group max-w-[200px]">
+                                                        <div className={cn(
+                                                            "mb-2 rounded-lg overflow-hidden relative group max-w-[200px]",
+                                                            msg.sending && "opacity-50 grayscale-[50%]"
+                                                        )}>
                                                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                                                            {msg.sending && (
+                                                                <div className="absolute inset-0 flex items-center justify-center z-10">
+                                                                    <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                                </div>
+                                                            )}
                                                             <img
-                                                                src={`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:3000/api'}${msg.fileUrl}`}
+                                                                src={msg.fileUrl.startsWith('blob:') ? msg.fileUrl : `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:3000/api'}${msg.fileUrl}`}
                                                                 alt="Sent"
                                                                 className="w-full h-32 object-cover"
+                                                                onLoad={() => {
+                                                                    if (msg.fileUrl.startsWith('blob:')) scrollToBottom();
+                                                                }}
                                                             />
                                                         </div>
                                                     )}
 
                                                     {msg.type === 'audio' && msg.fileUrl && (
-                                                        <AudioPlayer url={`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:3000/api'}${msg.fileUrl}`} isMe={isMe} />
+                                                        <AudioPlayer
+                                                            url={msg.fileUrl.startsWith('blob:') ? msg.fileUrl : `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:3000/api'}${msg.fileUrl}`}
+                                                            isMe={isMe}
+                                                            sending={msg.sending}
+                                                        />
                                                     )}
 
                                                     {editingMessageId === msg.id ? (

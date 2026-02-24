@@ -157,7 +157,7 @@ router.get('/:conversationId', protect, async (req, res, next) => {
 // @access  Private
 router.post('/', protect, upload.single('file'), async (req, res, next) => {
     try {
-        const { recipientId, content, replyToId } = req.body;
+        const { recipientId, content, replyToId, tempId } = req.body;
         const file = req.file;
 
         // Validation: Must have either content or file
@@ -216,7 +216,8 @@ router.post('/', protect, upload.single('file'), async (req, res, next) => {
             content: content || '',
             type,
             fileUrl: file ? `/uploads/messages/${file.filename}` : null,
-            replyToId: replyToId || null
+            replyToId: replyToId || null,
+            tempId: tempId || null
         });
 
         const populatedMessage = await Message.findByPk(message.id, {
