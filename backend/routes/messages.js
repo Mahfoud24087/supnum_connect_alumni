@@ -39,9 +39,8 @@ const upload = multer({
 // @access  Private
 router.get('/conversations', protect, async (req, res, next) => {
     try {
-        // 1. Get last message for each conversation
-        // Using a more efficient query to find the IDs of the latest messages
-        const latestMessageIds = await Message.findAll({
+        // 1. Get last message date for each conversation
+        const latestMessageDates = await Message.findAll({
             where: {
                 [Op.or]: [
                     { senderId: req.user.id },
@@ -50,23 +49,24 @@ router.get('/conversations', protect, async (req, res, next) => {
             },
             attributes: [
                 'conversationId',
-                [sequelize.fn('MAX', sequelize.col('id')), 'latestId']
+                [sequelize.fn('MAX', sequelize.col('createdAt')), 'latestAt']
             ],
             group: ['conversationId'],
             raw: true
         });
 
-        if (latestMessageIds.length === 0) {
+        if (latestMessageDates.length === 0) {
             return res.json({ conversations: [] });
         }
 
-        const convoMsgIds = latestMessageIds.map(m => m.latestId);
-        const convoIds = latestMessageIds.map(m => m.conversationId);
+        const convoDates = latestMessageDates.map(m => m.latestAt);
+        const convoIds = latestMessageDates.map(m => m.conversationId);
 
-        // 2. Fetch all last messages in ONE query using their IDs
+        // 2. Fetch all last messages in ONE query using their dates
         const lastMessages = await Message.findAll({
             where: {
-                id: { [Op.in]: convoMsgIds }
+                conversationId: { [Op.in]: convoIds },
+                createdAt: { [Op.in]: convoDates }
             },
             include: [
                 { model: User, as: 'sender', attributes: ['id', 'name', 'avatar', 'role'] },

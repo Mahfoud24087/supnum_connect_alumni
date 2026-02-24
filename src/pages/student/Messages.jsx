@@ -128,8 +128,10 @@ export function Messages() {
     };
 
     useEffect(() => {
-        fetchConversations();
-    }, []);
+        if (currentUser) {
+            fetchConversations();
+        }
+    }, [currentUser]);
 
     useEffect(() => {
         if (selectedConv) {
@@ -203,7 +205,7 @@ export function Messages() {
             const response = await apiClient.get('/messages/conversations');
             setConversations(response.conversations);
 
-            if (location.state?.recipientId) {
+            if (location.state?.recipientId && currentUser) {
                 const searchId = String(location.state.recipientId);
                 const existingConv = response.conversations.find(c => {
                     if (!c.lastMessage) return false;
@@ -451,7 +453,7 @@ export function Messages() {
         return other || { name: 'Unknown User', avatar: null, role: '' };
     };
 
-    if (loading) {
+    if (!currentUser || loading) {
         return <div className="flex h-[calc(100vh-8rem)] items-center justify-center">Loading...</div>;
     }
 
