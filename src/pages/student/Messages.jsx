@@ -129,8 +129,6 @@ export function Messages() {
 
     useEffect(() => {
         fetchConversations();
-        // Clear the state so that re-fetches (e.g. from socket) don't force-select this user again
-        navigate(location.pathname, { replace: true, state: {} });
     }, []);
 
     useEffect(() => {
@@ -206,46 +204,49 @@ export function Messages() {
             setConversations(response.conversations);
 
             if (location.state?.recipientId) {
+                const searchId = String(location.state.recipientId);
                 const existingConv = response.conversations.find(c => {
                     if (!c.lastMessage) return false;
                     const otherUserId = String(c.lastMessage.senderId) === String(currentUser.id)
                         ? String(c.lastMessage.recipientId)
                         : String(c.lastMessage.senderId);
-                    return otherUserId === String(location.state.recipientId);
+                    return otherUserId === searchId;
                 });
 
                 if (existingConv) {
-                    // Only update if not already selected same conversation
-                    setSelectedConv(prev => (prev?._id === existingConv._id) ? prev : existingConv);
+                    setSelectedConv(existingConv);
                 } else {
-                    setSelectedConv(prev => (prev?._id === 'new' && prev?.recipientId === location.state.recipientId) ? prev : {
+                    setSelectedConv({
                         _id: 'new',
                         virtual: true,
-                        recipientId: location.state.recipientId,
+                        recipientId: searchId,
                         recipientName: location.state.recipientName,
                         otherUser: {
-                            id: location.state.recipientId,
+                            id: searchId,
                             name: location.state.recipientName,
                             avatar: null
                         }
                     });
                 }
+                // Clear the state after use
+                navigate(location.pathname, { replace: true, state: {} });
             }
             setLoading(false);
         } catch (error) {
             console.error('Failed to fetch conversations:', error);
-        } finally {
             setLoading(false);
         }
     };
 
     const fetchMessages = async (convId) => {
+        if (!convId) return;
         if (convId === 'new') {
             setMessages([]);
             return;
         }
-        // Clear messages immediately so user doesn't see old chat
-        setMessages([]);
+        // Only clear if switching to a different conversation to avoid unnecessary flickering
+        setMessages(prev => (prev.length > 0 && prev[0].conversationId !== convId) ? [] : prev);
+
         try {
             const response = await apiClient.get(`/messages/${convId}`);
             // Note: Server now returns messages in DESC order with limit, we expect them in ASC for UI
@@ -440,10 +441,14 @@ export function Messages() {
     };
 
     const getOtherUser = (conv) => {
+        if (!conv) return { name: '', avatar: null, role: '' };
         if (conv.virtual && conv.otherUser) return conv.otherUser;
-        if (!conv.lastMessage) return { name: 'Unknown', avatar: null, role: '' };
-        return String(conv.lastMessage.senderId) === String(currentUser.id)
+        if (!conv.lastMessage) return { name: 'Chat', avatar: null, role: '' };
+
+        const other = String(conv.lastMessage.senderId) === String(currentUser.id)
             ? conv.lastMessage.recipient : conv.lastMessage.sender;
+
+        return other || { name: 'Unknown User', avatar: null, role: '' };
     };
 
     if (loading) {
