@@ -202,6 +202,8 @@ export function Messages() {
             setMessages([]);
             return;
         }
+        // Clear messages immediately so user doesn't see old chat
+        setMessages([]);
         try {
             const response = await apiClient.get(`/messages/${convId}`);
             setMessages(response.messages);
@@ -277,6 +279,13 @@ export function Messages() {
             recipientId = otherUser.id;
         }
 
+        // Optimistic UI: Clear input immediately for snappier feel
+        setNewMessage('');
+        setSelectedFile(null);
+        setAudioBlob(null);
+        setReplyTo(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+
         try {
             const formData = new FormData();
             formData.append('recipientId', recipientId);
@@ -303,14 +312,10 @@ export function Messages() {
                 const newConv = newConvs.find(c => c._id === sentMessage.conversationId);
                 if (newConv) setSelectedConv(newConv);
             }
-
-            setNewMessage('');
-            setSelectedFile(null);
-            setAudioBlob(null);
-            setReplyTo(null);
-            if (fileInputRef.current) fileInputRef.current.value = '';
         } catch (error) {
             console.error('Failed to send message:', error);
+            // Optional: Restore message on error
+            showToast('Failed to send message', 'error');
         }
     };
 

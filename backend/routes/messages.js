@@ -39,7 +39,7 @@ const upload = multer({
 // @access  Private
 router.get('/conversations', protect, async (req, res, next) => {
     try {
-        // Get unique conversation IDs where user is involved
+        // 1. Get unique conversation IDs and the date of the last message for each
         const conversations = await Message.findAll({
             where: {
                 [Op.or]: [
@@ -52,40 +52,61 @@ router.get('/conversations', protect, async (req, res, next) => {
                 [sequelize.fn('MAX', sequelize.col('createdAt')), 'lastMessageAt']
             ],
             group: ['conversationId'],
-            order: [[sequelize.literal('MAX("createdAt")'), 'DESC']]
+            raw: true
         });
 
-        // For each conversation, get the last message details
-        const conversationDetails = await Promise.all(conversations.map(async (conv) => {
-            const lastMessage = await Message.findOne({
-                where: { conversationId: conv.conversationId },
-                order: [['createdAt', 'DESC']],
-                include: [
-                    { model: User, as: 'sender', attributes: ['id', 'name', 'avatar', 'role'] },
-                    { model: User, as: 'recipient', attributes: ['id', 'name', 'avatar', 'role'] },
-                    {
-                        model: Message,
-                        as: 'replyTo',
-                        attributes: ['id', 'content', 'type', 'fileUrl'],
-                        include: [{ model: User, as: 'sender', attributes: ['id', 'name'] }]
-                    }
-                ]
-            });
+        if (conversations.length === 0) {
+            return res.json({ conversations: [] });
+        }
 
-            const unreadCount = await Message.count({
-                where: {
-                    conversationId: conv.conversationId,
-                    recipientId: req.user.id,
-                    read: false
+        const convoIds = conversations.map(c => c.conversationId);
+        const lastDates = conversations.map(c => c.lastMessageAt);
+
+        // 2. Fetch all last messages in ONE query
+        const lastMessages = await Message.findAll({
+            where: {
+                conversationId: { [Op.in]: convoIds },
+                createdAt: { [Op.in]: lastDates }
+            },
+            include: [
+                { model: User, as: 'sender', attributes: ['id', 'name', 'avatar', 'role'] },
+                { model: User, as: 'recipient', attributes: ['id', 'name', 'avatar', 'role'] },
+                {
+                    model: Message,
+                    as: 'replyTo',
+                    attributes: ['id', 'content', 'type', 'fileUrl'],
+                    include: [{ model: User, as: 'sender', attributes: ['id', 'name'] }]
                 }
-            });
+            ]
+        });
 
-            return {
-                _id: conv.conversationId,
-                lastMessage,
-                unreadCount
-            };
-        }));
+        // 3. Fetch all unread counts in ONE query
+        const unreadCounts = await Message.findAll({
+            where: {
+                conversationId: { [Op.in]: convoIds },
+                recipientId: req.user.id,
+                read: false
+            },
+            attributes: [
+                'conversationId',
+                [sequelize.fn('COUNT', sequelize.col('id')), 'count']
+            ],
+            group: ['conversationId'],
+            raw: true
+        });
+
+        // Map unread counts for easy lookup
+        const unreadMap = {};
+        unreadCounts.forEach(c => {
+            unreadMap[c.conversationId] = parseInt(c.count);
+        });
+
+        // 4. Assemble results and sort by date
+        const conversationDetails = lastMessages.map(msg => ({
+            _id: msg.conversationId,
+            lastMessage: msg,
+            unreadCount: unreadMap[msg.conversationId] || 0
+        })).sort((a, b) => new Date(b.lastMessage.createdAt) - new Date(a.lastMessage.createdAt));
 
         res.json({ conversations: conversationDetails });
     } catch (error) {
