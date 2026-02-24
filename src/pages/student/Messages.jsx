@@ -212,9 +212,10 @@ export function Messages() {
                 });
 
                 if (existingConv) {
-                    setSelectedConv(existingConv);
+                    // Only update if not already selected same conversation
+                    setSelectedConv(prev => (prev?._id === existingConv._id) ? prev : existingConv);
                 } else {
-                    setSelectedConv({
+                    setSelectedConv(prev => (prev?._id === 'new' && prev?.recipientId === location.state.recipientId) ? prev : {
                         _id: 'new',
                         virtual: true,
                         recipientId: location.state.recipientId,
@@ -244,6 +245,8 @@ export function Messages() {
         setMessages([]);
         try {
             const response = await apiClient.get(`/messages/${convId}`);
+            // Note: Server now returns messages in DESC order with limit, we expect them in ASC for UI
+            // But let's check if they are already sorted correctly or need reverse
             setMessages(response.messages);
         } catch (error) {
             console.error('Failed to fetch messages:', error);

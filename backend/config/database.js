@@ -65,10 +65,15 @@ const connectDB = async () => {
         await sequelize.authenticate();
         console.log('✅ PostgreSQL Connected successfully');
 
-        // Sync all models (creates tables if they don't exist)
-        // Use alter only in development to avoid production data loss
-        await sequelize.sync({ alter: true });
-        console.log('✅ Database synced');
+        // Limit sync with alter to development only and only when explicitly needed or on first run
+        if (process.env.NODE_ENV === 'development') {
+            await sequelize.sync({ alter: true });
+            console.log('✅ Database synced (alter: true)');
+        } else {
+            // In production, just verify connection or use basic sync
+            await sequelize.sync();
+            console.log('✅ Database synced (no alter)');
+        }
         return true;
     } catch (error) {
         console.error('❌ DATABASE_CONNECTION_ERROR:', error.message);

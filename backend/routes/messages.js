@@ -39,8 +39,9 @@ const upload = multer({
 // @access  Private
 router.get('/conversations', protect, async (req, res, next) => {
     try {
-        // 1. Get unique conversation IDs and the date of the last message for each
-        const conversations = await Message.findAll({
+        // 1. Get last message for each conversation
+        // Using a more efficient query to find the IDs of the latest messages
+        const latestMessageIds = await Message.findAll({
             where: {
                 [Op.or]: [
                     { senderId: req.user.id },
@@ -49,24 +50,23 @@ router.get('/conversations', protect, async (req, res, next) => {
             },
             attributes: [
                 'conversationId',
-                [sequelize.fn('MAX', sequelize.col('createdAt')), 'lastMessageAt']
+                [sequelize.fn('MAX', sequelize.col('id')), 'latestId']
             ],
             group: ['conversationId'],
             raw: true
         });
 
-        if (conversations.length === 0) {
+        if (latestMessageIds.length === 0) {
             return res.json({ conversations: [] });
         }
 
-        const convoIds = conversations.map(c => c.conversationId);
-        const lastDates = conversations.map(c => c.lastMessageAt);
+        const convoMsgIds = latestMessageIds.map(m => m.latestId);
+        const convoIds = latestMessageIds.map(m => m.conversationId);
 
-        // 2. Fetch all last messages in ONE query
+        // 2. Fetch all last messages in ONE query using their IDs
         const lastMessages = await Message.findAll({
             where: {
-                conversationId: { [Op.in]: convoIds },
-                createdAt: { [Op.in]: lastDates }
+                id: { [Op.in]: convoMsgIds }
             },
             include: [
                 { model: User, as: 'sender', attributes: ['id', 'name', 'avatar', 'role'] },
@@ -131,10 +131,14 @@ router.get('/:conversationId', protect, async (req, res, next) => {
                     include: [{ model: User, as: 'sender', attributes: ['id', 'name'] }]
                 }
             ],
-            order: [['createdAt', 'ASC']]
+            order: [['createdAt', 'DESC']],
+            limit: 50
         });
 
-        // Mark messages as read
+        // Re-sort to ASC for the chat interface
+        const sortedMessages = messages.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+        // Mark messages as read (background or async is fine, but we keep it here)
         await Message.update(
             { read: true, readAt: new Date() },
             {
@@ -144,9 +148,9 @@ router.get('/:conversationId', protect, async (req, res, next) => {
                     read: false
                 }
             }
-        );
+        ).catch(err => console.error('Failed to update read status:', err));
 
-        res.json({ messages });
+        res.json({ messages: sortedMessages });
     } catch (error) {
         next(error);
     }

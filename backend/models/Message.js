@@ -75,7 +75,10 @@ const Message = sequelize.define('Message', {
             fields: ['conversationId', 'createdAt']
         },
         {
-            fields: ['senderId', 'recipientId']
+            fields: ['senderId']
+        },
+        {
+            fields: ['recipientId']
         }
     ]
 });
