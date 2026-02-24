@@ -165,9 +165,28 @@ export function Friends() {
                                             <p className="text-xs text-slate-400 mt-0.5">{friend.company}</p>
                                         </div>
                                     </Link>
-                                    <Button onClick={() => handleMessage(friend)} variant="ghost" className="h-10 w-10 p-0 rounded-full text-blue-600 hover:bg-blue-50">
-                                        <MessageSquare className="h-5 w-5" />
-                                    </Button>
+                                    <div className="flex gap-1">
+                                        <Button onClick={() => handleMessage(friend)} variant="ghost" className="h-10 w-10 p-0 rounded-full text-blue-600 hover:bg-blue-50">
+                                            <MessageSquare className="h-5 w-5" />
+                                        </Button>
+                                        <Button
+                                            onClick={async () => {
+                                                if (window.confirm(`Retirer ${friend.name} des amis ?`)) {
+                                                    try {
+                                                        await apiClient.delete(`/users/connect/${friend.id}/unfriend`);
+                                                        fetchData();
+                                                    } catch (err) {
+                                                        console.error(err);
+                                                    }
+                                                }
+                                            }}
+                                            variant="ghost"
+                                            className="h-10 w-10 p-0 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50"
+                                            title="Retirer des amis"
+                                        >
+                                            <UserX className="h-5 w-5" />
+                                        </Button>
+                                    </div>
                                 </CardContent>
                             </Card>
                         ))}
