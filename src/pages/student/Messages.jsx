@@ -1,5 +1,5 @@
 import { memo, useState, useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Send, Image as ImageIcon, Users, Plus, X, Check, Search, MessageSquare, ArrowLeft, MoreVertical, Trash2, Edit2, Eye, Download, XCircle, Mic, Square, Play, Pause, Reply, CornerUpLeft, Share2, UserX } from 'lucide-react';
@@ -94,6 +94,7 @@ export function Messages() {
     const { t } = useLanguage();
     const { socket, onlineUsers } = useSocket();
     const location = useLocation();
+    const navigate = useNavigate();
     const [conversations, setConversations] = useState([]);
     const [selectedConv, setSelectedConv] = useState(null);
     const [messages, setMessages] = useState([]);
