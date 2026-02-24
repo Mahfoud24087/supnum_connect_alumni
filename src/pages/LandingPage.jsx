@@ -13,32 +13,29 @@ import { EventModal } from '../components/EventModal';
 
 // Data for "Students by Entry Year" (Bar Chart)
 const entryYearData = [
-    { name: '2021', students: 1 },
-    { name: '2022', students: 2 },
-    { name: '2023', students: 2 },
-    { name: '2024', students: 1 },
+    { name: '2021', students: 200 },
+    { name: '2022', students: 240 },
+    { name: '2023', students: 240 },
+    { name: '2024', students: 400 },
+    { name: '2025', students: 230 },
 ];
 
 // Data for "Graduates by Promotion" (Donut Chart)
 const promotionData = [
-    { name: 'Promo 2020', value: 17, color: '#0d9488' }, // Teal
-    { name: 'Promo 2019', value: 17, color: '#1e3a8a' }, // Dark Blue
-    { name: 'Promo 2023', value: 17, color: '#1e40af' }, // Blue
-    { name: 'Promo 2022', value: 33, color: '#facc15' }, // Yellow
-    { name: 'Promo 2021', value: 17, color: '#2dd4bf' }, // Light Teal
+    { name: 'DSI', value: 35, color: '#0d9488' }, // Teal
+    { name: 'RSS', value: 25, color: '#1e3a8a' }, // Dark Blue
+    { name: 'IA', value: 15, color: '#1e40af' },  // Blue
+    { name: 'IDS', value: 15, color: '#0ea5e9' }, // sky blue
+    { name: 'DWM', value: 10, color: '#2dd4bf' }, // Light Teal
 ];
 
 // Data for "Community Growth" (Line/Area Chart)
 const growthData = [
-    { name: '2016', students: 0, graduates: 0 },
-    { name: '2017', students: 0, graduates: 0 },
-    { name: '2018', students: 0, graduates: 0 },
-    { name: '2019', students: 0, graduates: 1 },
-    { name: '2020', students: 0, graduates: 2 },
-    { name: '2021', students: 1, graduates: 3 },
-    { name: '2022', students: 3, graduates: 5 },
-    { name: '2023', students: 5, graduates: 6 },
-    { name: '2024', students: 6, graduates: 6 },
+    { name: '2021', students: 200, graduates: 0 },
+    { name: '2022', students: 240, graduates: 0 },
+    { name: '2023', students: 240, graduates: 150 },
+    { name: '2024', students: 400, graduates: 235 },
+    { name: '2025', students: 230, graduates: 310 },
 ];
 
 function Counter({ value }) {
@@ -66,9 +63,9 @@ function Counter({ value }) {
 
 const MOCK_LANDING_DATA = {
     stats: {
-        totalUsers: 1450,
-        students: 210,
-        graduates: 1240,
+        totalUsers: 1310,
+        students: 870,
+        graduates: 440,
         eventsCount: 5,
         partnerCompanies: 45,
         activeInternships: 28
@@ -158,21 +155,6 @@ export function LandingPage() {
                 // If total users is very low (e.g. 0 or just the 1 initial admin), show Mock Data to make the site look populated.
                 // Otherwise, show REAL data.
                 const finalStats = response.stats || {};
-
-                // FIX: Sync "Partner Companies" with the Admin Panel's local storage
-                // key: 'supnum_companies'
-                const localCompanies = localStorage.getItem('supnum_companies');
-                if (localCompanies) {
-                    try {
-                        const parsed = JSON.parse(localCompanies);
-                        if (parsed && Array.isArray(parsed)) {
-                            // Override the API zero/null with the local admin creation count
-                            finalStats.partnerCompanies = parsed.length;
-                        }
-                    } catch (e) {
-                        console.error("Error parsing local companies:", e);
-                    }
-                }
 
                 if ((finalStats.totalUsers || 0) <= 0 && response.latestEvents?.length === 0) {
                     // Completely empty system -> Show full mock mode for stats

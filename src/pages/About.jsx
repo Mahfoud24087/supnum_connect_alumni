@@ -36,7 +36,7 @@ export function About() {
                     </p>
                     <div className="mt-8 pt-8 border-t border-blue-400/30 flex justify-center space-x-12">
                         <div>
-                            <div className="text-3xl font-bold">2024</div>
+                            <div className="text-3xl font-bold">2021</div>
                             <div className="text-blue-200 text-sm">{t.aboutPage.founded}</div>
                         </div>
                         <div>

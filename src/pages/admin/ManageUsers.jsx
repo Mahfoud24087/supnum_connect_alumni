@@ -7,14 +7,19 @@ import { Search, Trash2, ArrowLeft, Eye, CheckCircle, XCircle, AlertTriangle, Do
 import { Link } from 'react-router-dom';
 import { apiClient } from '../../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useToast } from '../../components/Toast';
+import { ConfirmationModal } from '../../components/ConfirmationModal';
 
 export function ManageUsers() {
     const { t } = useLanguage();
+    const { showToast } = useToast();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [userToDelete, setUserToDelete] = useState(null);
     const [formData, setFormData] = useState({ name: '', email: '', password: '' });
     const [formError, setFormError] = useState('');
     const [formLoading, setFormLoading] = useState(false);
@@ -44,25 +49,20 @@ export function ManageUsers() {
         fetchUsers();
     };
 
-    const handleDelete = async (id) => {
-        const userToDelete = users.find(u => u.id === id);
+    const handleDeleteClick = (user) => {
+        setUserToDelete(user);
+        setIsConfirmOpen(true);
+    };
 
-        // Extra confirmation for admin users
-        if (userToDelete?.role === 'admin') {
-            const confirmAdmin = window.confirm(
-                `⚠️ WARNING: You are about to delete an ADMIN user!\n\nUser: ${userToDelete.name}\nEmail: ${userToDelete.email}\n\nThis action cannot be undone. Are you absolutely sure?`
-            );
-            if (!confirmAdmin) return;
-        } else {
-            if (!window.confirm(t.admin.manageUsers.confirmDelete)) return;
-        }
-
+    const confirmDelete = async () => {
+        if (!userToDelete) return;
         try {
-            await apiClient.delete(`/users/${id}`);
-            setUsers(users.filter(u => u.id !== id));
+            await apiClient.delete(`/users/${userToDelete.id}`);
+            setUsers(users.filter(u => u.id !== userToDelete.id));
+            showToast('Utilisateur supprimé', 'success');
         } catch (error) {
             console.error(error);
-            alert(t.admin.manageUsers.failedDelete || 'Failed to delete user');
+            showToast(t.admin.manageUsers.failedDelete || 'Failed to delete user', 'error');
         }
     };
 
@@ -111,7 +111,7 @@ export function ManageUsers() {
             setShowCreateModal(false);
             setFormData({ name: '', email: '', password: '' });
             fetchUsers(); // Refresh the user list
-            alert('Admin user created successfully!');
+            showToast('Administrateur créé avec succès', 'success');
         } catch (error) {
             setFormError(error.message || 'Failed to create admin user');
         } finally {
@@ -246,7 +246,7 @@ export function ManageUsers() {
                                                     </Button>
                                                 </Link>
                                                 <Button
-                                                    onClick={() => handleDelete(user.id)}
+                                                    onClick={() => handleDeleteClick(user)}
                                                     size="sm"
                                                     className="bg-red-500 hover:bg-red-600 text-white border-none shadow-sm"
                                                     title={t.admin.manageUsers.removeUser}
@@ -366,6 +366,19 @@ export function ManageUsers() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <ConfirmationModal
+                isOpen={isConfirmOpen}
+                onClose={() => setIsConfirmOpen(false)}
+                onConfirm={confirmDelete}
+                title={userToDelete?.role === 'admin' ? "⚠️ AVERTISSEMENT : Administrateur" : "Supprimer l'utilisateur"}
+                message={userToDelete?.role === 'admin'
+                    ? `Vous êtes sur le point de supprimer un compte ADMINISTRATEUR : ${userToDelete?.name}. Cette action est irréversible. Êtes-vous absolument sûr ?`
+                    : `Voulez-vous vraiment supprimer l'utilisateur ${userToDelete?.name} ?`
+                }
+                confirmText="Supprimer"
+                variant="danger"
+            />
         </div>
     );
 }

@@ -62,6 +62,7 @@ router.post('/', protect, admin, async (req, res, next) => {
 
         res.status(201).json({ company });
     } catch (error) {
+        console.error('❌ Error creating company:', error);
         next(error);
     }
 });
@@ -81,6 +82,7 @@ router.put('/:id', protect, admin, async (req, res, next) => {
 
         res.json({ company });
     } catch (error) {
+        console.error('❌ Error updating company:', error);
         next(error);
     }
 });

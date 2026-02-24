@@ -5,6 +5,7 @@ import { SocketProvider } from './context/SocketContext';
 import { PublicLayout } from './layouts/PublicLayout';
 import { DashboardLayout } from './layouts/DashboardLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { ToastProvider } from './components/Toast';
 
 // Public Pages
 import { LandingPage } from './pages/LandingPage';
@@ -36,56 +37,58 @@ function App() {
   return (
     <AuthProvider>
       <LanguageProvider>
-        <SocketProvider>
-          <Router>
-            <Routes>
-              {/* Public Routes */}
-              <Route element={<PublicLayout />}>
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/events" element={<PublicEvents />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/signin" element={<SignIn />} />
-                <Route path="/signup" element={<SignUp />} />
-              </Route>
+        <ToastProvider>
+          <SocketProvider>
+            <Router>
+              <Routes>
+                {/* Public Routes */}
+                <Route element={<PublicLayout />}>
+                  <Route path="/" element={<LandingPage />} />
+                  <Route path="/events" element={<PublicEvents />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/signin" element={<SignIn />} />
+                  <Route path="/signup" element={<SignUp />} />
+                </Route>
 
-              {/* Student/Graduate Routes */}
-              <Route path="/dashboard" element={
-                <ProtectedRoute allowedRoles={['student', 'graduate']}>
-                  <DashboardLayout />
-                </ProtectedRoute>
-              }>
-                <Route index element={<DashboardHome />} />
-                <Route path="profile" element={<Profile />} />
-                <Route path="profile/:id" element={<UserProfile />} />
-                <Route path="search" element={<Search />} />
-                <Route path="friends" element={<Friends />} />
-                <Route path="find-friends" element={<FindFriends />} />
-                <Route path="messages" element={<Messages />} />
-                <Route path="feed" element={<Feed />} />
-                <Route path="apply/:id" element={<ApplyOpportunity />} />
-              </Route>
+                {/* Student/Graduate Routes */}
+                <Route path="/dashboard" element={
+                  <ProtectedRoute allowedRoles={['student', 'graduate']}>
+                    <DashboardLayout />
+                  </ProtectedRoute>
+                }>
+                  <Route index element={<DashboardHome />} />
+                  <Route path="profile" element={<Profile />} />
+                  <Route path="profile/:id" element={<UserProfile />} />
+                  <Route path="search" element={<Search />} />
+                  <Route path="friends" element={<Friends />} />
+                  <Route path="find-friends" element={<FindFriends />} />
+                  <Route path="messages" element={<Messages />} />
+                  <Route path="feed" element={<Feed />} />
+                  <Route path="apply/:id" element={<ApplyOpportunity />} />
+                </Route>
 
-              {/* Admin Routes */}
-              <Route path="/admin" element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <DashboardLayout />
-                </ProtectedRoute>
-              }>
-                <Route index element={<AdminOverview />} />
-                <Route path="events" element={<ManageEvents />} />
-                <Route path="users" element={<ManageUsers />} />
-                <Route path="internships" element={<ManageInternships />} />
-                <Route path="companies" element={<ManageCompanies />} />
-                <Route path="applications" element={<ManageApplications />} />
-                <Route path="messages" element={<Messages />} />
-                <Route path="profile/:id" element={<UserProfile />} />
-              </Route>
+                {/* Admin Routes */}
+                <Route path="/admin" element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <DashboardLayout />
+                  </ProtectedRoute>
+                }>
+                  <Route index element={<AdminOverview />} />
+                  <Route path="events" element={<ManageEvents />} />
+                  <Route path="users" element={<ManageUsers />} />
+                  <Route path="internships" element={<ManageInternships />} />
+                  <Route path="companies" element={<ManageCompanies />} />
+                  <Route path="applications" element={<ManageApplications />} />
+                  <Route path="messages" element={<Messages />} />
+                  <Route path="profile/:id" element={<UserProfile />} />
+                </Route>
 
-              {/* Fallback */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Router>
-        </SocketProvider>
+                {/* Fallback */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Router>
+          </SocketProvider>
+        </ToastProvider>
       </LanguageProvider>
     </AuthProvider>
   );

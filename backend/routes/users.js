@@ -16,16 +16,16 @@ router.get('/public/stats', async (req, res, next) => {
         const partnerCompanies = await Company.count();
         const activeInternships = await Internship.count({ where: { active: true } });
 
-        // Latest 3 Internships
+        // Latest 6 Internships (Increased from 3)
         const latestInternships = await Internship.findAll({
             where: { active: true },
-            limit: 3,
+            limit: 6,
             order: [['createdAt', 'DESC']]
         });
 
-        // Latest 3 Events
+        // Latest 6 Events (Increased from 3)
         const latestEvents = await Event.findAll({
-            limit: 3,
+            limit: 6,
             order: [['date', 'ASC']]
         });
 
@@ -96,58 +96,55 @@ router.get('/admin/stats', protect, admin, async (req, res, next) => {
             }
         });
 
-        // Growth Data (Last 6 months)
-        const months = [];
-        for (let i = 5; i >= 0; i--) {
-            const date = new Date();
-            date.setMonth(date.getMonth() - i);
-            months.push({
-                name: date.toLocaleString('default', { month: 'short' }),
-                month: date.getMonth() + 1,
-                year: date.getFullYear()
-            });
-        }
+        // Growth Data (Aggregate by Year)
+        const currentYear = new Date().getFullYear();
+        const years = [2021, 2022, 2023, 2024, 2025].filter(y => y <= currentYear);
 
-        const growthData = await Promise.all(months.map(async (m) => {
-            const startOfMonth = new Date(m.year, m.month - 1, 1);
-            const endOfMonth = new Date(m.year, m.month, 0, 23, 59, 59);
+        const growthData = await Promise.all(years.map(async (year) => {
+            const endOfYear = new Date(year, 11, 31, 23, 59, 59);
 
-            const students = await User.count({
+            const usersCount = await User.count({
                 where: {
-                    role: 'student',
-                    createdAt: { [Op.lte]: endOfMonth }
+                    createdAt: { [Op.lte]: endOfYear }
                 }
             });
-            const graduates = await User.count({
+            const graduatesCount = await User.count({
                 where: {
                     role: 'graduate',
-                    createdAt: { [Op.lte]: endOfMonth }
+                    createdAt: { [Op.lte]: endOfYear }
                 }
             });
 
-            return { name: m.name, students, graduates };
+            return { name: year.toString(), users: usersCount, graduates: graduatesCount };
         }));
 
-        // Domain Data (based on jobTitle)
+        // Domain distribution (Dynamic from DB)
         const domains = await User.findAll({
-            where: { role: 'graduate', jobTitle: { [Op.ne]: '' } },
-            attributes: ['jobTitle', [fn('COUNT', col('id')), 'count']],
+            where: { role: 'graduate' },
+            attributes: [
+                'jobTitle',
+                [fn('COUNT', col('id')), 'count']
+            ],
             group: ['jobTitle'],
-            order: [[sequelize.literal('count'), 'DESC']],
-            limit: 4
+            order: [[sequelize.literal('count'), 'DESC']]
         });
 
-        const domainColors = ['#3b82f6', '#0ea5e9', '#6366f1', '#8b5cf6'];
+        const domainColors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#0ea5e9', '#2dd4bf'];
         const domainData = domains.map((d, i) => ({
-            name: d.jobTitle,
+            name: d.jobTitle || 'Other',
             value: parseInt(d.getDataValue('count')),
             color: domainColors[i % domainColors.length]
         }));
 
-        // Opportunities Data
-        const opportunitiesData = await Promise.all(months.map(async (m) => {
-            const startOfMonth = new Date(m.year, m.month - 1, 1);
-            const endOfMonth = new Date(m.year, m.month, 0, 23, 59, 59);
+        // Opportunities Data (Last 6 months)
+        const opportunitiesData = [];
+        for (let i = 5; i >= 0; i--) {
+            const date = new Date();
+            date.setMonth(date.getMonth() - i);
+            const m = date.getMonth();
+            const y = date.getFullYear();
+            const startOfMonth = new Date(y, m, 1);
+            const endOfMonth = new Date(y, m + 1, 0, 23, 59, 59);
 
             const jobs = await Internship.count({
                 where: {
@@ -162,8 +159,12 @@ router.get('/admin/stats', protect, admin, async (req, res, next) => {
                 }
             });
 
-            return { name: m.name, jobs, internships };
-        }));
+            opportunitiesData.push({
+                name: date.toLocaleString('default', { month: 'short' }),
+                jobs,
+                internships
+            });
+        }
 
         res.json({
             stats: {
@@ -174,7 +175,9 @@ router.get('/admin/stats', protect, admin, async (req, res, next) => {
                 partnerCompanies,
                 activeInternships,
                 totalApplications,
-                activeEvents
+                activeEvents,
+                avgApplicationsPerUser: totalUsers > 0 ? (totalApplications / totalUsers).toFixed(1) : 0,
+                successRate: totalApplications > 0 ? Math.round((await Application.count({ where: { status: 'accepted' } }) / totalApplications) * 100) : 0
             },
             growthData,
             domainData,

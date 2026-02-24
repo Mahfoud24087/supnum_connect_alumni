@@ -7,15 +7,20 @@ import { Plus, Calendar, Edit, Trash2, ArrowRight, Trophy, Zap, X, Save, Image a
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiClient } from '../../services/api';
 import { EventModal } from '../../components/EventModal';
+import { useToast } from '../../components/Toast';
+import { ConfirmationModal } from '../../components/ConfirmationModal';
 
 export function ManageEvents() {
     const { t } = useLanguage();
+    const { showToast } = useToast();
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isAdding, setIsAdding] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [currentEventId, setCurrentEventId] = useState(null);
     const [selectedEvent, setSelectedEvent] = useState(null);
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [eventToDelete, setEventToDelete] = useState(null);
 
     const [newEvent, setNewEvent] = useState({
         title: '',
@@ -55,12 +60,20 @@ export function ManageEvents() {
         }
     };
 
-    const handleDelete = async (id) => {
+    const handleDeleteClick = (event) => {
+        setEventToDelete(event);
+        setIsConfirmOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!eventToDelete) return;
         try {
-            await apiClient.delete(`/events/${id}`);
+            await apiClient.delete(`/events/${eventToDelete.id}`);
+            showToast('Événement supprimé', 'success');
             fetchEvents();
         } catch (error) {
             console.error(error);
+            showToast('Erreur lors de la suppression', 'error');
         }
     };
 
@@ -91,8 +104,10 @@ export function ManageEvents() {
             fetchEvents();
             setIsAdding(false);
             resetForm();
+            showToast(isEditing ? 'Événement mis à jour' : 'Événement créé avec succès', 'success');
         } catch (error) {
             console.error(error);
+            showToast(error.message || 'Erreur lors de l\'enregistrement', 'error');
         }
     };
 
@@ -336,7 +351,7 @@ export function ManageEvents() {
                                         <Button
                                             size="sm"
                                             className="bg-red-500 hover:bg-red-600 text-white border-none"
-                                            onClick={() => handleDelete(event.id)}
+                                            onClick={() => handleDeleteClick(event)}
                                         >
                                             <Trash2 className="h-4 w-4" />
                                         </Button>
@@ -348,6 +363,16 @@ export function ManageEvents() {
                 ))}
             </div>
             <EventModal event={selectedEvent} isOpen={!!selectedEvent} onClose={() => setSelectedEvent(null)} />
+
+            <ConfirmationModal
+                isOpen={isConfirmOpen}
+                onClose={() => setIsConfirmOpen(false)}
+                onConfirm={confirmDelete}
+                title="Supprimer l'événement"
+                message={`Voulez-vous vraiment supprimer l'événement "${eventToDelete?.title}" ?`}
+                confirmText="Supprimer"
+                variant="danger"
+            />
         </div>
     );
 }

@@ -21,7 +21,14 @@ export const translations = {
             nav: { dashboard: 'Dashboard', events: 'Manage Events', users: 'Manage Users', applications: 'Applications' },
             welcome: 'Admin Dashboard',
             subtitle: 'Manage your SupNum Connect platform.',
-            stats: { totalUsers: 'Total Users', students: 'Students', graduates: 'Graduates' },
+            stats: {
+                totalUsers: 'Total Users',
+                students: 'Students',
+                graduates: 'Graduates',
+                verifiedGrads: 'Verified Graduates',
+                placementRate: 'Placement Rate',
+                engagement: 'User Engagement'
+            },
             charts: {
                 userGrowth: 'User Growth',
                 students: 'Students',
@@ -30,7 +37,12 @@ export const translations = {
                 employmentDomains: 'Employment Domains',
                 opportunitiesPosted: 'Opportunities Posted',
                 jobs: 'Jobs',
-                internships: 'Internships'
+                internships: 'Internships',
+                institutionEvolution: 'Institution Evolution',
+                genderParity: 'Gender Parity',
+                usageHeatmap: 'Usage Heatmap',
+                topCompetencies: 'Top Competencies',
+                placementFunnel: 'Placement Funnel'
             },
             events: { title: 'Recent Events', create: 'Create Event', edit: 'Edit', delete: 'Delete', learnMore: 'Learn More', days: 'Days' },
             users: { title: 'Manage Users', search: 'Search users...', role: 'Role', actions: 'Actions', remove: 'Remove' },
@@ -383,6 +395,40 @@ export const translations = {
             cancel: 'Cancel',
             delete: 'Delete',
             copied: 'Link copied to clipboard!'
+        },
+        formations: {
+            title: 'Our Programs',
+            subtitle: 'Excellence in digital education at SupNum',
+            licence: 'Licence',
+            master: 'Master',
+            isi: {
+                title: 'Intelligent Systems Engineering',
+                description: 'Learn to design and manage automated and intelligent systems, integrating software, hardware, and sensors for innovative and high-performance applications.'
+            },
+            ids: {
+                title: 'Data Engineering and Statistics',
+                description: 'Become an expert in data collection, processing, and analysis. Transform raw information into actionable insights for strategic decision-making.'
+            },
+            dsi: {
+                title: 'Computer Systems Development',
+                description: 'Acquire the skills to create, deploy, and maintain high-performance, reliable systems and applications tailored to modern business needs.'
+            },
+            rss: {
+                title: 'Networks, Systems, and Security',
+                description: 'Train in key digital skills: networks, cybersecurity, systems, development, and AI, and be immediately operational in a constantly evolving technological environment.'
+            },
+            dwm: {
+                title: 'Web and Mobile Development',
+                description: 'Master web development tools, interface design, and mobile applications to create high-performance digital solutions.'
+            },
+            cyber: {
+                title: 'Cybersecurity',
+                description: 'Develop advanced skills in system and data protection. Learn to anticipate, detect, and counter digital threats to ensure the security of IT infrastructures.'
+            },
+            ia: {
+                title: 'Artificial Intelligence',
+                description: 'Master AI and machine learning techniques to design intelligent solutions capable of analyzing, predicting, and automating processes across various sectors.'
+            }
         }
     },
     FR: {
@@ -405,7 +451,14 @@ export const translations = {
             nav: { dashboard: 'Tableau de bord', events: 'Gérer événements', users: 'Gérer utilisateurs', applications: 'Candidatures' },
             welcome: 'Tableau de bord Admin',
             subtitle: 'Gérez votre plateforme SupNum Connect.',
-            stats: { totalUsers: 'Total Utilisateurs', students: 'Étudiants', graduates: 'Diplômés' },
+            stats: {
+                totalUsers: 'Total Utilisateurs',
+                students: 'Étudiants',
+                graduates: 'Diplômés',
+                verifiedGrads: 'Diplômés Vérifiés',
+                placementRate: 'Taux de Placement',
+                engagement: 'Engagement Utilisateur'
+            },
             charts: {
                 userGrowth: 'Croissance des utilisateurs',
                 students: 'Étudiants',
@@ -414,7 +467,12 @@ export const translations = {
                 employmentDomains: "Secteurs d'emploi",
                 opportunitiesPosted: 'Opportunités publiées',
                 jobs: 'Emplois',
-                internships: 'Stages'
+                internships: 'Stages',
+                institutionEvolution: 'Évolution de l\'institution',
+                genderParity: 'Parité Homme/Femme',
+                usageHeatmap: 'Activité Hebdomadaire',
+                topCompetencies: 'Compétences Clés',
+                placementFunnel: 'Entonnoir de Placement'
             },
             events: { title: 'Événements Récents', create: 'Créer un événement', edit: 'Modifier', delete: 'Supprimer', learnMore: 'En savoir plus', days: 'Jours' },
             users: { title: 'Gérer les utilisateurs', search: 'Rechercher...', role: 'Rôle', actions: 'Actions', remove: 'Supprimer' },
@@ -768,6 +826,40 @@ export const translations = {
             cancel: 'Annuler',
             delete: 'Supprimer',
             copied: 'Lien copié dans le presse-papiers !'
+        },
+        formations: {
+            title: 'Nos Formations',
+            subtitle: 'L\'excellence du numérique à SupNum',
+            licence: 'Licence',
+            master: 'Master',
+            isi: {
+                title: 'Ingénierie des Systèmes Intelligents',
+                description: 'Apprenez à concevoir et à gérer des systèmes automatisés et intelligents, intégrant logiciels, matériels et capteurs pour des applications innovantes et performantes.'
+            },
+            ids: {
+                title: 'Ingénierie des Données et Statistiques',
+                description: 'Devenez expert en collecte, traitement et analyse des données. Transformez les informations brutes en insights exploitables pour la prise de décision stratégique.'
+            },
+            dsi: {
+                title: 'Développement des Systèmes Informatiques',
+                description: 'Acquérez les compétences pour créer, déployer et maintenir des systèmes et applications performants, fiables et adaptés aux besoins des entreprises modernes.'
+            },
+            rss: {
+                title: 'Réseaux, Systèmes et Sécurité',
+                description: 'Formez‑vous aux compétences clés du numérique : réseaux, cybersécurité, systèmes, développement et intelligence artificielle, et soyez immédiatement opérationnel dans un environnement technologique en constante évolution.'
+            },
+            dwm: {
+                title: 'Développement Web et Mobile',
+                description: 'Maîtrisez les outils et techniques de développement web, design d\'interfaces et applications mobiles pour créer des solutions numériques performantes.'
+            },
+            cyber: {
+                title: 'Cybersécurité',
+                description: 'Développez des compétences avancées en protection des systèmes et des données. Apprenez à anticiper, détecter et contrer les menaces numériques pour garantir la sécurité des infrastructures informatiques.'
+            },
+            ia: {
+                title: 'Intelligence Artificielle',
+                description: 'Maîtrisez les techniques d’IA et de machine learning pour concevoir des solutions intelligentes capables d’analyser, prédire et automatiser des processus dans divers secteurs.'
+            }
         }
     },
     AR: {
@@ -790,7 +882,14 @@ export const translations = {
             nav: { dashboard: 'لوحة التحكم', events: 'إدارة الأحداث', users: 'إدارة المستخدمين', applications: 'الطلبات' },
             welcome: 'لوحة تحكم المسؤول',
             subtitle: 'إدارة منصة SupNum Connect الخاصة بك.',
-            stats: { totalUsers: 'إجمالي المستخدمين', students: 'الطلاب', graduates: 'الخريجين' },
+            stats: {
+                totalUsers: 'إجمالي المستخدمين',
+                students: 'الطلاب',
+                graduates: 'الخريجين',
+                verifiedGrads: 'الخريجون الموثقون',
+                placementRate: 'معدل التوظيف',
+                engagement: 'تفاعل المستخدمين'
+            },
             charts: {
                 userGrowth: 'نمو المستخدمين',
                 students: 'الطلاب',
@@ -799,7 +898,12 @@ export const translations = {
                 employmentDomains: 'مجالات العمل',
                 opportunitiesPosted: 'الفرص المنشورة',
                 jobs: 'وظائف',
-                internships: 'تدريب'
+                internships: 'تدريب',
+                institutionEvolution: 'تطور المؤسسة',
+                genderParity: 'التكافؤ بين الجنسين',
+                usageHeatmap: 'خريطة استخدام النشاط',
+                topCompetencies: 'الكفاءات العليا',
+                placementFunnel: 'قمع التوظيف'
             },
             events: { title: 'الأحداث الأخيرة', create: 'إنشاء حدث', edit: 'تعديل', delete: 'حذف', learnMore: 'المزيد', days: 'أيام' },
             users: { title: 'إدارة المستخدمين', search: 'البحث عن مستخدمين...', role: 'الدور', actions: 'إجراءات', remove: 'إزالة' },
@@ -1153,6 +1257,40 @@ export const translations = {
             cancel: 'إلغاء',
             delete: 'حذف',
             copied: 'تم نسخ الرابط!'
+        },
+        formations: {
+            title: 'برامجنا التعليمية',
+            subtitle: 'التميز في التعليم الرقمي في SupNum',
+            licence: 'ليسانس',
+            master: 'ماستر',
+            isi: {
+                title: 'هندسة الأنظمة الذكية',
+                description: 'تعلم تصميم وإدارة الأنظمة المؤتمتة والذكية، ودمج البرمجيات والأجهزة وأجهزة الاستشعار لتطبيقات مبتكرة وعالية الأداء.'
+            },
+            ids: {
+                title: 'هندسة البيانات والإحصاء',
+                description: 'كن خبيرًا في جمع البيانات ومعالجتها وتحليلها. حول المعلومات الخام إلى رؤى قابلة للتنفيذ لاتخاذ القرارات الاستراتيجية.'
+            },
+            dsi: {
+                title: 'تطوير الأنظمة المعلوماتية',
+                description: 'اكتسب المهارات اللازمة لإنشاء ونشر وصيانة أنظمة وتطبيقات عالية الأداء وموثوقة ومتكيفة مع احتياجات الشركات الحديثة.'
+            },
+            rss: {
+                title: 'الشبكات والأنظمة والأمن',
+                description: 'تدرب على المهارات الرقمية الأساسية: الشبكات، الأمن السيبراني، الأنظمة، التطوير والذكاء الاصطناعي، وكن جاهزاً للعمل فوراً في بيئة تكنولوجية دائمة التطور.'
+            },
+            dwm: {
+                title: 'تطوير الويب والجوال',
+                description: 'أتقن أدوات وتقنيات تطوير الويب وتصميم الواجهات وتطبيقات الجوال لإنشاء حلول رقمية عالية الأداء.'
+            },
+            cyber: {
+                title: 'الأمن السيبراني',
+                description: 'طوّر مهارات متقدمة في حماية الأنظمة والبيانات. تعلم كيفية التنبؤ بالتهديدات الرقمية واكتشافها ومواجهتها لضمان أمن البنى التحتية المعلوماتية.'
+            },
+            ia: {
+                title: 'الذكاء الاصطناعي',
+                description: 'أتقن تقنيات الذكاء الاصطناعي والتعلم الآلي لتصميم حلول ذكية قادرة على تحليل وتوقع وأتمتة العمليات في مختلف القطاعات.'
+            }
         }
     }
 };

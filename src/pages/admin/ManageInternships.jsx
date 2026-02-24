@@ -5,14 +5,19 @@ import { Briefcase, Plus, Search, MapPin, Building, Trash2, Edit, X } from 'luci
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { apiClient } from '../../services/api';
+import { useToast } from '../../components/Toast';
+import { ConfirmationModal } from '../../components/ConfirmationModal';
 
 export function ManageInternships() {
     const { t } = useLanguage();
+    const { showToast } = useToast();
     const [internships, setInternships] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentInternship, setCurrentInternship] = useState(null);
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [internshipToDelete, setInternshipToDelete] = useState(null);
 
     const [formData, setFormData] = useState({
         title: '',
@@ -101,17 +106,27 @@ export function ManageInternships() {
             }
             fetchInternships();
             handleCloseModal();
+            showToast(currentInternship ? 'Opportunité mise à jour' : 'Opportunité publiée avec succès', 'success');
         } catch (error) {
             console.error(error);
+            showToast(error.message || 'Erreur lors de l\'enregistrement', 'error');
         }
     };
 
-    const handleDelete = async (id) => {
+    const handleDeleteClick = (internship) => {
+        setInternshipToDelete(internship);
+        setIsConfirmOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!internshipToDelete) return;
         try {
-            await apiClient.delete(`/internships/${id}`);
+            await apiClient.delete(`/internships/${internshipToDelete.id}`);
+            showToast('Opportunité supprimée', 'success');
             fetchInternships();
         } catch (error) {
             console.error(error);
+            showToast('Erreur lors de la suppression', 'error');
         }
     };
 
@@ -119,8 +134,10 @@ export function ManageInternships() {
         try {
             await apiClient.patch(`/internships/${id}/toggle`);
             fetchInternships();
+            showToast('Statut mis à jour', 'success');
         } catch (error) {
             console.error(error);
+            showToast('Erreur lors du changement de statut', 'error');
         }
     };
 
@@ -172,7 +189,7 @@ export function ManageInternships() {
                                 <Button onClick={() => handleOpenModal(internship)} variant="outline" size="sm">
                                     <Edit className="h-4 w-4" />
                                 </Button>
-                                <Button onClick={() => handleDelete(internship.id)} variant="ghost" size="sm" className="text-red-500 hover:bg-red-50">
+                                <Button onClick={() => handleDeleteClick(internship)} variant="ghost" size="sm" className="text-red-500 hover:bg-red-50">
                                     <Trash2 className="h-4 w-4" />
                                 </Button>
                             </div>
@@ -382,6 +399,16 @@ export function ManageInternships() {
                     </div>
                 </div>
             )}
+
+            <ConfirmationModal
+                isOpen={isConfirmOpen}
+                onClose={() => setIsConfirmOpen(false)}
+                onConfirm={confirmDelete}
+                title="Supprimer l'opportunité"
+                message={`Voulez-vous vraiment supprimer "${internshipToDelete?.title}" ?`}
+                confirmText="Supprimer"
+                variant="danger"
+            />
         </div>
     );
 }

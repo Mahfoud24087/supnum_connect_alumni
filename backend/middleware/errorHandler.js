@@ -1,4 +1,13 @@
+const fs = require('fs');
+const path = require('path');
+
 const errorHandler = (err, req, res, next) => {
+    const errorLog = `${new Date().toISOString()} - ${req.method} ${req.url} - ${err.stack}\n\n`;
+    try {
+        fs.appendFileSync(path.join(__dirname, '../error.log'), errorLog);
+    } catch (e) {
+        console.error('Failed to write to error log:', e);
+    }
     console.error('Error:', err);
 
     // Sequelize Validation Error
