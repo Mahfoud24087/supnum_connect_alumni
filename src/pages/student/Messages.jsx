@@ -128,6 +128,8 @@ export function Messages() {
 
     useEffect(() => {
         fetchConversations();
+        // Clear the state so that re-fetches (e.g. from socket) don't force-select this user again
+        navigate(location.pathname, { replace: true, state: {} });
     }, []);
 
     useEffect(() => {
