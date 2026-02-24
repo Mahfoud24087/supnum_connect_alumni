@@ -2,13 +2,15 @@ import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
-import { Send, Image as ImageIcon, Users, Plus, X, Check, Search, MessageSquare, ArrowLeft, MoreVertical, Trash2, Edit2, Eye, Download, XCircle, Mic, Square, Play, Pause, Reply, CornerUpLeft, Share2 } from 'lucide-react';
+import { Send, Image as ImageIcon, Users, Plus, X, Check, Search, MessageSquare, ArrowLeft, MoreVertical, Trash2, Edit2, Eye, Download, XCircle, Mic, Square, Play, Pause, Reply, CornerUpLeft, Share2, UserX } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiClient } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useSocket } from '../../context/SocketContext';
+import { useToast } from '../../components/Toast';
+import { ConfirmationModal } from '../../components/ConfirmationModal';
 
 // Helper component for Audio Playback
 function AudioPlayer({ url, isMe }) {
@@ -96,6 +98,10 @@ export function Messages() {
     const [previewImage, setPreviewImage] = useState(null);
     const [replyTo, setReplyTo] = useState(null);
     const [forwardingMessage, setForwardingMessage] = useState(null);
+    const [showHeaderMenu, setShowHeaderMenu] = useState(false);
+    const [showDeleteConvModal, setShowDeleteConvModal] = useState(false);
+    const [showUnfriendModal, setShowUnfriendModal] = useState(false);
+    const { showToast } = useToast();
 
     // Voice Recording State
     const [isRecording, setIsRecording] = useState(false);
@@ -346,6 +352,36 @@ export function Messages() {
         }
     };
 
+    const handleDeleteConversation = async () => {
+        try {
+            await apiClient.delete(`/messages/conversation/${selectedConv._id}`);
+            setConversations(prev => prev.filter(c => c._id !== selectedConv._id));
+            setSelectedConv(null);
+            setMessages([]);
+            setShowDeleteConvModal(false);
+            showToast('Conversation deleted', 'success');
+        } catch (error) {
+            console.error('Failed to delete conversation:', error);
+            showToast('Failed to delete conversation', 'error');
+        }
+    };
+
+    const handleUnfriend = async () => {
+        const otherUser = getOtherUser(selectedConv);
+        try {
+            await apiClient.delete(`/users/connect/${otherUser.id}/unfriend`);
+            // Optionally close the chat too since they are no longer friends
+            setSelectedConv(null);
+            setShowUnfriendModal(false);
+            showToast(`${otherUser.name} removed from friends`, 'success');
+            // Refresh conversations to update UI
+            fetchConversations();
+        } catch (error) {
+            console.error('Failed to unfriend:', error);
+            showToast('Failed to remove friend', 'error');
+        }
+    };
+
     const getOtherUser = (conv) => {
         if (conv.virtual && conv.otherUser) return conv.otherUser;
         if (!conv.lastMessage) return { name: 'Unknown', avatar: null, role: '' };
@@ -472,6 +508,52 @@ export function Messages() {
                                         {t.common?.roles?.[getOtherUser(selectedConv).role?.toLowerCase()] || getOtherUser(selectedConv).role || ''}
                                     </p>
                                 </div>
+                            </div>
+
+                            <div className="relative">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setShowHeaderMenu(!showHeaderMenu)}
+                                    className={cn("text-slate-500 h-9 w-9 rounded-xl", showHeaderMenu && "bg-slate-100 dark:bg-slate-800 text-blue-600")}
+                                >
+                                    <MoreVertical className="h-5 w-5" />
+                                </Button>
+
+                                <AnimatePresence>
+                                    {showHeaderMenu && (
+                                        <>
+                                            <div className="fixed inset-0 z-[80]" onClick={() => setShowHeaderMenu(false)} />
+                                            <motion.div
+                                                initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                                className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 z-[90] p-1 overflow-hidden"
+                                            >
+                                                <button
+                                                    onClick={() => {
+                                                        setShowHeaderMenu(false);
+                                                        setShowDeleteConvModal(true);
+                                                    }}
+                                                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors rounded-xl"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                    Supprimer la conversation
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        setShowHeaderMenu(false);
+                                                        setShowUnfriendModal(true);
+                                                    }}
+                                                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors rounded-xl"
+                                                >
+                                                    <UserX className="h-4 w-4" />
+                                                    Retirer des amis
+                                                </button>
+                                            </motion.div>
+                                        </>
+                                    )}
+                                </AnimatePresence>
                             </div>
                         </div>
 
@@ -810,6 +892,28 @@ export function Messages() {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </div >
+
+            {/* Delete Conversation Modal */}
+            <ConfirmationModal
+                isOpen={showDeleteConvModal}
+                onClose={() => setShowDeleteConvModal(false)}
+                onConfirm={handleDeleteConversation}
+                title="Supprimer la conversation"
+                message="Êtes-vous sûr de vouloir supprimer toute cette conversation ? Cette action est irréversible."
+                confirmText="Supprimer"
+                variant="danger"
+            />
+
+            {/* Unfriend Modal */}
+            <ConfirmationModal
+                isOpen={showUnfriendModal}
+                onClose={() => setShowUnfriendModal(false)}
+                onConfirm={handleUnfriend}
+                title="Retirer des amis"
+                message={`Êtes-vous sûr de vouloir retirer ${selectedConv ? getOtherUser(selectedConv).name : ''} de vos amis ?`}
+                confirmText="Retirer"
+                variant="danger"
+            />
+        </div>
     );
 }

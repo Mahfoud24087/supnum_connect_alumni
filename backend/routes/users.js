@@ -1012,4 +1012,31 @@ router.get('/:id/export-cv', protect, async (req, res, next) => {
 });
 
 
+// @route   DELETE /api/users/connect/:id/unfriend
+// @desc    Unfriend/Remove connection
+// @access  Private
+router.delete('/connect/:id/unfriend', protect, async (req, res, next) => {
+    try {
+        const recipientId = req.params.id;
+
+        const connection = await Connection.findOne({
+            where: {
+                [Op.or]: [
+                    { requesterId: req.user.id, recipientId },
+                    { requesterId: recipientId, recipientId: req.user.id }
+                ]
+            }
+        });
+
+        if (!connection) {
+            return res.status(404).json({ message: 'Connection not found' });
+        }
+
+        await connection.destroy();
+        res.json({ message: 'Friend removed successfully' });
+    } catch (error) {
+        next(error);
+    }
+});
+
 module.exports = router;
