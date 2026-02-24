@@ -2,7 +2,7 @@ import { memo, useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
-import { Send, Image as ImageIcon, Users, Plus, X, Check, Search, MessageSquare, ArrowLeft, MoreVertical, Trash2, Edit2, Eye, Download, XCircle, Mic, Square, Play, Pause, Reply, CornerUpLeft, Share2, UserX } from 'lucide-react';
+import { Send, Image as ImageIcon, Users, Plus, X, Check, Search, MessageSquare, ArrowLeft, MoreVertical, Trash2, Edit2, Eye, Download, XCircle, Reply, CornerUpLeft, Share2, UserX } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiClient } from '../../services/api';
@@ -12,82 +12,6 @@ import { useSocket } from '../../context/SocketContext';
 import { useToast } from '../../components/Toast';
 import { ConfirmationModal } from '../../components/ConfirmationModal';
 
-// Helper component for Audio Playback
-const AudioPlayer = memo(function AudioPlayer({ url, isMe, sending }) {
-    const [isPlaying, setIsPlaying] = useState(false);
-    const [currentTime, setCurrentTime] = useState(0);
-    const [duration, setDuration] = useState(0);
-    const audioRef = useRef(null);
-
-    const togglePlay = (e) => {
-        e.stopPropagation();
-        if (sending) return;
-        if (isPlaying) {
-            audioRef.current.pause();
-        } else {
-            audioRef.current.play();
-        }
-        setIsPlaying(!isPlaying);
-    };
-
-    const onTimeUpdate = () => {
-        setCurrentTime(audioRef.current.currentTime);
-    };
-
-    const onLoadedMetadata = () => {
-        setDuration(audioRef.current.duration);
-    };
-
-    const formatTime = (time) => {
-        const mins = Math.floor(time / 60);
-        const secs = Math.floor(time % 60);
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
-    };
-
-    return (
-        <div className={cn(
-            "flex items-center gap-3 p-3 rounded-xl min-w-[200px]",
-            isMe ? "bg-blue-700/50 text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white",
-            sending && "opacity-70 grayscale-[50%]"
-        )}>
-            <audio
-                ref={audioRef}
-                src={url}
-                onTimeUpdate={onTimeUpdate}
-                onLoadedMetadata={onLoadedMetadata}
-                onEnded={() => setIsPlaying(false)}
-                className="hidden"
-            />
-            <button
-                onClick={togglePlay}
-                disabled={sending}
-                className={cn(
-                    "h-10 w-10 rounded-full flex items-center justify-center transition-all",
-                    isMe ? "bg-white text-blue-600 hover:bg-blue-50" : "bg-blue-600 text-white hover:bg-blue-700",
-                    sending && "cursor-not-allowed"
-                )}
-            >
-                {sending ? (
-                    <div className="h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                ) : (
-                    isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ml-1" />
-                )}
-            </button>
-            <div className="flex-1">
-                <div className="h-1.5 w-full bg-slate-300/30 rounded-full overflow-hidden">
-                    <div
-                        className={cn("h-full transition-all duration-100", isMe ? "bg-white" : "bg-blue-600")}
-                        style={{ width: `${(currentTime / duration) * 100}%` }}
-                    />
-                </div>
-                <div className="flex justify-between mt-1.5 text-[10px] opacity-70 font-medium">
-                    <span>{formatTime(currentTime)}</span>
-                    <span>{sending ? 'Sending...' : formatTime(duration)}</span>
-                </div>
-            </div>
-        </div>
-    );
-});
 
 export function Messages() {
     const { user: currentUser } = useAuth();
@@ -112,13 +36,6 @@ export function Messages() {
     const [showUnfriendModal, setShowUnfriendModal] = useState(false);
     const { showToast } = useToast();
 
-    // Voice Recording State
-    const [isRecording, setIsRecording] = useState(false);
-    const [recordingTime, setRecordingTime] = useState(0);
-    const [audioBlob, setAudioBlob] = useState(null);
-    const mediaRecorderRef = useRef(null);
-    const audioChunksRef = useRef([]);
-    const recordingIntervalRef = useRef(null);
 
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
@@ -259,64 +176,10 @@ export function Messages() {
         }
     };
 
-    const startRecording = async () => {
-        if (isRecording) return;
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const mediaRecorder = new MediaRecorder(stream);
-            mediaRecorderRef.current = mediaRecorder;
-            audioChunksRef.current = [];
-
-            mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0) audioChunksRef.current.push(event.data);
-            };
-
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-                setAudioBlob(blob);
-                stream.getTracks().forEach(track => track.stop());
-            };
-
-            mediaRecorder.start();
-            setIsRecording(true);
-            setRecordingTime(0);
-            if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
-            recordingIntervalRef.current = setInterval(() => {
-                setRecordingTime(prev => prev + 1);
-            }, 1000);
-        } catch (error) {
-            console.error('Error accessing microphone:', error);
-        }
-    };
-
-    const stopRecording = () => {
-        if (mediaRecorderRef.current && isRecording) {
-            mediaRecorderRef.current.stop();
-            setIsRecording(false);
-            clearInterval(recordingIntervalRef.current);
-        }
-    };
-
-    const cancelRecording = () => {
-        if (mediaRecorderRef.current && isRecording) {
-            mediaRecorderRef.current.onstop = null;
-            mediaRecorderRef.current.stop();
-            mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
-        }
-        setIsRecording(false);
-        setAudioBlob(null);
-        clearInterval(recordingIntervalRef.current);
-    };
-
-    const formatTime = (seconds) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
-    };
 
     const handleSend = async (e) => {
         if (e) e.preventDefault();
-        if ((!newMessage.trim() && !selectedFile && !audioBlob) || !selectedConv) return;
+        if ((!newMessage.trim() && !selectedFile) || !selectedConv) return;
 
         let recipientId;
         if (selectedConv.virtual) {
@@ -334,8 +197,8 @@ export function Messages() {
             senderId: currentUser.id,
             recipientId,
             content: newMessage,
-            type: selectedFile ? 'image' : (audioBlob ? 'audio' : 'text'),
-            fileUrl: selectedFile ? URL.createObjectURL(selectedFile) : (audioBlob ? URL.createObjectURL(audioBlob) : null),
+            type: selectedFile ? 'image' : 'text',
+            fileUrl: selectedFile ? URL.createObjectURL(selectedFile) : null,
             createdAt: new Date().toISOString(),
             sending: true
         };
@@ -347,7 +210,6 @@ export function Messages() {
         // Optimistic UI: Clear input immediately
         setNewMessage('');
         setSelectedFile(null);
-        setAudioBlob(null);
         setReplyTo(null);
         if (fileInputRef.current) fileInputRef.current.value = '';
 
@@ -359,8 +221,6 @@ export function Messages() {
 
             if (selectedFile) {
                 formData.append('file', selectedFile);
-            } else if (audioBlob) {
-                formData.append('file', audioBlob, `voice-${Date.now()}.webm`);
             }
 
             if (replyTo) {
@@ -453,6 +313,7 @@ export function Messages() {
         return other || { name: 'Unknown User', avatar: null, role: '' };
     };
 
+
     if (!currentUser || loading) {
         return <div className="flex h-[calc(100vh-8rem)] items-center justify-center">Loading...</div>;
     }
@@ -521,7 +382,7 @@ export function Messages() {
                                                 )}
                                             </div>
                                             <p className={cn("text-xs truncate", isSelected ? "text-blue-100" : "text-slate-500 dark:text-slate-400")}>
-                                                {conv.lastMessage?.type === 'audio' ? 'Voice Message' : conv.lastMessage?.type === 'image' ? 'Image message' : conv.lastMessage?.content}
+                                                {conv.lastMessage?.type === 'audio' ? 'Message vocal' : conv.lastMessage?.type === 'image' ? 'Image message' : conv.lastMessage?.content}
                                             </p>
                                         </div>
                                     </button>
@@ -656,7 +517,7 @@ export function Messages() {
                                                             { label: 'Reply', icon: Reply, color: 'text-emerald-500', action: () => setReplyTo(msg) },
                                                             { label: 'Forward', icon: Share2, color: 'text-blue-500', action: () => setForwardingMessage(msg) },
                                                             ...(msg.type === 'image' ? [{ label: 'View Image', icon: Eye, color: 'text-purple-500', action: () => setPreviewImage(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:3000/api'}${msg.fileUrl}`) }] : []),
-                                                            ...(isMe && msg.type !== 'image' && msg.type !== 'audio' ? [{ label: 'Edit', icon: Edit2, color: 'text-blue-500', action: () => startEditing(msg) }] : []),
+                                                            ...(isMe && msg.type !== 'image' ? [{ label: 'Edit', icon: Edit2, color: 'text-blue-500', action: () => startEditing(msg) }] : []),
                                                             ...(isMe ? [{ label: 'Delete', icon: Trash2, color: 'text-red-500', action: () => handleDeleteMessage(msg.id) }] : [])
                                                         ].map((item, i) => (
                                                             <button
@@ -692,7 +553,7 @@ export function Messages() {
                                                                 {msg.replyTo.sender?.name || 'Someone'}
                                                             </p>
                                                             <p className="truncate">
-                                                                {msg.replyTo.type === 'audio' ? 'Voice Message' : msg.replyTo.type === 'image' ? 'Image' : msg.replyTo.content}
+                                                                {msg.replyTo.type === 'audio' ? 'Message vocal' : msg.replyTo.type === 'image' ? 'Image' : msg.replyTo.content}
                                                             </p>
                                                         </div>
                                                     )}
@@ -719,13 +580,6 @@ export function Messages() {
                                                         </div>
                                                     )}
 
-                                                    {msg.type === 'audio' && msg.fileUrl && (
-                                                        <AudioPlayer
-                                                            url={msg.fileUrl.startsWith('blob:') ? msg.fileUrl : `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:3000/api'}${msg.fileUrl}`}
-                                                            isMe={isMe}
-                                                            sending={msg.sending}
-                                                        />
-                                                    )}
 
                                                     {editingMessageId === msg.id ? (
                                                         <form onSubmit={handleEditMessage} className="flex flex-col gap-2 min-w-[200px]">
@@ -776,7 +630,7 @@ export function Messages() {
                                             <div className="min-w-0">
                                                 <p className="text-[10px] font-bold text-blue-600">Replying to {String(replyTo.senderId) === String(currentUser.id) ? 'yourself' : replyTo.sender?.name}</p>
                                                 <p className="text-xs text-slate-500 truncate">
-                                                    {replyTo.type === 'audio' ? 'Voice Message' : replyTo.type === 'image' ? 'Image' : replyTo.content}
+                                                    {replyTo.type === 'audio' ? 'Message vocal' : replyTo.type === 'image' ? 'Image' : replyTo.content}
                                                 </p>
                                             </div>
                                         </div>
@@ -787,79 +641,40 @@ export function Messages() {
                                 )}
                             </AnimatePresence>
 
-                            {isRecording ? (
-                                <div className="flex items-center justify-between bg-red-50 dark:bg-red-900/10 p-3 rounded-2xl border border-red-100 dark:border-red-900/20">
-                                    <div className="flex items-center gap-3">
-                                        <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-                                        <span className="text-sm font-medium text-red-600 dark:text-red-400">Recording: {formatTime(recordingTime)}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Button variant="ghost" size="sm" onClick={cancelRecording} className="text-slate-500 hover:text-red-600">Cancel</Button>
-                                        <Button size="sm" onClick={stopRecording} className="bg-red-600 hover:bg-red-700 text-white rounded-full h-10 w-10 p-0">
-                                            <Square className="h-5 w-5" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            ) : audioBlob ? (
-                                <div className="flex items-center justify-between bg-blue-50 dark:bg-blue-900/10 p-3 rounded-2xl border border-blue-100 dark:border-blue-900/20">
-                                    <div className="flex items-center gap-3">
-                                        <Mic className="h-4 w-4 text-blue-600" />
-                                        <span className="text-sm font-medium text-blue-600 dark:text-blue-400">Voice message ready</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Button variant="ghost" size="sm" onClick={() => setAudioBlob(null)} className="text-slate-500 hover:text-red-600">Delete</Button>
-                                        <Button size="sm" onClick={() => handleSend()} className="bg-blue-600 hover:bg-blue-700 text-white px-4 rounded-xl">Send Voice</Button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <form onSubmit={handleSend} className="flex items-center space-x-2">
-                                    <input
-                                        type="file"
-                                        ref={fileInputRef}
-                                        onChange={(e) => setSelectedFile(e.target.files[0])}
-                                        accept="image/*"
-                                        className="hidden"
-                                    />
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className={cn("text-slate-500 hover:text-blue-600", selectedFile && "text-blue-600 bg-blue-50")}
-                                    >
-                                        <ImageIcon className="h-5 w-5" />
-                                    </Button>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    onChange={(e) => setSelectedFile(e.target.files[0])}
+                                    accept="image/*"
+                                    className="hidden"
+                                />
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-10 w-10 text-slate-500 hover:text-blue-600 rounded-xl"
+                                    onClick={() => fileInputRef.current?.click()}
+                                >
+                                    <ImageIcon className="h-5 w-5" />
+                                </Button>
 
-                                    <div className="flex-1 relative">
+                                <div className="flex-1 relative">
+                                    <form onSubmit={handleSend}>
                                         <Input
+                                            placeholder="Write a message..."
                                             value={newMessage}
                                             onChange={(e) => setNewMessage(e.target.value)}
-                                            placeholder={t.messages?.typeSomething || 'Type a message...'}
-                                            className="pr-10 bg-slate-100 dark:bg-slate-800 border-none focus-visible:ring-1 focus-visible:ring-blue-500 rounded-2xl"
+                                            className="pr-10 bg-slate-100 dark:bg-slate-800 border-none h-11 rounded-2xl text-sm"
                                         />
-                                    </div>
-
-                                    {!newMessage.trim() && !selectedFile ? (
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={startRecording}
-                                            className="text-slate-500 hover:text-blue-600"
-                                        >
-                                            <Mic className="h-5 w-5" />
-                                        </Button>
-                                    ) : (
-                                        <Button
+                                        <button
                                             type="submit"
-                                            size="icon"
-                                            className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md shadow-blue-500/20"
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 flex items-center justify-center text-blue-600 hover:scale-110 active:scale-95 transition-all"
                                         >
                                             <Send className="h-5 w-5" />
-                                        </Button>
-                                    )}
-                                </form>
-                            )}
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
                     </>
                 ) : (
@@ -996,3 +811,4 @@ export function Messages() {
         </div>
     );
 }
+
