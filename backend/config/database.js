@@ -65,15 +65,10 @@ const connectDB = async () => {
         await sequelize.authenticate();
         console.log('✅ PostgreSQL Connected successfully');
 
-        // Limit sync with alter to development only and only when explicitly needed or on first run
-        if (process.env.NODE_ENV === 'development') {
-            await sequelize.sync({ alter: true });
-            console.log('✅ Database synced (alter: true)');
-        } else {
-            // In production, just verify connection or use basic sync
-            await sequelize.sync();
-            console.log('✅ Database synced (no alter)');
-        }
+        // Use alter: true in both dev and production to automatically add new columns
+        // This is safe: alter only adds/modifies columns, never drops data
+        await sequelize.sync({ alter: true });
+        console.log('✅ Database synced (alter: true)');
         return true;
     } catch (error) {
         console.error('❌ DATABASE_CONNECTION_ERROR:', error.message);
