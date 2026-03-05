@@ -110,9 +110,9 @@ router.get('/admin/stats', protect, admin, async (req, res, next) => {
             }
         });
 
-        // Growth Data (Aggregate by Year)
+        // Growth Data - start from 2024 to show relevant data
         const currentYear = new Date().getFullYear();
-        const years = [2021, 2022, 2023, 2024, 2025].filter(y => y <= currentYear);
+        const years = [2024, 2025, 2026].filter(y => y <= currentYear + 1);
 
         const growthData = await Promise.all(years.map(async (year) => {
             const endOfYear = new Date(year, 11, 31, 23, 59, 59);
@@ -128,27 +128,47 @@ router.get('/admin/stats', protect, admin, async (req, res, next) => {
                     createdAt: { [Op.lte]: endOfYear }
                 }
             });
+            const studentsCount = await User.count({
+                where: {
+                    role: 'student',
+                    createdAt: { [Op.lte]: endOfYear }
+                }
+            });
 
-            return { name: year.toString(), users: usersCount, graduates: graduatesCount };
+            return { name: year.toString(), users: usersCount, graduates: graduatesCount, students: studentsCount };
         }));
 
-        // Domain distribution (Dynamic from DB)
-        const domains = await User.findAll({
-            where: { role: 'graduate' },
+        // Domain distribution - use specialty field (more meaningful for students/graduates)
+        const specialties = await User.findAll({
+            where: {
+                specialty: { [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: '' }] }
+            },
             attributes: [
-                'jobTitle',
+                'specialty',
                 [fn('COUNT', col('id')), 'count']
             ],
-            group: ['jobTitle'],
-            order: [[sequelize.literal('count'), 'DESC']]
+            group: ['specialty'],
+            order: [[sequelize.literal('count'), 'DESC']],
+            limit: 8
         });
 
-        const domainColors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#0ea5e9', '#2dd4bf'];
-        const domainData = domains.map((d, i) => ({
-            name: d.jobTitle || 'Other',
-            value: parseInt(d.getDataValue('count')),
-            color: domainColors[i % domainColors.length]
-        }));
+        // If no specialty data, fallback to role distribution
+        let domainData;
+        const domainColors = ['#6366f1', '#f59e0b', '#10b981', '#ec4899', '#3b82f6', '#ef4444', '#0ea5e9', '#2dd4bf'];
+        if (specialties.length > 0) {
+            domainData = specialties.map((d, i) => ({
+                name: d.specialty || 'Other',
+                value: parseInt(d.getDataValue('count')),
+                color: domainColors[i % domainColors.length]
+            }));
+        } else {
+            // Fallback: show distribution by role
+            domainData = [
+                { name: 'Students', value: await User.count({ where: { role: 'student' } }), color: '#6366f1' },
+                { name: 'Graduates', value: await User.count({ where: { role: 'graduate' } }), color: '#10b981' },
+                { name: 'Other', value: await User.count({ where: { role: 'other' } }), color: '#f59e0b' }
+            ].filter(d => d.value > 0);
+        }
 
         // Opportunities Data (Last 6 months)
         const opportunitiesData = [];

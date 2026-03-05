@@ -248,6 +248,30 @@ router.post('/', protect, upload.single('file'), async (req, res, next) => {
     }
 });
 
+// @route   DELETE /api/messages/conversation/:conversationId
+// @desc    Delete all messages in a conversation
+// @access  Private
+// IMPORTANT: This route MUST be before DELETE /:id to prevent 'conversation' being matched as a message id
+router.delete('/conversation/:conversationId', protect, async (req, res, next) => {
+    try {
+        const { conversationId } = req.params;
+
+        // Check if user is part of the conversation
+        const isParticipant = conversationId.includes(req.user.id);
+        if (!isParticipant) {
+            return res.status(403).json({ message: 'Not authorized to delete this conversation' });
+        }
+
+        await Message.destroy({
+            where: { conversationId }
+        });
+
+        res.json({ message: 'Conversation deleted successfully' });
+    } catch (error) {
+        next(error);
+    }
+});
+
 // @route   DELETE /api/messages/:id
 // @desc    Delete a message
 // @access  Private
@@ -330,31 +354,6 @@ router.put('/:id', protect, async (req, res, next) => {
         // Emit edit event
         emitToUser(String(message.recipientId), 'message_edited', updatedMessage);
         emitToUser(String(req.user.id), 'message_edited', updatedMessage);
-    } catch (error) {
-        next(error);
-    }
-});
-
-// @route   DELETE /api/messages/conversation/:conversationId
-// @desc    Delete all messages in a conversation
-// @access  Private
-router.delete('/conversation/:conversationId', protect, async (req, res, next) => {
-    try {
-        const { conversationId } = req.params;
-
-        // Check if user is part of the conversation
-        const isParticipant = conversationId.includes(req.user.id);
-        if (!isParticipant) {
-            return res.status(403).json({ message: 'Not authorized to delete this conversation' });
-        }
-
-        // Ideally we should have a 'deletedFor' array to hide it for one user but keep for other
-        // But for simplicity, we will delete all messages or mark them isDeleted
-        await Message.destroy({
-            where: { conversationId }
-        });
-
-        res.json({ message: 'Conversation deleted successfully' });
     } catch (error) {
         next(error);
     }
