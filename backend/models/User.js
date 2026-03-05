@@ -35,11 +35,11 @@ const User = sequelize.define('User', {
     },
     supnumId: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
         unique: true
     },
     role: {
-        type: DataTypes.ENUM('student', 'graduate', 'admin'),
+        type: DataTypes.ENUM('student', 'graduate', 'admin', 'other'),
         defaultValue: 'student'
     },
     status: {
@@ -67,7 +67,7 @@ const User = sequelize.define('User', {
         allowNull: true
     },
     workStatus: {
-        type: DataTypes.ENUM('employed', 'seeking', 'studying', 'freelance', ''),
+        type: DataTypes.ENUM('employed', 'seeking', 'studying', 'freelance', 'other',''),
         defaultValue: ''
     },
     jobTitle: {
@@ -97,6 +97,14 @@ const User = sequelize.define('User', {
     gallery: {
         type: DataTypes.JSONB,
         defaultValue: []
+    },
+    graduationYear: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+    },
+    specialty: {
+        type: DataTypes.STRING,
+        defaultValue: ''
     }
 }, {
     timestamps: true,

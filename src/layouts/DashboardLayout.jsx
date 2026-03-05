@@ -87,7 +87,17 @@ export function DashboardLayout() {
         { name: t.dashboard.nav.messages, path: '/admin/messages', icon: MessageSquare },
     ];
 
-    const navItems = user?.role === 'admin' ? adminNavItems : studentNavItems;
+    const otherNavItems = [
+        { name: t.footer.home, path: '/', icon: Home },
+        { name: t.dashboard.nav.dashboard, path: '/dashboard', icon: LayoutDashboard },
+        { name: t.footer.findAlumni, path: '/dashboard/find-friends', icon: UserPlus },
+        { name: t.dashboard.nav.messages, path: '/dashboard/messages', icon: MessageSquare },
+        { name: t.dashboard.nav.profile, path: '/dashboard/profile', icon: User },
+    ];
+
+    const navItems = user?.role === 'admin'
+        ? adminNavItems
+        : (user?.role === 'other' ? otherNavItems : studentNavItems);
 
     const isActive = (path) => {
         if (path === '/dashboard' && location.pathname === '/dashboard') return true;

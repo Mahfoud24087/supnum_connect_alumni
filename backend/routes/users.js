@@ -1,29 +1,42 @@
 const express = require('express');
 const router = express.Router();
-const { User, Connection, Event, Company, Internship, Application, sequelize } = require('../models');
+const { User, Connection, Event, Company, Internship, Application, Message, Notification, Post, Comment, sequelize } = require('../models');
 const { protect, admin } = require('../middleware/auth');
 const { Op, fn, col } = require('sequelize');
 
 // @route   GET /api/users/public/stats
 // @desc    Get public statistics for landing page
-// @access  Public
-router.get('/public/stats', async (req, res, next) => {
+// @access  Public (Optional Auth)
+const { optionalProtect } = require('../middleware/auth');
+router.get('/public/stats', optionalProtect, async (req, res, next) => {
     try {
-        const totalUsers = await User.count({ where: { status: 'Verified' } });
+        const totalUsers = await User.count({
+            where: {
+                status: 'Verified',
+                role: { [Op.ne]: 'admin' }
+            }
+        });
         const students = await User.count({ where: { role: 'student', status: 'Verified' } });
         const graduates = await User.count({ where: { role: 'graduate', status: 'Verified' } });
+        const others = await User.count({ where: { role: 'other', status: 'Verified' } });
         const eventsCount = await Event.count();
         const partnerCompanies = await Company.count();
-        const activeInternships = await Internship.count({ where: { active: true } });
 
-        // Latest 6 Internships (Increased from 3)
+        // For the public landing page, show ALL active opportunities so visitors
+        // can discover the full range. The targetAudience restriction only applies
+        // when a user actually tries to apply (handled by the apply route).
+        const internshipWhere = { active: true };
+
+        const activeInternships = await Internship.count({ where: internshipWhere });
+
+        // Latest 30 Opportunities
         const latestInternships = await Internship.findAll({
-            where: { active: true },
-            limit: 6,
+            where: internshipWhere,
+            limit: 30,
             order: [['createdAt', 'DESC']]
         });
 
-        // Latest 6 Events (Increased from 3)
+        // Latest 6 Events
         const latestEvents = await Event.findAll({
             limit: 6,
             order: [['date', 'ASC']]
@@ -34,6 +47,7 @@ router.get('/public/stats', async (req, res, next) => {
                 totalUsers,
                 students,
                 graduates,
+                others,
                 eventsCount,
                 partnerCompanies,
                 activeInternships
@@ -603,28 +617,87 @@ router.get('/suggestions', protect, async (req, res, next) => {
 // @access  Private
 router.get('/search/all', protect, async (req, res, next) => {
     try {
-        const { query } = req.query;
+        const { query, supnumId, name, email, graduationYear, specialty, jobTitle } = req.query;
+        const queryTerm = query || req.query.search || '';
+
+        // Base where clause
         let where = {
             status: 'Verified',
-            role: { [Op.ne]: 'admin' },
-            id: { [Op.ne]: req.user.id }
+            role: { [Op.ne]: 'admin' }
         };
 
-        if (query) {
-            where[Op.or] = [
-                { name: { [Op.iLike]: `%${query}%` } },
-                { supnumId: { [Op.iLike]: `%${query}%` } }
-            ];
+        // Specific filters (AND logic with the base query)
+        if (supnumId) where.supnumId = { [Op.iLike]: `%${supnumId}%` };
+        if (name) where.name = { [Op.iLike]: `%${name}%` };
+        if (email) where.email = { [Op.iLike]: `%${email}%` };
+        if (graduationYear) where.graduationYear = graduationYear;
+        if (specialty) where.specialty = { [Op.iLike]: `%${specialty}%` };
+        if (jobTitle) where.jobTitle = { [Op.iLike]: `%${jobTitle}%` };
+
+        if (queryTerm && queryTerm.trim()) {
+            const searchVal = `%${queryTerm.trim()}%`;
+            // If we have specific filters, we add the general query to the OR array
+            if (Object.keys(where).length > 2) {
+                // Already have filters, we might want to combine them? 
+                // Usually general search is alternative to specific filters or they work together.
+                // Let's make it work together (AND)
+                where[Op.and] = [
+                    {
+                        [Op.or]: [
+                            { name: { [Op.iLike]: searchVal } },
+                            { email: { [Op.iLike]: searchVal } },
+                            { supnumId: { [Op.iLike]: searchVal } },
+                            { jobTitle: { [Op.iLike]: searchVal } },
+                            { company: { [Op.iLike]: searchVal } },
+                            { bio: { [Op.iLike]: searchVal } },
+                            { specialty: { [Op.iLike]: searchVal } }
+                        ]
+                    }
+                ];
+            } else {
+                where[Op.or] = [
+                    { name: { [Op.iLike]: searchVal } },
+                    { email: { [Op.iLike]: searchVal } },
+                    { supnumId: { [Op.iLike]: searchVal } },
+                    { jobTitle: { [Op.iLike]: searchVal } },
+                    { company: { [Op.iLike]: searchVal } },
+                    { bio: { [Op.iLike]: searchVal } },
+                    { specialty: { [Op.iLike]: searchVal } }
+                ];
+            }
         }
 
         const users = await User.findAll({
             where,
-            attributes: ['id', 'name', 'avatar', 'role', 'supnumId', 'jobTitle', 'company'],
+            attributes: ['id', 'name', 'avatar', 'role', 'supnumId', 'jobTitle', 'company', 'location', 'bio', 'graduationYear', 'specialty'],
             limit: 50
         });
 
-        res.json({ users });
+        // Get current user's connections to show status
+        const connections = await Connection.findAll({
+            where: {
+                [Op.or]: [
+                    { requesterId: req.user.id },
+                    { recipientId: req.user.id }
+                ]
+            }
+        });
+
+        const usersWithStatus = users.map(user => {
+            const conn = connections.find(c =>
+                (c.requesterId === req.user.id && c.recipientId === user.id) ||
+                (c.recipientId === req.user.id && c.requesterId === user.id)
+            );
+            return {
+                ...user.toJSON(),
+                connectionStatus: conn ? conn.status : 'none',
+                isRequester: conn ? conn.requesterId === req.user.id : false
+            };
+        });
+
+        res.json({ users: usersWithStatus });
     } catch (error) {
+        console.error('Search error:', error);
         next(error);
     }
 });
@@ -634,11 +707,15 @@ router.get('/search/all', protect, async (req, res, next) => {
 // @access  Private/Admin
 router.get('/', protect, admin, async (req, res, next) => {
     try {
-        const { status, search } = req.query;
+        const { status, search, role } = req.query;
         let where = {};
 
         if (status) {
             where.status = status;
+        }
+
+        if (role) {
+            where.role = role;
         }
 
         if (search) {
@@ -675,7 +752,9 @@ router.get('/graduates/search', protect, async (req, res, next) => {
             where[Op.or] = [
                 { name: { [Op.iLike]: `%${search}%` } },
                 { jobTitle: { [Op.iLike]: `%${search}%` } },
-                { company: { [Op.iLike]: `%${search}%` } }
+                { company: { [Op.iLike]: `%${search}%` } },
+                { supnumId: { [Op.iLike]: `%${search}%` } },
+                { bio: { [Op.iLike]: `%${search}%` } }
             ];
         }
 
@@ -891,14 +970,54 @@ router.patch('/:id/status', protect, admin, async (req, res, next) => {
 // @desc    Delete user (admin only)
 // @access  Private/Admin
 router.delete('/:id', protect, admin, async (req, res, next) => {
+    const t = await sequelize.transaction();
     try {
         const user = await User.findByPk(req.params.id);
         if (!user) {
+            await t.rollback();
             return res.status(404).json({ message: 'User not found' });
         }
-        await user.destroy();
+
+        // Clean up related data that might have foreign key constraints
+        await Connection.destroy({
+            where: {
+                [Op.or]: [
+                    { requesterId: user.id },
+                    { recipientId: user.id }
+                ]
+            },
+            transaction: t
+        });
+
+        await Message.destroy({
+            where: {
+                [Op.or]: [
+                    { senderId: user.id },
+                    { recipientId: user.id }
+                ]
+            },
+            transaction: t
+        });
+
+        await Application.destroy({ where: { userId: user.id }, transaction: t });
+        await Notification.destroy({ where: { userId: user.id }, transaction: t });
+
+        // Re-assign or delete events created by this user
+        await Event.destroy({ where: { createdById: user.id }, transaction: t });
+        await Internship.destroy({ where: { createdById: user.id }, transaction: t });
+
+        // Clean up social feed data
+        await Comment.destroy({ where: { userId: user.id }, transaction: t });
+        await Post.destroy({ where: { userId: user.id }, transaction: t });
+
+        // Finally destroy the user
+        await user.destroy({ transaction: t });
+
+        await t.commit();
         res.json({ message: 'User deleted successfully' });
     } catch (error) {
+        await t.rollback();
+        console.error('DELETE USER ERROR:', error);
         next(error);
     }
 });
@@ -917,9 +1036,9 @@ router.get('/:id/export-cv', protect, async (req, res, next) => {
         }
 
         const translations = {
-            EN: { cv: 'Curriculum Vitae', contactInfo: 'Contact Information', professionalInfo: 'Professional Information', social: 'Social Media', email: 'Email', phone: 'Phone', location: 'Location', jobTitle: 'Job Title', company: 'Company', workStatus: 'Work Status', bio: 'About Me', linkedin: 'LinkedIn', github: 'GitHub', facebook: 'Facebook', student: 'Student', graduate: 'Graduate', admin: 'Administrator' },
-            FR: { cv: 'Curriculum Vitae', contactInfo: 'Coordonnées', professionalInfo: 'Informations Professionnelles', social: 'Réseaux Sociaux', email: 'Email', phone: 'Téléphone', location: 'Localisation', jobTitle: 'Poste', company: 'Entreprise', workStatus: 'Statut Professionnel', bio: 'À Propos', linkedin: 'LinkedIn', github: 'GitHub', facebook: 'Facebook', student: 'Étudiant', graduate: 'Diplômé', admin: 'Administrateur' },
-            AR: { cv: 'السيرة الذاتية', contactInfo: 'معلومات الاتصال', professionalInfo: 'المعلومات المهنية', social: 'وسائل التواصل الاجتماعي', email: 'البريد الإلكتروني', phone: 'الهاتف', location: 'الموقع', jobTitle: 'المسمى الوظيفي', company: 'الشركة', workStatus: 'حالة العمل', bio: 'نبذة عني', linkedin: 'لينكد إن', github: 'جيت هاب', facebook: 'فيسبوك', student: 'طالب', graduate: 'خريج', admin: 'مسؤول' }
+            EN: { cv: 'Curriculum Vitae', contactInfo: 'Contact Information', professionalInfo: 'Professional Information', social: 'Social Media', email: 'Email', phone: 'Phone', location: 'Location', jobTitle: 'Job Title', company: 'Company', workStatus: 'Work Status', bio: 'About Me', linkedin: 'LinkedIn', github: 'GitHub', facebook: 'Facebook', student: 'Student', graduate: 'Graduate', admin: 'Administrator', other: 'Community Member' },
+            FR: { cv: 'Curriculum Vitae', contactInfo: 'Coordonnées', professionalInfo: 'Informations Professionnelles', social: 'Réseaux Sociaux', email: 'Email', phone: 'Téléphone', location: 'Localisation', jobTitle: 'Poste', company: 'Entreprise', workStatus: 'Statut Professionnel', bio: 'À Propos', linkedin: 'LinkedIn', github: 'GitHub', facebook: 'Facebook', student: 'Étudiant', graduate: 'Diplômé', admin: 'Administrateur', other: 'Membre du Réseau' },
+            AR: { cv: 'السيرة الذاتية', contactInfo: 'معلومات الاتصال', professionalInfo: 'المعلومات المهنية', social: 'وسائل التواصل الاجتماعي', email: 'البريد الإلكتروني', phone: 'الهاتف', location: 'الموقع', jobTitle: 'المسمى الوظيفي', company: 'الشركة', workStatus: 'حالة العمل', bio: 'نبذة عني', linkedin: 'لينكد إن', github: 'جيت هاب', facebook: 'فيسبوك', student: 'طالب', graduate: 'خريج', admin: 'مسؤول', other: 'عضو في الشبكة' }
         };
 
         const t = translations[lang] || translations.EN;
@@ -934,7 +1053,9 @@ router.get('/:id/export-cv', protect, async (req, res, next) => {
         doc.rect(0, 0, doc.page.width, 120).fill('#1e40af');
         doc.fillColor('white').fontSize(28).font('Helvetica-Bold').text(user.name, 50, 40);
         doc.fontSize(14).font('Helvetica').text(t[user.role.toLowerCase()] || user.role, 50, 75);
-        doc.fontSize(10).text(user.supnumId, 50, 95);
+        if (user.supnumId) {
+            doc.fontSize(10).text(user.supnumId, 50, 95);
+        }
         doc.fillColor('#000000');
         let currentY = 150;
 

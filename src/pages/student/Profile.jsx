@@ -22,7 +22,9 @@ export function Profile() {
         workStatus: '',
         jobTitle: '',
         company: '',
-        cvUrl: ''
+        cvUrl: '',
+        specialty: '',
+        graduationYear: ''
     });
     const [gallery, setGallery] = useState([]);
     const [previewImage, setPreviewImage] = useState(null);
@@ -44,7 +46,9 @@ export function Profile() {
                 workStatus: user.workStatus || '',
                 jobTitle: user.jobTitle || '',
                 company: user.company || '',
-                cvUrl: user.cvUrl || ''
+                cvUrl: user.cvUrl || '',
+                specialty: user.specialty || '',
+                graduationYear: user.graduationYear || ''
             });
             setPreviewImage(user.avatar || null);
             setGallery(user.gallery || []);
@@ -66,6 +70,8 @@ export function Profile() {
             formData.jobTitle !== (user.jobTitle || '') ||
             formData.company !== (user.company || '') ||
             formData.cvUrl !== (user.cvUrl || '') ||
+            formData.specialty !== (user.specialty || '') ||
+            formData.graduationYear !== (user.graduationYear || '') ||
             previewImage !== (user.avatar || null) ||
             JSON.stringify(gallery) !== JSON.stringify(user.gallery || []);
 
@@ -129,6 +135,8 @@ export function Profile() {
                 jobTitle: formData.jobTitle,
                 company: formData.company,
                 cvUrl: formData.cvUrl,
+                specialty: formData.specialty,
+                graduationYear: formData.graduationYear,
                 gallery: gallery,
                 social: {
                     linkedin: formData.linkedin,
@@ -222,8 +230,13 @@ export function Profile() {
                             <div className="flex items-center justify-center md:justify-start gap-2 pt-2">
                                 <span className="px-4 py-1.5 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-sm font-bold flex items-center gap-2">
                                     <GraduationCap className="h-4 w-4" />
-                                    {user?.role === 'student' ? t.profile.student : t.profile.graduate}
+                                    {user?.role === 'student' ? t.profile.student : user?.role === 'graduate' ? t.profile.graduate : t.profile.other}
                                 </span>
+                                {user?.specialty && (
+                                    <span className="px-4 py-1.5 rounded-full bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm font-black tracking-wider uppercase">
+                                        {user.specialty}
+                                    </span>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -249,14 +262,16 @@ export function Profile() {
                                     />
                                 </div>
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.profile.supnumId}</label>
-                                <Input
-                                    value={user?.supnumId || ''}
-                                    disabled
-                                    className="bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-600 cursor-not-allowed"
-                                />
-                            </div>
+                            {user?.role !== 'other' && (
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.profile.supnumId}</label>
+                                    <Input
+                                        value={user?.supnumId || ''}
+                                        disabled
+                                        className="bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-600 cursor-not-allowed"
+                                    />
+                                </div>
+                            )}
                             <div className="space-y-2">
                                 <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.common.phone}</label>
                                 <div className="relative">
@@ -289,6 +304,19 @@ export function Profile() {
                                         value={formData.location}
                                         onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                                         placeholder={t.profile.locationPlaceholder}
+                                        className="pl-10 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Année de Promotion</label>
+                                <div className="relative">
+                                    <GraduationCap className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+                                    <Input
+                                        type="number"
+                                        value={formData.graduationYear}
+                                        onChange={(e) => setFormData({ ...formData, graduationYear: e.target.value })}
+                                        placeholder="2024"
                                         className="pl-10 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
                                     />
                                 </div>
@@ -340,16 +368,34 @@ export function Profile() {
                                     className="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
                                 />
                             </div>
-                            <div className="space-y-2 md:col-span-2">
-                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.common.company}</label>
-                                <div className="relative">
-                                    <Building className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
-                                    <Input
-                                        value={formData.company}
-                                        onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                                        placeholder={t.profile.companyPlaceholder}
-                                        className="pl-10 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
-                                    />
+                            <div className="space-y-4 md:col-span-2">
+                                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                                    <GraduationCap className="h-4 w-4 text-blue-500" /> {t.auth.signup.fieldOfStudy}
+                                    {user?.role === 'graduate' && (
+                                        <span className="text-[10px] bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-slate-400 uppercase tracking-tighter">Fixed for Graduates</span>
+                                    )}
+                                </label>
+                                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                                    {['RSS', 'DSI', 'DWM', 'IA', 'IDS'].map((spec) => (
+                                        <button
+                                            key={spec}
+                                            type="button"
+                                            disabled={user?.role === 'graduate'}
+                                            onClick={() => {
+                                                setFormData({ ...formData, specialty: spec });
+                                                setIsDirty(true);
+                                            }}
+                                            className={`
+                                                flex flex-col items-center justify-center p-3 rounded-xl border-2 font-black transition-all
+                                                ${formData.specialty === spec
+                                                    ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                                                    : 'border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 text-slate-500 hover:border-slate-200'}
+                                                ${user?.role === 'graduate' ? 'cursor-not-allowed opacity-80' : ''}
+                                            `}
+                                        >
+                                            <span className="text-xs uppercase tracking-widest">{spec}</span>
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
                         </div>
@@ -507,6 +553,6 @@ export function Profile() {
                     </Button>
                 </div>
             </form>
-        </motion.div>
+        </motion.div >
     );
 }

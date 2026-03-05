@@ -19,21 +19,44 @@ router.post('/register', [
     body('fullName').notEmpty().withMessage('Name is required'),
     body('email').isEmail().withMessage('Valid email is required'),
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-    body('supnumId').notEmpty().withMessage('SupNum ID is required'),
-    body('role').isIn(['student', 'graduate']).withMessage('Invalid role')
+    body('supnumId').custom((value, { req }) => {
+        if (req.body.role !== 'other' && !value) {
+            throw new Error('SupNum ID is required for students and graduates');
+        }
+        return true;
+    }),
+    body('role').isIn(['student', 'graduate', 'other']).withMessage('Invalid role'),
+    body('graduationYear').custom((value, { req }) => {
+        if (req.body.role === 'graduate' && !value) {
+            throw new Error('Graduation year is required for graduates');
+        }
+        return true;
+    }),
+    body('specialty').custom((value, { req }) => {
+        if ((req.body.role === 'graduate' || req.body.role === 'student') && !value) {
+            throw new Error('Specialty (Filière) is required');
+        }
+        return true;
+    })
 ], async (req, res, next) => {
     try {
-        const { fullName, email, password, supnumId, role } = req.body;
+        const { fullName, email, password, supnumId, role, graduationYear, specialty } = req.body;
 
         // Check if user exists
+        const whereClause = {
+            [require('sequelize').Op.or]: [{ email }]
+        };
+
+        if (supnumId) {
+            whereClause[require('sequelize').Op.or].push({ supnumId });
+        }
+
         const userExists = await User.findOne({
-            where: {
-                [require('sequelize').Op.or]: [{ email }, { supnumId }]
-            }
+            where: whereClause
         });
 
         if (userExists) {
-            return res.status(400).json({ message: 'User already exists' });
+            return res.status(400).json({ message: 'User with this email or ID already exists' });
         }
 
         // Create user
@@ -43,7 +66,9 @@ router.post('/register', [
             password,
             supnumId,
             role: role || 'student',
-            status: 'Pending'
+            status: 'Pending',
+            graduationYear: role === 'graduate' ? graduationYear : null,
+            specialty: (role === 'graduate' || role === 'student') ? specialty : ''
         });
 
         res.status(201).json({
@@ -107,7 +132,7 @@ router.get('/me', protect, async (req, res) => {
 // @access  Private
 router.put('/profile', protect, async (req, res, next) => {
     try {
-        const allowedUpdates = ['name', 'bio', 'location', 'avatar', 'phone', 'birthday', 'workStatus', 'jobTitle', 'company', 'cvUrl', 'gallery'];
+        const allowedUpdates = ['name', 'bio', 'location', 'avatar', 'phone', 'birthday', 'workStatus', 'jobTitle', 'company', 'cvUrl', 'gallery', 'graduationYear', 'specialty'];
         const updates = {};
 
         allowedUpdates.forEach(field => {

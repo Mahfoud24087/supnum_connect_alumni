@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { Card, CardContent } from '../../components/ui/Card';
-import { Briefcase, Plus, Search, MapPin, Building, Trash2, Edit, X } from 'lucide-react';
+import { Briefcase, Plus, Search, MapPin, Building, Trash2, Edit, X, Calendar } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { apiClient } from '../../services/api';
 import { useToast } from '../../components/Toast';
 import { ConfirmationModal } from '../../components/ConfirmationModal';
+import { DatePicker } from '../../components/ui/DatePicker';
 
 export function ManageInternships() {
     const { t } = useLanguage();
@@ -18,6 +19,9 @@ export function ManageInternships() {
     const [currentInternship, setCurrentInternship] = useState(null);
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const [internshipToDelete, setInternshipToDelete] = useState(null);
+    const [filterType, setFilterType] = useState('all');
+    const [filterLocation, setFilterLocation] = useState('all');
+    const [filterWorkplace, setFilterWorkplace] = useState('all');
 
     const [formData, setFormData] = useState({
         title: '',
@@ -29,7 +33,11 @@ export function ManageInternships() {
         customQuestions: [],
         requireCv: true,
         requireMessage: true,
-        requirePhone: true
+        requirePhone: true,
+        targetAudience: 'All',
+        startDate: '',
+        endDate: '',
+        workplaceType: 'On-site'
     });
 
     const fetchInternships = async () => {
@@ -53,10 +61,16 @@ export function ManageInternships() {
         return <div className="p-8 text-center">Loading translations...</div>;
     }
 
-    const filteredInternships = internships.filter(i =>
-        i.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        i.company.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredInternships = internships.filter(i => {
+        const s = searchTerm.toLowerCase();
+        const matchSearch = i.title.toLowerCase().includes(s) || i.company.toLowerCase().includes(s);
+        const matchType = filterType === 'all' || i.type?.toLowerCase().includes(filterType.toLowerCase());
+        const matchLocation = filterLocation === 'all' || i.location?.toLowerCase() === filterLocation.toLowerCase();
+        const matchWorkplace = filterWorkplace === 'all' || i.workplaceType?.toLowerCase() === filterWorkplace.toLowerCase();
+        return matchSearch && matchType && matchLocation && matchWorkplace;
+    });
+
+    const uniqueLocations = Array.from(new Set(internships.map(i => i.location).filter(Boolean)));
 
     const handleOpenModal = (internship = null) => {
         if (internship) {
@@ -71,7 +85,11 @@ export function ManageInternships() {
                 customQuestions: internship.customQuestions || [],
                 requireCv: internship.requireCv !== false,
                 requireMessage: internship.requireMessage !== false,
-                requirePhone: internship.requirePhone !== false
+                requirePhone: internship.requirePhone !== false,
+                targetAudience: internship.targetAudience || 'All',
+                startDate: internship.startDate ? new Date(internship.startDate).toISOString().split('T')[0] : '',
+                endDate: internship.endDate ? new Date(internship.endDate).toISOString().split('T')[0] : '',
+                workplaceType: internship.workplaceType || 'On-site'
             });
         } else {
             setCurrentInternship(null);
@@ -85,7 +103,11 @@ export function ManageInternships() {
                 customQuestions: [],
                 requireCv: true,
                 requireMessage: true,
-                requirePhone: true
+                requirePhone: true,
+                targetAudience: 'All',
+                startDate: '',
+                endDate: '',
+                workplaceType: 'On-site'
             });
         }
         setIsModalOpen(true);
@@ -150,8 +172,9 @@ export function ManageInternships() {
                 </Button>
             </div>
 
-            <div className="flex items-center space-x-4 bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm">
-                <div className="relative flex-1">
+            <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm space-y-3">
+                {/* Search row */}
+                <div className="relative">
                     <Search className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
                     <Input
                         placeholder={t.admin.manageInternships.searchPlaceholder}
@@ -159,6 +182,64 @@ export function ManageInternships() {
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-10 bg-slate-50 dark:bg-slate-900 border-none"
                     />
+                </div>
+
+                {/* Filter row */}
+                <div className="flex flex-wrap gap-2 pt-1">
+                    {/* Type toggle pill group */}
+                    <div className="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-lg">
+                        {[['all', 'Tous'], ['Internship', 'Stages'], ['Job', 'Emplois'], ['Training', 'Formations']].map(([val, label]) => (
+                            <button
+                                key={val}
+                                onClick={() => setFilterType(val)}
+                                className={`text-xs px-3 py-1.5 rounded-md font-medium transition-all whitespace-nowrap ${filterType === val
+                                        ? 'bg-blue-600 text-white shadow-sm'
+                                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
+                                    }`}
+                            >
+                                {label}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Location dropdown — dynamic from data */}
+                    <select
+                        value={filterLocation}
+                        onChange={(e) => setFilterLocation(e.target.value)}
+                        className="h-9 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs px-3 text-slate-700 dark:text-slate-300 outline-none cursor-pointer focus:ring-2 focus:ring-blue-500/20"
+                    >
+                        <option value="all">📍 Lieu: Tous</option>
+                        {uniqueLocations.map(loc => (
+                            <option key={loc} value={loc}>{loc}</option>
+                        ))}
+                    </select>
+
+                    {/* Workplace mode dropdown */}
+                    <select
+                        value={filterWorkplace}
+                        onChange={(e) => setFilterWorkplace(e.target.value)}
+                        className="h-9 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs px-3 text-slate-700 dark:text-slate-300 outline-none cursor-pointer focus:ring-2 focus:ring-blue-500/20"
+                    >
+                        <option value="all">🏢 Mode: Tous</option>
+                        <option value="On-site">Présentiel</option>
+                        <option value="Remote">À distance</option>
+                        <option value="Hybrid">Hybride</option>
+                    </select>
+
+                    {/* Reset filters */}
+                    {(filterType !== 'all' || filterLocation !== 'all' || filterWorkplace !== 'all' || searchTerm) && (
+                        <button
+                            onClick={() => { setFilterType('all'); setFilterLocation('all'); setFilterWorkplace('all'); setSearchTerm(''); }}
+                            className="h-9 px-3 text-xs font-medium text-red-500 bg-red-50 dark:bg-red-900/20 rounded-lg hover:bg-red-100 transition-colors"
+                        >
+                            ✕ Réinitialiser
+                        </button>
+                    )}
+
+                    {/* Results count */}
+                    <span className="ml-auto self-center text-xs text-slate-400 font-medium">
+                        {filteredInternships.length} résultat{filteredInternships.length !== 1 ? 's' : ''}
+                    </span>
                 </div>
             </div>
 
@@ -211,50 +292,114 @@ export function ManageInternships() {
                             </button>
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2 col-span-2">
-                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t.admin.manageInternships.form.jobTitle}</label>
-                                    <Input
-                                        required
-                                        value={formData.title}
-                                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                        placeholder="e.g. Software Engineer"
-                                    />
-                                </div>
-                            </div>
+                            <div className="space-y-4">
+                                <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-4">
+                                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t.admin.manageInternships.form.basicInfo || 'Informations de base'}</h3>
 
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t.admin.manageInternships.form.company}</label>
-                                <Input
-                                    required
-                                    value={formData.company}
-                                    onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                                    placeholder="e.g. Tech Corp"
-                                />
-                            </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.admin.manageInternships.form.jobTitle}</label>
+                                        <div className="relative group">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                                                <Briefcase className="h-4 w-4" />
+                                            </div>
+                                            <Input
+                                                required
+                                                value={formData.title}
+                                                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                                placeholder="e.g. Lead Developer"
+                                                className="pl-10 bg-white dark:bg-slate-900 border-slate-200 focus:ring-2 focus:ring-blue-500/20"
+                                            />
+                                        </div>
+                                    </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t.admin.manageInternships.form.type}</label>
-                                    <select
-                                        className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
-                                        value={formData.type}
-                                        onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                                    >
-                                        <option>Internship</option>
-                                        <option>Full-time</option>
-                                        <option>Part-time</option>
-                                        <option>Contract</option>
-                                    </select>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.admin.manageInternships.form.company}</label>
+                                        <div className="relative group">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                                                <Building className="h-4 w-4" />
+                                            </div>
+                                            <Input
+                                                required
+                                                value={formData.company}
+                                                onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                                                placeholder="e.g. SupNum Tech"
+                                                className="pl-10 bg-white dark:bg-slate-900 border-slate-200 focus:ring-2 focus:ring-blue-500/20"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t.admin.manageInternships.form.location}</label>
-                                    <Input
-                                        required
-                                        value={formData.location}
-                                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                                        placeholder="e.g. Nouakchott"
-                                    />
+
+                                <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-4">
+                                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t.admin.manageInternships.form.details || 'Détails de l\'opportunité'}</h3>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.admin.manageInternships.form.type || 'Type d\'opportunité'}</label>
+                                            <Input
+                                                required
+                                                value={formData.type}
+                                                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                                                placeholder="e.g. Stage, Emploi, Formation..."
+                                                className="bg-white dark:bg-slate-900 border-slate-200"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.admin.manageInternships.form.targetAudience}</label>
+                                            <select
+                                                className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                                                value={formData.targetAudience}
+                                                onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })}
+                                            >
+                                                <option value="All">{t.admin.manageInternships.form.audiences.all}</option>
+                                                <option value="Students">{t.admin.manageInternships.form.audiences.students}</option>
+                                                <option value="Graduates">{t.admin.manageInternships.form.audiences.graduates}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.admin.manageInternships.form.workplaceType}</label>
+                                            <select
+                                                className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                                                value={formData.workplaceType}
+                                                onChange={(e) => setFormData({ ...formData, workplaceType: e.target.value })}
+                                            >
+                                                <option value="On-site">{t.admin.manageInternships.form.workplace.onSite}</option>
+                                                <option value="Remote">{t.admin.manageInternships.form.workplace.remote}</option>
+                                                <option value="Hybrid">{t.admin.manageInternships.form.workplace.hybrid}</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.admin.manageInternships.form.location}</label>
+                                            <Input
+                                                required
+                                                value={formData.location}
+                                                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                                placeholder="e.g. Nouakchott"
+                                                className="bg-white dark:bg-slate-900 border-slate-200"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.admin.manageInternships.form.startDate}</label>
+                                            <DatePicker
+                                                value={formData.startDate}
+                                                onChange={(date) => setFormData({ ...formData, startDate: date })}
+                                                className="w-full"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.admin.manageInternships.form.endDate}</label>
+                                            <DatePicker
+                                                value={formData.endDate}
+                                                onChange={(date) => setFormData({ ...formData, endDate: date })}
+                                                className="w-full"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 

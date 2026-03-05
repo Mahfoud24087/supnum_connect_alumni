@@ -65,9 +65,9 @@ export const translations = {
                 exportFailed: 'Export failed'
             },
             manageInternships: {
-                title: 'Internships & Opportunities',
+                title: 'Professional Opportunities',
                 postOpportunity: 'Post Opportunity',
-                searchPlaceholder: 'Search internships...',
+                searchPlaceholder: 'Search opportunities...',
                 active: 'Active',
                 closed: 'Closed',
                 editOpportunity: 'Edit Opportunity',
@@ -77,9 +77,15 @@ export const translations = {
                 failedDelete: 'Failed to delete internship',
                 failedToggle: 'Failed to toggle status',
                 form: {
+                    basicInfo: 'Basic Information',
+                    details: 'Opportunity Details',
                     jobTitle: 'Job Title',
                     company: 'Company',
-                    type: 'Type',
+                    type: 'Opportunity Type',
+                    targetAudience: 'Target Audience',
+                    workplaceType: 'Workplace Type',
+                    startDate: 'Start Date',
+                    endDate: 'End Date',
                     location: 'Location',
                     appRequirements: 'Application Requirements',
                     requireCv: 'Require CV',
@@ -93,7 +99,17 @@ export const translations = {
                     cancel: 'Cancel',
                     questionLabel: 'Question Label (e.g. Portfolio Link)',
                     options: 'Options (comma separated)',
-                    required: 'Required'
+                    required: 'Required',
+                    audiences: {
+                        all: 'All Community',
+                        students: 'Students Only',
+                        graduates: 'Graduates Only'
+                    },
+                    workplace: {
+                        onSite: 'On-site',
+                        remote: 'Remote',
+                        hybrid: 'Hybrid'
+                    }
                 }
             },
             manageApplications: {
@@ -141,6 +157,7 @@ export const translations = {
             uploadPhoto: 'Upload Photo',
             student: 'Student',
             graduate: 'Graduate',
+            other: 'Other',
             bioPlaceholder: 'Tell us about yourself...',
             locationPlaceholder: 'e.g. Nouakchott, Mauritania',
             jobPlaceholder: 'e.g. Software Engineer',
@@ -162,8 +179,9 @@ export const translations = {
             community: 'Our Growing Community',
             communityDesc: 'Join tens of SupNum graduates building the future of technology in Mauritania.',
             totalUsers: 'Total Users',
-            students: 'Alumni',
+            students: 'Students',
             graduates: 'Graduates',
+            others: 'Others',
             events: 'Events',
             challenges: 'Challenges',
             contests: 'Contests'
@@ -183,7 +201,7 @@ export const translations = {
             rights: 'All rights reserved.',
             home: 'Home',
             findAlumni: 'Find Alumni',
-            internships: 'Internships',
+            internships: 'Opportunities',
             companies: 'Companies',
             signOut: 'Sign Out',
             language: 'Language'
@@ -192,12 +210,29 @@ export const translations = {
             activeCommunity: 'Active Community',
             currentStudents: 'Current Students',
             alumniNetwork: 'Alumni Network',
+            othersNetwork: 'External Community',
             upcomingTerm: 'Upcoming this term',
             oppsTitle: 'Opportunities & Partners',
             oppsSubtitle: 'Connect with top companies and find your next career move.',
             partnerCompanies: 'Partner Companies',
-            activeInternships: 'Active Internships',
+            activeOpps: 'Active Opportunities',
             latestOpps: 'Latest Opportunities',
+            types: {
+                all: 'All',
+                Internship: 'Internships',
+                Job: 'Jobs',
+                Training: 'Trainings'
+            },
+            filters: {
+                location: '📍 Location: All',
+                workplace: '🏢 Mode: All',
+                pay: '💰 Pay: All',
+                workplaceOnSite: 'On-site',
+                workplaceRemote: 'Remote',
+                workplaceHybrid: 'Hybrid',
+                payPaid: 'Paid',
+                payUnpaid: 'Unpaid'
+            },
             view: 'View',
             apply: 'Apply',
             noOpps: 'No active opportunities at the moment.',
@@ -227,6 +262,7 @@ export const translations = {
             save: 'Save Changes',
             saving: 'Saving...',
             saved: 'Changes saved successfully!',
+            noAccess: 'Access denied. Only SupNum students and graduates can access this feature.',
             error: 'An error occurred. Please try again.',
             delete: 'Delete',
             edit: 'Edit',
@@ -311,6 +347,10 @@ export const translations = {
                 creating: 'Creating account...',
                 alreadyHaveAccount: 'Already have an account?',
                 signIn: 'Sign in',
+                role: 'Register as',
+                other: 'Other',
+                promoYear: 'Promotion Year',
+                fieldOfStudy: 'Field of Study (Filière)',
                 brandingTitle: 'Join the elite network of SupNum graduates',
                 features: {
                     connect: 'Connect with alumni and industry leaders',
@@ -321,12 +361,21 @@ export const translations = {
             }
         },
         findFriends: {
-            title: 'Find Alumni',
-            subtitle: 'Connect with fellow graduates and grow your network',
-            searchPlaceholder: 'Search by name, company, or job...',
-            noResults: 'No graduates found. Try a different search term.',
+            title: 'Community Search',
+            subtitle: 'Search for students, graduates, and other members of our community',
+            searchPlaceholder: 'Search by name, ID or email...',
+            noResults: 'No members found. Try a different search term.',
             connected: 'Connected',
-            respond: 'Respond to Request'
+            respond: 'Respond to Request',
+            filters: 'Filter Search',
+            filterId: 'ID',
+            filterName: 'Name',
+            filterEmail: 'Email',
+            filterPromo: 'Promo Year',
+            filterFiliere: 'Filière',
+            filterJobs: 'Jobs',
+            applyFilters: 'Apply Filters',
+            clearFilters: 'Clear'
         },
         friends: {
             title: 'My Network',
@@ -495,9 +544,9 @@ export const translations = {
                 exportFailed: 'Échec de l\'exportation'
             },
             manageInternships: {
-                title: 'Stages & Opportunités',
+                title: 'Opportunités Professionnelles',
                 postOpportunity: 'Publier une opportunité',
-                searchPlaceholder: 'Rechercher des stages...',
+                searchPlaceholder: 'Rechercher des opportunités...',
                 active: 'Actif',
                 closed: 'Fermé',
                 editOpportunity: 'Modifier l\'opportunité',
@@ -507,9 +556,15 @@ export const translations = {
                 failedDelete: 'Échec de la suppression du stage',
                 failedToggle: 'Échec du changement de statut',
                 form: {
+                    basicInfo: 'Informations de Base',
+                    details: 'Détails de l\'Opportunité',
                     jobTitle: 'Intitulé du poste',
                     company: 'Entreprise',
-                    type: 'Type',
+                    type: 'Type d\'opportunité',
+                    targetAudience: 'Audience Cible',
+                    workplaceType: 'Type de Lieu',
+                    startDate: 'Date de Début',
+                    endDate: 'Date de Fin',
                     location: 'Lieu',
                     appRequirements: 'Exigences de candidature',
                     requireCv: 'Exiger un CV',
@@ -523,7 +578,17 @@ export const translations = {
                     cancel: 'Annuler',
                     questionLabel: 'Libellé de la question (ex : Lien Portfolio)',
                     options: 'Options (séparées par des virgules)',
-                    required: 'Obligatoire'
+                    required: 'Obligatoire',
+                    audiences: {
+                        all: 'Tout le monde',
+                        students: 'Étudiants uniquement',
+                        graduates: 'Diplômés uniquement'
+                    },
+                    workplace: {
+                        onSite: 'Sur place (On-site)',
+                        remote: 'À distance (Remote)',
+                        hybrid: 'Hybride'
+                    }
                 }
             },
             manageApplications: {
@@ -571,6 +636,7 @@ export const translations = {
             uploadPhoto: 'Télécharger une photo',
             student: 'Étudiant',
             graduate: 'Diplômé',
+            other: 'Autre',
             bioPlaceholder: 'Parlez-nous de vous...',
             locationPlaceholder: 'ex: Nouakchott, Mauritanie',
             jobPlaceholder: 'ex: Ingénieur Logiciel',
@@ -594,6 +660,7 @@ export const translations = {
             totalUsers: 'Utilisateurs Totaux',
             students: 'Étudiants',
             graduates: 'Diplômés',
+            others: 'Autres',
             events: 'Événements',
             challenges: 'Défis',
             contests: 'Concours'
@@ -613,7 +680,7 @@ export const translations = {
             rights: 'Tous droits réservés.',
             home: 'Accueil',
             findAlumni: 'Trouver des anciens',
-            internships: 'Stages',
+            internships: 'Opportunités',
             companies: 'Entreprises',
             signOut: 'Déconnexion',
             language: 'Langue'
@@ -622,12 +689,29 @@ export const translations = {
             activeCommunity: 'Communauté Active',
             currentStudents: 'Étudiants Actuels',
             alumniNetwork: 'Réseau des Anciens',
+            othersNetwork: 'Communauté Externe',
             upcomingTerm: 'À venir ce trimestre',
             oppsTitle: 'Opportunités & Partenaires',
             oppsSubtitle: 'Connectez-vous avec les meilleures entreprises et trouvez votre prochaine étape de carrière.',
             partnerCompanies: 'Entreprises Partenaires',
-            activeInternships: 'Stages Actifs',
+            activeOpps: 'Opportunités Actives',
             latestOpps: 'Dernières Opportunités',
+            types: {
+                all: 'Tout',
+                Internship: 'Stages',
+                Job: 'Emplois',
+                Training: 'Formations'
+            },
+            filters: {
+                location: '📍 Lieu: Tous',
+                workplace: '🏢 Mode: Tous',
+                pay: '💰 Paye: Tous',
+                workplaceOnSite: 'Présentiel',
+                workplaceRemote: 'À distance',
+                workplaceHybrid: 'Hybride',
+                payPaid: 'Rémunéré',
+                payUnpaid: 'Non rémunéré'
+            },
             view: 'Voir',
             apply: 'Postuler',
             noOpps: 'Aucune opportunité active pour le moment.',
@@ -654,7 +738,8 @@ export const translations = {
             },
             save: 'Enregistrer les modifications',
             saving: 'Enregistrement...',
-            saved: 'Modifications enregistrées avec succès !',
+            saved: 'Modifications enregistrées avec succès!',
+            noAccess: 'Accès refusé. Seuls les étudiants et diplômés de SupNum peuvent accéder à cette fonctionnalité.',
             error: 'Une erreur est survenue. Veuillez réessayer.',
             back: 'Retour',
             close: 'Fermer',
@@ -742,6 +827,10 @@ export const translations = {
                 creating: 'Création du compte...',
                 alreadyHaveAccount: 'Vous avez déjà un compte ?',
                 signIn: 'Se connecter',
+                role: "S'inscrire en tant que",
+                other: 'Autre',
+                promoYear: 'Année de Promotion',
+                fieldOfStudy: 'Filière / Spécialité',
                 brandingTitle: 'Rejoignez le réseau d\'élite des diplômés de SupNum',
                 features: {
                     connect: 'Connectez-vous avec des anciens et des leaders de l\'industrie',
@@ -752,12 +841,21 @@ export const translations = {
             }
         },
         findFriends: {
-            title: 'Trouver des anciens',
-            subtitle: 'Connectez-vous avec d\'autres diplômés et développez votre réseau',
-            searchPlaceholder: 'Rechercher par nom, entreprise ou poste...',
-            noResults: 'Aucun diplômé trouvé. Essayez un autre terme de recherche.',
+            title: 'Recherche de la Communauté',
+            subtitle: 'Recherchez des étudiants, des diplômés et d\'autres membres de notre communauté',
+            searchPlaceholder: 'Recherchez par nom, ID ou email...',
+            noResults: 'Aucun membre trouvé. Essayez un autre terme de recherche.',
             connected: 'Connecté',
-            respond: 'Répondre à la demande'
+            respond: 'Répondre à la demande',
+            filters: 'Filtrer la recherche',
+            filterId: 'ID',
+            filterName: 'Nom',
+            filterEmail: 'Email',
+            filterPromo: 'Année Promo',
+            filterFiliere: 'Filière',
+            filterJobs: 'Jobs',
+            applyFilters: 'Appliquer les filtres',
+            clearFilters: 'Effacer'
         },
         friends: {
             title: 'Mon Réseau',
@@ -926,9 +1024,9 @@ export const translations = {
                 exportFailed: 'فشل التصدير'
             },
             manageInternships: {
-                title: 'التدريب والفرص',
+                title: 'الفرص المهنية',
                 postOpportunity: 'نشر فرصة',
-                searchPlaceholder: 'البحث عن فرص...',
+                searchPlaceholder: 'بحث في الفرص...',
                 active: 'نشط',
                 closed: 'مغلق',
                 editOpportunity: 'تعديل الفرصة',
@@ -938,9 +1036,15 @@ export const translations = {
                 failedDelete: 'فشل حذف الفرصة',
                 failedToggle: 'فشل تغيير الحالة',
                 form: {
+                    basicInfo: 'المعلومات الأساسية',
+                    details: 'تفاصيل الفرصة',
                     jobTitle: 'مسمى الوظيفة',
                     company: 'الشركة',
-                    type: 'النوع',
+                    type: 'نوع الفرصة',
+                    targetAudience: 'الجمهور المستهدف',
+                    workplaceType: 'نوع مكان العمل',
+                    startDate: 'تاريخ البدء',
+                    endDate: 'تاريخ الانتهاء',
                     location: 'الموقع',
                     appRequirements: 'متطلبات التقديم',
                     requireCv: 'طلب السيرة الذاتية',
@@ -954,7 +1058,17 @@ export const translations = {
                     cancel: 'إلغاء',
                     questionLabel: 'نص السؤال (مثال: رابط المعرض)',
                     options: 'الخيارات (مفصولة بفاصلة)',
-                    required: 'مطلوب'
+                    required: 'مطلوب',
+                    audiences: {
+                        all: 'الكل',
+                        students: 'الطلاب فقط',
+                        graduates: 'الخريجون فقط'
+                    },
+                    workplace: {
+                        onSite: 'في الموقع (On-site)',
+                        remote: 'عن بعد (Remote)',
+                        hybrid: 'هجين (Hybrid)'
+                    }
                 }
             },
             manageApplications: {
@@ -988,7 +1102,7 @@ export const translations = {
                     add: 'إضافة شركة',
                     cancel: 'إلغاء'
                 }
-            }
+            },
         },
         profile: {
             title: 'ملفي الشخصي',
@@ -1002,6 +1116,7 @@ export const translations = {
             uploadPhoto: 'رفع صورة',
             student: 'طالب',
             graduate: 'خريج',
+            other: 'آخر',
             bioPlaceholder: 'أخبرنا عن نفسك...',
             locationPlaceholder: 'مثال: نواكشوط، موريتانيا',
             jobPlaceholder: 'مثال: مهندس برمجيات',
@@ -1025,6 +1140,7 @@ export const translations = {
             totalUsers: 'إجمالي المستخدمين',
             students: 'الطلاب',
             graduates: 'الخريجين',
+            others: 'آخرون',
             events: 'الأحداث',
             challenges: 'التحديات',
             contests: 'المسابقات'
@@ -1044,7 +1160,7 @@ export const translations = {
             rights: 'جميع الحقوق محفوظة.',
             home: 'الرئيسية',
             findAlumni: 'البحث عن الخريجين',
-            internships: 'التربصات',
+            internships: 'الفرص',
             companies: 'الشركات',
             signOut: 'تسجيل الخروج',
             language: 'اللغة'
@@ -1057,8 +1173,24 @@ export const translations = {
             oppsTitle: 'الفرص والشركاء',
             oppsSubtitle: 'تواصل مع كبرى الشركات وابحث عن خطوتك المهنية التالية.',
             partnerCompanies: 'الشركات الشريكة',
-            activeInternships: 'التربصات النشطة',
+            activeOpps: 'الفرص المتاحة',
             latestOpps: 'أحدث الفرص',
+            types: {
+                all: 'الكل',
+                Internship: 'تربصات',
+                Job: 'وظائف',
+                Training: 'تدريبات'
+            },
+            filters: {
+                location: '📍 المكان: الكل',
+                workplace: '🏢 النظام: الكل',
+                pay: '💰 الدفع: الكل',
+                workplaceOnSite: 'حضوري',
+                workplaceRemote: 'عن بعد',
+                workplaceHybrid: 'مدمج',
+                payPaid: 'مدفوع',
+                payUnpaid: 'غير مدفوع'
+            },
             view: 'عرض',
             apply: 'تقديم',
             noOpps: 'لا توجد فرص نشطة في الوقت الحالي.',
@@ -1086,6 +1218,7 @@ export const translations = {
             save: 'حفظ التغييرات',
             saving: 'جاري الحفظ...',
             saved: 'تم حفظ التغييرات بنجاح!',
+            noAccess: 'تم رفض الوصول. يمكن لطلاب وخريجي SupNum فقط الوصول إلى هذه الميزة.',
             error: 'حدث خطأ. يرجى المحاولة مرة أخرى.',
             back: 'عودة',
             close: 'إغلاق',
@@ -1173,7 +1306,11 @@ export const translations = {
                 creating: 'جاري إنشاء الحساب...',
                 alreadyHaveAccount: 'هل لديك حساب بالفعل؟',
                 signIn: 'تسجيل الدخول',
-                brandingTitle: 'انضم إلى شبكة النخبة من خريجي SupNum',
+                role: 'التسجيل كـ',
+                other: 'آخر',
+                promoYear: 'سنة التخرج',
+                fieldOfStudy: 'التخصص / الفرع',
+                brandingTitle: 'انضم إلى شبكة النخبة لخريجي SupNum',
                 features: {
                     connect: 'تواصل مع الخريجين وقادة الصناعة',
                     access: 'الوصول إلى فرص عمل وتدريب حصرية',
@@ -1183,12 +1320,21 @@ export const translations = {
             }
         },
         findFriends: {
-            title: 'البحث عن الخريجين',
-            subtitle: 'تواصل مع زملائك الخريجين ووسع شبكتك',
-            searchPlaceholder: 'البحث بالاسم، الشركة، أو الوظيفة...',
-            noResults: 'لم يتم العثور على خريجين. جرب مصطلح بحث آخر.',
+            title: 'بحث في المجتمع',
+            subtitle: 'البحث عن الطلاب والخريجين وأعضاء المجتمع الآخرين',
+            searchPlaceholder: 'البحث بالاسم، أو الرقم، أو البريد الإلكتروني...',
+            noResults: 'لم يتم العثور على أعضاء. جرب كلمة بحث أخرى.',
             connected: 'متصل',
-            respond: 'الرد على الطلب'
+            respond: 'الرد على الطلب',
+            filters: 'تصفية البحث',
+            filterId: 'المعرف',
+            filterName: 'الاسم',
+            filterEmail: 'البريد',
+            filterPromo: 'سنة التخرج',
+            filterFiliere: 'التخصص',
+            filterJobs: 'الوظائف',
+            applyFilters: 'تطبيق الفلاتر',
+            clearFilters: 'مسح'
         },
         friends: {
             title: 'شبكتي',
@@ -1311,7 +1457,8 @@ export function LanguageProvider({ children }) {
         } else {
             document.documentElement.classList.remove('dark');
         }
-    }, [theme]);
+        document.documentElement.lang = language.toLowerCase();
+    }, [theme, language]);
 
     return (
         <LanguageContext.Provider value={{ language, setLanguage, t, theme, toggleTheme }}>

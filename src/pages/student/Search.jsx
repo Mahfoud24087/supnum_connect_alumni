@@ -30,9 +30,14 @@ export function Search() {
     };
 
     useEffect(() => {
+        if (!query.trim()) {
+            setUsers([]);
+            return;
+        }
+
         const delayDebounceFn = setTimeout(() => {
             handleSearch(query);
-        }, 300);
+        }, 500); // 500ms debounce for better experience
 
         return () => clearTimeout(delayDebounceFn);
     }, [query]);
@@ -49,17 +54,17 @@ export function Search() {
         <div className="max-w-4xl mx-auto space-y-6">
             <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{t.search.title}</h1>
 
-            <div className="relative">
-                <SearchIcon className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+            <div className="relative group max-w-2xl mx-auto">
+                <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
                 <Input
-                    placeholder={t.search.placeholder}
-                    className="pl-10 h-12 text-lg bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400"
+                    placeholder={t.findFriends.searchPlaceholder}
+                    className="pl-12 h-14 text-lg bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-full text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-blue-600 dark:focus:border-blue-500 transition-all shadow-md"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                 />
                 {loading && (
-                    <div className="absolute right-3 top-3">
-                        <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />
+                    <div className="absolute right-6 top-1/2 -translate-y-1/2">
+                        <Loader2 className="h-6 w-6 text-blue-500 animate-spin" />
                     </div>
                 )}
             </div>
@@ -122,8 +127,8 @@ export function Search() {
                     </motion.div>
                 ))}
                 {!loading && users.length === 0 && (
-                    <div className="col-span-full text-center py-12 text-slate-500 dark:text-slate-400">
-                        {t.search.noResults}
+                    <div className="col-span-full text-center py-12 text-slate-500 dark:text-slate-400 italic">
+                        {!query.trim() ? "Start searching by name, job, ID, or role..." : t.search.noResults}
                     </div>
                 )}
             </div>

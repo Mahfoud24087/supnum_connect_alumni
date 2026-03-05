@@ -1,16 +1,34 @@
 const express = require('express');
 const router = express.Router();
 const { Internship, User } = require('../models');
-const { protect, admin } = require('../middleware/auth');
+const { protect, admin, optionalProtect } = require('../middleware/auth');
 const { Op } = require('sequelize');
 
 // @route   GET /api/internships
 // @desc    Get all internships
 // @access  Public
-router.get('/', async (req, res, next) => {
+router.get('/', optionalProtect, async (req, res, next) => {
     try {
-        const { type, search, active } = req.query;
+        const { type, search, active, audience } = req.query;
         let where = {};
+
+        // Visibility logic
+        if (req.user) {
+            if (req.user.role === 'student') {
+                where.targetAudience = { [Op.in]: ['All', 'Students'] };
+            } else if (req.user.role === 'graduate') {
+                where.targetAudience = { [Op.in]: ['All', 'Graduates'] };
+            }
+            // Admins see all by default unless specific audience requested
+        } else {
+            // Public view only see 'All' targeted
+            where.targetAudience = 'All';
+        }
+
+        // Override if explicit audience filter is used (e.g. by admin or in special search)
+        if (audience) {
+            where.targetAudience = audience;
+        }
 
         if (type) {
             where.type = type;
@@ -61,7 +79,11 @@ router.get('/:id', async (req, res, next) => {
 // @access  Private/Admin
 router.post('/', protect, admin, async (req, res, next) => {
     try {
-        const { title, company, type, location, description, active, customQuestions, requireCv, requireMessage, requirePhone } = req.body;
+        const {
+            title, company, type, location, description,
+            active, customQuestions, requireCv, requireMessage,
+            requirePhone, targetAudience, startDate, endDate, workplaceType
+        } = req.body;
 
         const internship = await Internship.create({
             title,
@@ -74,6 +96,10 @@ router.post('/', protect, admin, async (req, res, next) => {
             requireCv,
             requireMessage,
             requirePhone,
+            targetAudience,
+            startDate,
+            endDate,
+            workplaceType,
             createdById: req.user.id
         });
 

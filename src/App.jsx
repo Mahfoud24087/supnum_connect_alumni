@@ -50,21 +50,45 @@ function App() {
                   <Route path="/signup" element={<SignUp />} />
                 </Route>
 
-                {/* Student/Graduate Routes */}
+                {/* Student/Graduate/Other Routes */}
                 <Route path="/dashboard" element={
-                  <ProtectedRoute allowedRoles={['student', 'graduate']}>
+                  <ProtectedRoute allowedRoles={['student', 'graduate', 'other']}>
                     <DashboardLayout />
                   </ProtectedRoute>
                 }>
                   <Route index element={<DashboardHome />} />
                   <Route path="profile" element={<Profile />} />
                   <Route path="profile/:id" element={<UserProfile />} />
-                  <Route path="search" element={<Search />} />
-                  <Route path="friends" element={<Friends />} />
-                  <Route path="find-friends" element={<FindFriends />} />
-                  <Route path="messages" element={<Messages />} />
-                  <Route path="feed" element={<Feed />} />
-                  <Route path="apply/:id" element={<ApplyOpportunity />} />
+                  <Route path="search" element={
+                    <ProtectedRoute allowedRoles={['student', 'graduate', 'other']}>
+                      <Search />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="friends" element={
+                    <ProtectedRoute allowedRoles={['student', 'graduate']}>
+                      <Friends />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="find-friends" element={
+                    <ProtectedRoute allowedRoles={['student', 'graduate', 'other']}>
+                      <FindFriends />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="messages" element={
+                    <ProtectedRoute allowedRoles={['student', 'graduate', 'other']}>
+                      <Messages />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="feed" element={
+                    <ProtectedRoute allowedRoles={['student', 'graduate']}>
+                      <Feed />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="apply/:id" element={
+                    <ProtectedRoute allowedRoles={['student', 'graduate']}>
+                      <ApplyOpportunity />
+                    </ProtectedRoute>
+                  } />
                 </Route>
 
                 {/* Admin Routes */}

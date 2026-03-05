@@ -1,5 +1,6 @@
-import { ArrowRight, Users, GraduationCap, Award, Calendar, Trophy, Zap, ChevronRight, BarChart3, Building, Briefcase } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { ArrowRight, Users, User, GraduationCap, Award, Calendar, Trophy, Zap, ChevronRight, BarChart3, Building, Briefcase } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useToast } from '../components/Toast';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
 import { stats, events as initialEvents } from '../data/mockData';
@@ -22,11 +23,11 @@ const entryYearData = [
 
 // Data for "Graduates by Promotion" (Donut Chart)
 const promotionData = [
-    { name: 'DSI', value: 35, color: '#0d9488' }, // Teal
+    { name: 'DSI', value: 35, color: '#3ce33fff' }, // Green
     { name: 'RSS', value: 25, color: '#1e3a8a' }, // Dark Blue
-    { name: 'IA', value: 15, color: '#1e40af' },  // Blue
-    { name: 'IDS', value: 15, color: '#0ea5e9' }, // sky blue
-    { name: 'DWM', value: 10, color: '#2dd4bf' }, // Light Teal
+    { name: 'IA', value: 15, color: '#c2b1b1ff' },  // i don't know the name of this color even in arabic hhhhhhhhhh
+    { name: 'IDS', value: 15, color: '#000001ff' }, // black 
+    { name: 'DWM', value: 10, color: '#0affffff' }, // i don't know 😒
 ];
 
 // Data for "Community Growth" (Line/Area Chart)
@@ -133,15 +134,24 @@ const MOCK_LANDING_DATA = {
 export function LandingPage() {
     const { t } = useLanguage();
     const { user } = useAuth();
+    const navigate = useNavigate();
+    const { showToast } = useToast();
     const [upcomingEvents, setUpcomingEvents] = useState([]);
     const [latestInternships, setLatestInternships] = useState([]);
     const [realStats, setRealStats] = useState({
         totalUsers: 0,
         students: 0,
         graduates: 0,
+        others: 0,
         eventsCount: 0,
         partnerCompanies: 0,
         activeInternships: 0
+    });
+    const [selectedFilter, setSelectedFilter] = useState('all');
+    const [subFilters, setSubFilters] = useState({
+        location: 'all',
+        date: 'all',
+        workplace: 'all'
     });
     const [loading, setLoading] = useState(true);
     const [selectedEvent, setSelectedEvent] = useState(null);
@@ -151,16 +161,19 @@ export function LandingPage() {
             try {
                 const response = await apiClient.get('/users/public/stats');
 
-                // Demo Mode Enhancement:
-                // If total users is very low (e.g. 0 or just the 1 initial admin), show Mock Data to make the site look populated.
-                // Otherwise, show REAL data.
                 const finalStats = response.stats || {};
 
-                if ((finalStats.totalUsers || 0) <= 0 && response.latestEvents?.length === 0) {
-                    // Completely empty system -> Show full mock mode for stats
+                // Improved Demo Mode Detection:
+                // Only show mock data if the system is TRULY empty (no verified non-admin users AND no events AND no internships).
+                const hasRealContent = (finalStats.totalUsers || 0) > 0 ||
+                    (response.latestEvents && response.latestEvents.length > 0) ||
+                    (response.latestInternships && response.latestInternships.length > 0);
+
+                if (!hasRealContent) {
+                    // Completely empty system -> Show mock mode
                     setRealStats(MOCK_LANDING_DATA.stats);
-                    setUpcomingEvents([]);
-                    setLatestInternships([]);
+                    setUpcomingEvents(MOCK_LANDING_DATA.latestEvents);
+                    setLatestInternships(MOCK_LANDING_DATA.latestInternships);
                 } else {
                     // Real data mode
                     setRealStats(finalStats);
@@ -180,6 +193,20 @@ export function LandingPage() {
 
         fetchData();
     }, []);
+
+    const handleJobClick = (id) => {
+        if (!user) {
+            navigate('/signin');
+            return;
+        }
+
+        if (user.role === 'other') {
+            showToast(t.common.noAccess, 'error');
+            return;
+        }
+
+        navigate(`/dashboard/apply/${id}`);
+    };
 
     return (
         <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
@@ -234,7 +261,7 @@ export function LandingPage() {
                         </p>
                     </div>
 
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-12">
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mb-12">
                         {/* Total Users Card */}
                         <motion.div whileHover={{ y: -5 }} className="h-full">
                             <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-none shadow-sm h-full relative overflow-hidden">
@@ -255,7 +282,7 @@ export function LandingPage() {
                             </Card>
                         </motion.div>
 
-                        {/* Alumni Card */}
+                        {/* Students Card */}
                         <motion.div whileHover={{ y: -5 }} className="h-full">
                             <Card className="bg-white dark:bg-slate-800 border-none shadow-sm h-full relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 p-4 text-slate-100 dark:text-slate-700 group-hover:text-blue-50 dark:group-hover:text-slate-600 transition-colors">
@@ -295,20 +322,40 @@ export function LandingPage() {
                             </Card>
                         </motion.div>
 
-                        {/* Events Card */}
+                        {/* Others Card */}
                         <motion.div whileHover={{ y: -5 }} className="h-full">
                             <Card className="bg-white dark:bg-slate-800 border-none shadow-sm h-full relative overflow-hidden group">
-                                <div className="absolute top-0 right-0 p-4 text-slate-100 dark:text-slate-700 group-hover:text-blue-50 dark:group-hover:text-slate-600 transition-colors">
+                                <div className="absolute top-0 right-0 p-4 text-slate-100 dark:text-slate-700 group-hover:text-amber-50 dark:group-hover:text-slate-600 transition-colors">
+                                    <User className="h-24 w-24" />
+                                </div>
+                                <CardContent className="p-6 flex flex-col justify-between h-full relative z-10">
+                                    <div>
+                                        <p className="text-slate-500 dark:text-slate-400 font-medium mb-1">{t.stats.others}</p>
+                                        <div className="text-4xl font-bold text-slate-900 dark:text-white">
+                                            <Counter value={realStats.others} />
+                                        </div>
+                                    </div>
+                                    <div className="mt-4 text-sm text-amber-600 font-medium">
+                                        {t.landing.othersNetwork}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </motion.div>
+
+                        {/* Events Card */}
+                        <motion.div whileHover={{ y: -5 }} className="h-full">
+                            <Card className="bg-gradient-to-br from-slate-700 to-slate-900 text-white border-none shadow-sm h-full relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-4 opacity-10">
                                     <Calendar className="h-24 w-24" />
                                 </div>
                                 <CardContent className="p-6 flex flex-col justify-between h-full relative z-10">
                                     <div>
-                                        <p className="text-slate-500 dark:text-slate-400 font-medium mb-1">{t.stats.events}</p>
-                                        <div className="text-4xl font-bold text-slate-900 dark:text-white">
+                                        <p className="text-slate-100 font-medium mb-1">{t.stats.events}</p>
+                                        <div className="text-4xl font-bold">
                                             <Counter value={upcomingEvents.length} />
                                         </div>
                                     </div>
-                                    <div className="mt-4 text-sm text-slate-400">
+                                    <div className="mt-4 text-sm text-slate-300">
                                         {t.landing.upcomingTerm}
                                     </div>
                                 </CardContent>
@@ -330,7 +377,7 @@ export function LandingPage() {
                         </div>
                     </div>
 
-                    <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 mb-12">
+                    <div className="grid gap-8 md:grid-cols-2 mb-12">
                         <Card className="bg-white dark:bg-slate-800 border-none shadow-sm p-6 flex items-center space-x-4">
                             <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-400">
                                 <Building className="h-8 w-8" />
@@ -342,6 +389,7 @@ export function LandingPage() {
                                 <p className="text-sm text-slate-500 dark:text-slate-400">{t.landing.partnerCompanies}</p>
                             </div>
                         </Card>
+
                         <Card className="bg-white dark:bg-slate-800 border-none shadow-sm p-6 flex items-center space-x-4">
                             <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full text-green-600 dark:text-green-400">
                                 <Briefcase className="h-8 w-8" />
@@ -350,38 +398,150 @@ export function LandingPage() {
                                 <p className="text-2xl font-bold text-slate-900 dark:text-white">
                                     <Counter value={realStats.activeInternships} />+
                                 </p>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">{t.landing.activeInternships}</p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">{t.landing.activeOpps}</p>
                             </div>
                         </Card>
-                        <div className="lg:col-span-2 space-y-4">
-                            <h3 className="font-semibold text-slate-900 dark:text-white">{t.landing.latestOpps}</h3>
+                    </div>
+
+                    {/* Main Opportunities Column */}
+                    <div className="space-y-4">
+                        <div className="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-4">
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-white flex-shrink-0">{t.landing.latestOpps}</h3>
+
+                                {/* Horizontal Filters */}
+                                <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 lg:gap-3 w-full xl:w-auto">
+                                    <div className="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-lg">
+                                        {['all', 'Internship', 'Job', 'Training'].map((type) => (
+                                            <button
+                                                key={type}
+                                                onClick={() => setSelectedFilter(type)}
+                                                className={`text-xs px-3 py-1.5 rounded-md font-medium transition-all flex-1 whitespace-nowrap ${selectedFilter === type
+                                                    ? 'bg-blue-600 text-white shadow-sm'
+                                                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800'
+                                                    }`}
+                                            >
+                                                {t.landing.types[type]}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    <div className="flex flex-wrap gap-2 flex-1 sm:flex-none">
+                                        <select
+                                            value={subFilters.location}
+                                            onChange={(e) => setSubFilters({ ...subFilters, location: e.target.value })}
+                                            className="flex-1 sm:flex-none h-9 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs px-2 text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none cursor-pointer"
+                                        >
+                                            <option value="all">{t.landing.filters?.location}</option>
+                                            {Array.from(new Set(latestInternships.map(job => job.location).filter(Boolean))).map(loc => (
+                                                <option key={loc} value={loc.toLowerCase()}>{loc}</option>
+                                            ))}
+                                        </select>
+
+                                        <select
+                                            value={subFilters.workplace}
+                                            onChange={(e) => setSubFilters({ ...subFilters, workplace: e.target.value })}
+                                            className="flex-1 sm:flex-none h-9 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs px-2 text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none cursor-pointer"
+                                        >
+                                            <option value="all">{t.landing.filters?.workplace}</option>
+                                            <option value="on-site">{t.landing.filters?.workplaceOnSite}</option>
+                                            <option value="remote">{t.landing.filters?.workplaceRemote}</option>
+                                            <option value="hybrid">{t.landing.filters?.workplaceHybrid}</option>
+                                        </select>
+
+                                        <select
+                                            className="flex-1 sm:flex-none h-9 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs px-2 text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none cursor-pointer"
+                                        >
+                                            <option value="all">{t.landing.filters?.pay}</option>
+                                            <option value="paid">{t.landing.filters?.payPaid}</option>
+                                            <option value="unpaid">{t.landing.filters?.payUnpaid}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                             <div className="space-y-3">
-                                {latestInternships.length > 0 ? latestInternships.map((job, i) => (
-                                    <motion.div
-                                        key={i}
-                                        initial={{ opacity: 0, x: 50 }}
-                                        whileInView={{ opacity: 1, x: 0 }}
-                                        viewport={{ once: true }}
-                                        transition={{ duration: 0.5, delay: i * 0.1 }}
-                                        className="flex items-center justify-between bg-white dark:bg-slate-800 p-3 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-8 w-8 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500">
-                                                <Briefcase className="h-4 w-4" />
+                                {latestInternships.length > 0 ? latestInternships
+                                    .filter(opp => {
+                                        let match = true;
+                                        const oppType = opp.type?.toLowerCase() || '';
+                                        const oppLoc = opp.location?.toLowerCase() || '';
+                                        const oppWork = opp.workplaceType?.toLowerCase() || '';
+
+                                        // Status Filter (Intern/Job)
+                                        if (selectedFilter !== 'all') {
+                                            const f = selectedFilter.toLowerCase();
+                                            const matchesType = (
+                                                (f === 'internship' && (oppType.includes('stage') || oppType.includes('intern'))) ||
+                                                (f === 'job' && (oppType.includes('emploi') || oppType.includes('job') || oppType.includes('contract'))) ||
+                                                (f === 'training' && (oppType.includes('formation') || oppType.includes('training'))) ||
+                                                oppType.includes(f) || f.includes(oppType)
+                                            );
+                                            if (!matchesType) match = false;
+                                        }
+
+                                        // Location Filter
+                                        if (subFilters.location !== 'all') {
+                                            if (!oppLoc.includes(subFilters.location)) match = false;
+                                        }
+
+                                        // Workplace Filter
+                                        if (subFilters.workplace !== 'all') {
+                                            if (!oppWork.includes(subFilters.workplace)) match = false;
+                                        }
+
+                                        return match;
+                                    })
+                                    .map((job, i) => (
+                                        <motion.div
+                                            key={i}
+                                            initial={{ opacity: 0, x: 50 }}
+                                            whileInView={{ opacity: 1, x: 0 }}
+                                            viewport={{ once: true }}
+                                            transition={{ duration: 0.5, delay: i * 0.1 }}
+                                            className="flex items-center justify-between bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm hover:shadow-md transition-all border border-slate-100 dark:border-slate-700 group"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-10 w-10 rounded-lg bg-slate-50 dark:bg-slate-900 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/30 flex items-center justify-center text-slate-400 group-hover:text-blue-500 transition-colors border border-slate-100 dark:border-slate-800">
+                                                    <Briefcase className="h-5 w-5" />
+                                                </div>
+                                                <div>
+                                                    <div className="flex flex-wrap items-center gap-2 mb-0.5">
+                                                        <p className="font-bold text-sm text-slate-900 dark:text-white">{job.title}</p>
+                                                        <span className={`text-[9px] uppercase font-black px-2 py-0.5 rounded-full tracking-wider ${(job.type?.toLowerCase().includes('intern') || job.type?.toLowerCase().includes('stag')) ? 'bg-blue-100/80 text-blue-700 dark:bg-blue-900/30' :
+                                                            (job.type?.toLowerCase().includes('job') || job.type?.toLowerCase().includes('empl')) ? 'bg-green-100/80 text-green-700 dark:bg-green-900/30' :
+                                                                'bg-purple-100/80 text-purple-700 dark:bg-purple-900/30'
+                                                            }`}>
+                                                            {job.type}
+                                                        </span>
+                                                        {job.workplaceType && (
+                                                            <span className="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider flex items-center gap-1">
+                                                                {job.workplaceType}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                                                        {job.company} • {job.location}
+                                                        {(job.startDate || job.endDate) && (
+                                                            <div className="text-slate-400 dark:text-slate-500 text-[10px] flex items-center gap-1 mt-1 font-semibold uppercase tracking-wider">
+                                                                <Calendar className="h-3 w-3" />
+                                                                {job.startDate && new Date(job.startDate).toLocaleDateString()}
+                                                                {job.endDate && ` - ${new Date(job.endDate).toLocaleDateString()}`}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="font-medium text-sm text-slate-900 dark:text-white">{job.title}</p>
-                                                <p className="text-xs text-slate-500">{job.company} • {job.location}</p>
-                                            </div>
-                                        </div>
-                                        <Link to={user ? `/dashboard/apply/${job.id}` : "/signin"}>
-                                            <button className="text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-3 py-1.5 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
+                                            <button
+                                                onClick={() => handleJobClick(job.id)}
+                                                className="text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-4 py-2 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                                            >
                                                 {user ? t.landing.view : t.landing.apply}
                                             </button>
-                                        </Link>
-                                    </motion.div>
-                                )) : (
-                                    <p className="text-sm text-slate-500 italic">{t.landing.noOpps}</p>
+                                        </motion.div>
+                                    )) : (
+                                    <div className="text-center py-12 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
+                                        <p className="text-sm text-slate-500 font-medium">{t.landing.noOpps}</p>
+                                    </div>
                                 )}
                             </div>
                         </div>

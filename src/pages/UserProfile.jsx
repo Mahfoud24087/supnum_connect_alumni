@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
-import { Github, Linkedin, Facebook, ArrowLeft, MessageSquare, UserPlus, Mail, GraduationCap, MapPin, Calendar, Briefcase, Building, Phone, FileText, Download } from 'lucide-react';
+import { Github, Linkedin, Facebook, ArrowLeft, MessageSquare, UserPlus, Mail, GraduationCap, MapPin, Calendar, Briefcase, Building, Phone, FileText, Download, Image as ImageIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { apiClient } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -177,7 +177,20 @@ export function UserProfile() {
                 <div className="space-y-6">
                     <div className="space-y-1">
                         <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{user.name}</h1>
-                        <p className="text-lg text-slate-500 dark:text-slate-400 font-medium">{user.supnumId} • <span className="capitalize text-blue-600 dark:text-blue-400">{user.role === 'student' ? t.profile.student : t.profile.graduate}</span></p>
+                        <p className="text-lg text-slate-500 dark:text-slate-400 font-medium flex items-center gap-2 flex-wrap">
+                            {user.supnumId} •
+                            <span className="capitalize text-blue-600 dark:text-blue-400">{user.role === 'student' ? t.profile.student : t.profile.graduate}</span>
+                            {user.graduationYear && (
+                                <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-0.5 rounded-full text-xs font-black tracking-widest uppercase">
+                                    PROMO {user.graduationYear}
+                                </span>
+                            )}
+                            {user.specialty && (
+                                <span className="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-3 py-0.5 rounded-full text-xs font-black tracking-widest uppercase">
+                                    {user.specialty}
+                                </span>
+                            )}
+                        </p>
                         <div className="flex items-center text-slate-400 dark:text-slate-500 text-sm pt-1">
                             <MapPin className="h-4 w-4 mr-1" /> {user.location || 'Nouakchott, Mauritania'}
                         </div>
@@ -217,6 +230,25 @@ export function UserProfile() {
                             </div>
                         </CardContent>
                     </Card>
+
+                    {user.gallery && user.gallery.length > 0 && (
+                        <Card className="border-none shadow-md bg-white dark:bg-slate-800">
+                            <CardHeader>
+                                <CardTitle className="text-slate-900 dark:text-white flex items-center gap-2">
+                                    <ImageIcon className="h-5 w-5 text-purple-500" /> {t.profile?.gallery || "Gallery"}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                    {user.gallery.map((img, index) => (
+                                        <div key={index} className="relative aspect-square rounded-xl overflow-hidden border border-slate-100 dark:border-slate-700 bg-slate-100 dark:bg-slate-900">
+                                            <img src={img} alt={`Gallery ${index}`} className="h-full w-full object-cover hover:scale-105 transition-transform duration-300" />
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
 
                 {/* Sidebar Info */}
@@ -243,6 +275,19 @@ export function UserProfile() {
                                     <div>
                                         <p className="text-xs text-slate-400 dark:text-slate-500 font-semibold uppercase">{t.common.phone}</p>
                                         <p className="text-sm font-medium text-slate-900 dark:text-slate-200">{user.phone}</p>
+                                    </div>
+                                </div>
+                            )}
+                            {user.birthday && (
+                                <div className="flex items-center space-x-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50">
+                                    <div className="p-2 bg-white dark:bg-slate-800 rounded-full shadow-sm">
+                                        <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-slate-400 dark:text-slate-500 font-semibold uppercase">{t.common.birthday}</p>
+                                        <p className="text-sm font-medium text-slate-900 dark:text-slate-200">
+                                            {new Date(user.birthday).toLocaleDateString()}
+                                        </p>
                                     </div>
                                 </div>
                             )}

@@ -95,7 +95,7 @@ export function DashboardHome() {
             </motion.div>
 
             {/* Stats & Quick Links Grid */}
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className={`grid gap-6 md:grid-cols-2`}>
                 {/* Friends Card */}
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -108,8 +108,10 @@ export function DashboardHome() {
                         </div>
                         <CardContent className="p-6 flex flex-col justify-between h-full relative z-10">
                             <div>
-                                <p className="text-slate-500 dark:text-slate-400 font-medium mb-1">{t.dashboard.stats.friends}</p>
-                                <div className="text-5xl font-bold text-slate-900 dark:text-white">{stats.friendsCount}</div>
+                                <p className="text-slate-500 dark:text-slate-400 font-medium mb-1">{user?.role === 'other' ? 'Total Community Members' : t.dashboard.stats.friends}</p>
+                                <div className="text-5xl font-bold text-slate-900 dark:text-white">
+                                    {user?.role === 'other' ? stats.totalUsers : stats.friendsCount}
+                                </div>
                             </div>
                             <div className="mt-4 bg-slate-100 dark:bg-slate-700 p-2 rounded-xl w-fit">
                                 <Users className="h-6 w-6 text-slate-600 dark:text-slate-300" />
@@ -145,7 +147,7 @@ export function DashboardHome() {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.4 }}
-                    className="relative"
+                    className="relative md:col-span-2"
                 >
                     <div className="absolute inset-0 bg-orange-500 rounded-xl transform translate-y-2 translate-x-2 opacity-20"></div>
                     <Card className="bg-white dark:bg-slate-800 border-l-8 border-orange-500 shadow-lg h-full">
@@ -158,7 +160,7 @@ export function DashboardHome() {
             </div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6`}>
                 <Link to="/dashboard/search">
                     <Card className="hover:shadow-md transition-shadow cursor-pointer border-none shadow-sm bg-white dark:bg-slate-800 h-full">
                         <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
@@ -179,7 +181,7 @@ export function DashboardHome() {
                         </CardContent>
                     </Card>
                 </Link>
-                <Link to="/events">
+                <Link to="/events" className={user?.role === 'other' ? "md:col-span-2 lg:col-span-1" : ""}>
                     <Card className="hover:shadow-md transition-shadow cursor-pointer border-none shadow-lg bg-orange-500 text-white h-full">
                         <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
                             <div className="p-3 bg-white/20 rounded-full text-white">

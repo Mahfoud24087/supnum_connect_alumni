@@ -15,6 +15,7 @@ export function ManageUsers() {
     const { showToast } = useToast();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
+    const [roleFilter, setRoleFilter] = useState('All');
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -29,6 +30,7 @@ export function ManageUsers() {
         try {
             const query = [];
             if (statusFilter !== 'All') query.push(`status=${statusFilter}`);
+            if (roleFilter !== 'All') query.push(`role=${roleFilter}`);
             if (searchTerm) query.push(`search=${searchTerm}`);
 
             const response = await apiClient.get(`/users?${query.join('&')}`);
@@ -42,7 +44,7 @@ export function ManageUsers() {
 
     useEffect(() => {
         fetchUsers();
-    }, [statusFilter]);
+    }, [statusFilter, roleFilter]);
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -158,6 +160,17 @@ export function ManageUsers() {
                     <option value="Pending">{t.admin.manageUsers.pending}</option>
                     <option value="Suspended">{t.admin.manageUsers.suspended}</option>
                 </select>
+                <select
+                    value={roleFilter}
+                    onChange={(e) => setRoleFilter(e.target.value)}
+                    className="h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-sm outline-none text-slate-700 dark:text-slate-300"
+                >
+                    <option value="All">Tous les rôles</option>
+                    <option value="student">Étudiant</option>
+                    <option value="graduate">Diplômé</option>
+                    <option value="other">Invité (Autre)</option>
+                    <option value="admin">Administrateur</option>
+                </select>
             </div>
 
             <Card className="border-none shadow-lg overflow-hidden bg-white dark:bg-slate-800">
@@ -165,7 +178,7 @@ export function ManageUsers() {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
-                                <th className="p-4 md:p-6 font-semibold text-slate-900 dark:text-white">{t.admin.users.role}</th>
+                                <th className="p-4 md:p-6 font-semibold text-slate-900 dark:text-white">{t.admin.users.name}</th>
                                 <th className="p-4 md:p-6 font-semibold text-slate-900 dark:text-white hidden sm:table-cell">{t.profile.supnumId}</th>
                                 <th className="p-4 md:p-6 font-semibold text-slate-900 dark:text-white hidden lg:table-cell">{t.admin.users.role}</th>
                                 <th className="p-4 md:p-6 font-semibold text-slate-900 dark:text-white">{t.common.status}</th>

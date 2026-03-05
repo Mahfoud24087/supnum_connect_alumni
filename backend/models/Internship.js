@@ -19,8 +19,16 @@ const Internship = sequelize.define('Internship', {
         allowNull: false
     },
     type: {
-        type: DataTypes.ENUM('Internship', 'Full-time', 'Part-time', 'Contract'),
+        type: DataTypes.STRING,
         defaultValue: 'Internship'
+    },
+    workplaceType: {
+        type: DataTypes.ENUM('On-site', 'Remote', 'Hybrid'),
+        defaultValue: 'On-site'
+    },
+    targetAudience: {
+        type: DataTypes.ENUM('All', 'Students', 'Graduates'),
+        defaultValue: 'All'
     },
     location: {
         type: DataTypes.STRING,
@@ -29,6 +37,14 @@ const Internship = sequelize.define('Internship', {
     description: {
         type: DataTypes.TEXT,
         defaultValue: ''
+    },
+    startDate: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
+    endDate: {
+        type: DataTypes.DATE,
+        allowNull: true
     },
     active: {
         type: DataTypes.BOOLEAN,
