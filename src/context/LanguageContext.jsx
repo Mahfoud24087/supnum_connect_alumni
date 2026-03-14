@@ -6,10 +6,10 @@ export const translations = {
     EN: {
         nav: { home: 'Home', events: 'Events', about: 'About', signin: 'Sign In', signup: 'Sign Up' },
         dashboard: {
-            nav: { dashboard: 'Dashboard', profile: 'Profile', users: 'Users', friends: 'Friends', messages: 'Messages', feed: 'Feed' },
+            nav: { dashboard: 'Dashboard', profile: 'Profile', users: 'Users', friends: 'My Network', messages: 'Messages', feed: 'Feed' },
             welcome: 'Welcome,',
             welcomeSubtitle: "Here's what's happening in your SupNum network.",
-            stats: { totalUsers: 'Total Users', friends: 'Your Friends', pending: 'Pending Requests' },
+            stats: { totalUsers: 'Total Users', friends: 'My Network', pending: 'Pending Requests' },
             quickLinks: { findUsers: 'Find Users', messages: 'Messages', events: 'Events' },
             friendRequests: 'Friend Requests',
             suggestions: 'Connection Suggestions',
@@ -483,10 +483,10 @@ export const translations = {
     FR: {
         nav: { home: 'Accueil', events: 'Événements', about: 'À propos', signin: 'Se connecter', signup: "S'inscrire" },
         dashboard: {
-            nav: { dashboard: 'Tableau de bord', profile: 'Profil', users: 'Utilisateurs', friends: 'Amis', messages: 'Messages', feed: 'Flux' },
+            nav: { dashboard: 'Tableau de bord', profile: 'Profil', users: 'Utilisateurs', friends: 'Mon réseau', messages: 'Messages', feed: 'Flux' },
             welcome: 'Bienvenue,',
             welcomeSubtitle: "Voici ce qui se passe dans votre réseau SupNum.",
-            stats: { totalUsers: 'Total Utilisateurs', friends: 'Vos Amis', pending: 'Demandes en attente' },
+            stats: { totalUsers: 'Total Utilisateurs', friends: 'Mon réseau', pending: 'Demandes en attente' },
             quickLinks: { findUsers: 'Trouver des utilisateurs', messages: 'Messages', events: 'Événements' },
             friendRequests: "Demandes d'amis",
             suggestions: 'Suggestions de connexions',
@@ -963,10 +963,10 @@ export const translations = {
     AR: {
         nav: { home: 'الرئيسية', events: 'الأحداث', about: 'حول', signin: 'تسجيل الدخول', signup: 'إنشاء حساب' },
         dashboard: {
-            nav: { dashboard: 'لوحة التحكم', profile: 'الملف الشخصي', users: 'المستخدمين', friends: 'الأصدقاء', messages: 'الرسائل', feed: 'آخر الأخبار' },
+            nav: { dashboard: 'لوحة التحكم', profile: 'الملف الشخصي', users: 'المستخدمين', friends: 'شبكتي', messages: 'الرسائل', feed: 'آخر الأخبار' },
             welcome: 'مرحبًا،',
             welcomeSubtitle: 'إليك ما يحدث في شبكة SupNum الخاصة بك.',
-            stats: { totalUsers: 'إجمالي المستخدمين', friends: 'أصدقاؤك', pending: 'طلبات معلقة' },
+            stats: { totalUsers: 'إجمالي المستخدمين', friends: 'شبكتي', pending: 'طلبات معلقة' },
             quickLinks: { findUsers: 'البحث عن مستخدمين', messages: 'الرسائل', events: 'الأحداث' },
             friendRequests: 'طلبات الصداقة',
             suggestions: 'اقتراحات التواصل',
