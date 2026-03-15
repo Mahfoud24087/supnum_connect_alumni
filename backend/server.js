@@ -76,23 +76,19 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+// Import custom limiters
+const progressiveAuthLimiter = require('./middleware/authLimiter');
+
 // Rate limiting - General
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 500, // Reduced from 1000 for better protection
-    message: { message: 'Too many requests from this IP, please try again after 15 minutes' }
-});
-
-// Stricter Rate Limiting for Auth/Login (Brute Force Protection)
-const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 20, // Only 20 login/register attempts per 15 mins
-    message: { message: 'Too many login attempts, please try again after 15 minutes' }
+    windowMs: 5 * 60 * 1000, // 5 minutes
+    max: 1000, 
+    message: { message: 'Too many requests from this IP, please try again after 5 minutes' }
 });
 
 app.use('/api/', limiter);
-app.use('/api/auth/login', authLimiter);
-app.use('/api/auth/register', authLimiter);
+app.use('/api/auth/login', progressiveAuthLimiter);
+app.use('/api/auth/register', progressiveAuthLimiter);
 
 app.disable('x-powered-by'); // Extra precaution to hide server type
 
