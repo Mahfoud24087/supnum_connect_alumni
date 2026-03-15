@@ -69,7 +69,7 @@ const STAT_CARDS = [
     },
     {
         key: 'activeInternships',
-        label: 'Active Internships',
+        label: 'Active Opportunities',
         icon: Briefcase,
         gradient: 'from-pink-400 to-rose-600',
         bg: 'bg-pink-50 dark:bg-pink-900/10',
@@ -84,15 +84,6 @@ const STAT_CARDS = [
         bg: 'bg-indigo-50 dark:bg-indigo-900/10',
         text: 'text-indigo-600',
         ring: 'ring-indigo-200 dark:ring-indigo-800'
-    },
-    {
-        key: 'activeEvents',
-        label: 'Active Events',
-        icon: Calendar,
-        gradient: 'from-fuchsia-400 to-purple-500',
-        bg: 'bg-fuchsia-50 dark:bg-fuchsia-900/10',
-        text: 'text-fuchsia-600',
-        ring: 'ring-fuchsia-200 dark:ring-fuchsia-800'
     },
 ];
 
@@ -199,7 +190,9 @@ export function AdminOverview() {
                             </div>
                             {/* Value */}
                             <div>
-                                <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">{card.label}</p>
+                                <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">
+                            {card.key === 'activeInternships' ? (t?.admin?.stats?.activeOpportunities || card.label) : card.label}
+                        </p>
                                 <h3 className={`text-4xl font-black ${card.text}`}>
                                     <Counter value={s[card.key] || 0} />
                                 </h3>

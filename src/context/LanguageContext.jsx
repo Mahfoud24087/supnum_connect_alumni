@@ -29,7 +29,8 @@ export const translations = {
                 placementRate: 'Placement Rate',
                 engagement: 'User Engagement',
                 successRateLabel: 'Success Rate',
-                successRateSubtitle: '(accepted candidates)'
+                successRateSubtitle: '(accepted candidates)',
+                activeOpportunities: 'Active Opportunities'
             },
             charts: {
                 userGrowth: 'User Growth',
@@ -516,7 +517,8 @@ export const translations = {
                 placementRate: 'Taux de Placement',
                 engagement: 'Engagement Utilisateur',
                 successRateLabel: 'Taux de Réussite',
-                successRateSubtitle: '(candidats acceptés)'
+                successRateSubtitle: '(candidats acceptés)',
+                activeOpportunities: 'Opportunités Actives'
             },
             charts: {
                 userGrowth: 'Croissance des utilisateurs',
@@ -1004,7 +1006,8 @@ export const translations = {
                 placementRate: 'معدل التوظيف',
                 engagement: 'تفاعل المستخدمين',
                 successRateLabel: 'معدل القبول',
-                successRateSubtitle: '(المتقدمون المقبولون)'
+                successRateSubtitle: '(المتقدمون المقبولون)',
+                activeOpportunities: 'الفرص النشطة'
             },
             charts: {
                 userGrowth: 'نمو المستخدمين',
