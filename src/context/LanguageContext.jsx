@@ -30,7 +30,10 @@ export const translations = {
                 engagement: 'User Engagement',
                 successRateLabel: 'Success Rate',
                 successRateSubtitle: '(accepted candidates)',
-                activeOpportunities: 'Active Opportunities'
+                activeOpportunities: 'Active Opportunities',
+                pendingRequests: 'Pending Requests',
+                partnerCompanies: 'Partner Companies',
+                applications: 'Applications'
             },
             charts: {
                 userGrowth: 'User Growth',
@@ -518,7 +521,10 @@ export const translations = {
                 engagement: 'Engagement Utilisateur',
                 successRateLabel: 'Taux de Réussite',
                 successRateSubtitle: '(candidats acceptés)',
-                activeOpportunities: 'Opportunités Actives'
+                activeOpportunities: 'Opportunités Actives',
+                pendingRequests: 'Demandes en Attente',
+                partnerCompanies: 'Entreprises Partenaires',
+                applications: 'Candidatures'
             },
             charts: {
                 userGrowth: 'Croissance des utilisateurs',
@@ -1007,7 +1013,10 @@ export const translations = {
                 engagement: 'تفاعل المستخدمين',
                 successRateLabel: 'معدل القبول',
                 successRateSubtitle: '(المتقدمون المقبولون)',
-                activeOpportunities: 'الفرص النشطة'
+                activeOpportunities: 'الفرص النشطة',
+                pendingRequests: 'الطلبات المعلقة',
+                partnerCompanies: 'الشركات الشريكة',
+                applications: 'الطلبات'
             },
             charts: {
                 userGrowth: 'نمو المستخدمين',

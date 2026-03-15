@@ -33,6 +33,7 @@ function Counter({ value }) {
 const STAT_CARDS = [
     {
         key: 'totalUsers',
+        tKey: 'totalUsers',
         label: 'Total Users',
         icon: Users,
         gradient: 'from-violet-500 to-purple-600',
@@ -42,6 +43,7 @@ const STAT_CARDS = [
     },
     {
         key: 'verifiedGraduates',
+        tKey: 'verifiedGrads',
         label: 'Verified Graduates',
         icon: GraduationCap,
         gradient: 'from-emerald-400 to-teal-600',
@@ -51,6 +53,7 @@ const STAT_CARDS = [
     },
     {
         key: 'pendingUserRequests',
+        tKey: 'pendingRequests',
         label: 'Pending Requests',
         icon: Clock,
         gradient: 'from-amber-400 to-orange-500',
@@ -60,6 +63,7 @@ const STAT_CARDS = [
     },
     {
         key: 'partnerCompanies',
+        tKey: 'partnerCompanies',
         label: 'Partner Companies',
         icon: Building,
         gradient: 'from-sky-400 to-blue-600',
@@ -69,6 +73,7 @@ const STAT_CARDS = [
     },
     {
         key: 'activeInternships',
+        tKey: 'activeOpportunities',
         label: 'Active Opportunities',
         icon: Briefcase,
         gradient: 'from-pink-400 to-rose-600',
@@ -78,6 +83,7 @@ const STAT_CARDS = [
     },
     {
         key: 'totalApplications',
+        tKey: 'applications',
         label: 'Applications',
         icon: FileText,
         gradient: 'from-indigo-400 to-blue-500',
@@ -191,8 +197,8 @@ export function AdminOverview() {
                             {/* Value */}
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">
-                            {card.key === 'activeInternships' ? (t?.admin?.stats?.activeOpportunities || card.label) : card.label}
-                        </p>
+                                    {t?.admin?.stats?.[card.tKey] || card.label}
+                                </p>
                                 <h3 className={`text-4xl font-black ${card.text}`}>
                                     <Counter value={s[card.key] || 0} />
                                 </h3>
