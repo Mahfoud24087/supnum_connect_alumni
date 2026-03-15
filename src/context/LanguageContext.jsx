@@ -27,7 +27,9 @@ export const translations = {
                 graduates: 'Graduates',
                 verifiedGrads: 'Verified Graduates',
                 placementRate: 'Placement Rate',
-                engagement: 'User Engagement'
+                engagement: 'User Engagement',
+                successRateLabel: 'Success Rate',
+                successRateSubtitle: '(accepted candidates)'
             },
             charts: {
                 userGrowth: 'User Growth',
@@ -76,6 +78,12 @@ export const translations = {
                 confirmDelete: 'Are you sure you want to delete this opportunity?',
                 failedDelete: 'Failed to delete internship',
                 failedToggle: 'Failed to toggle status',
+                filterTypes: {
+                    all: 'All',
+                    internship: 'Internships',
+                    job: 'Jobs',
+                    training: 'Trainings'
+                },
                 form: {
                     basicInfo: 'Basic Information',
                     details: 'Opportunity Details',
@@ -506,7 +514,9 @@ export const translations = {
                 graduates: 'Diplômés',
                 verifiedGrads: 'Diplômés Vérifiés',
                 placementRate: 'Taux de Placement',
-                engagement: 'Engagement Utilisateur'
+                engagement: 'Engagement Utilisateur',
+                successRateLabel: 'Taux de Réussite',
+                successRateSubtitle: '(candidats acceptés)'
             },
             charts: {
                 userGrowth: 'Croissance des utilisateurs',
@@ -555,6 +565,12 @@ export const translations = {
                 confirmDelete: 'Êtes-vous sûr de vouloir supprimer cette opportunité ?',
                 failedDelete: 'Échec de la suppression du stage',
                 failedToggle: 'Échec du changement de statut',
+                filterTypes: {
+                    all: 'Tous',
+                    internship: 'Stages',
+                    job: 'Emplois',
+                    training: 'Formations'
+                },
                 form: {
                     basicInfo: 'Informations de Base',
                     details: 'Détails de l\'Opportunité',
@@ -986,7 +1002,9 @@ export const translations = {
                 graduates: 'الخريجين',
                 verifiedGrads: 'الخريجون الموثقون',
                 placementRate: 'معدل التوظيف',
-                engagement: 'تفاعل المستخدمين'
+                engagement: 'تفاعل المستخدمين',
+                successRateLabel: 'معدل القبول',
+                successRateSubtitle: '(المتقدمون المقبولون)'
             },
             charts: {
                 userGrowth: 'نمو المستخدمين',
@@ -1035,6 +1053,12 @@ export const translations = {
                 confirmDelete: 'هل أنت متأكد أنك تريد حذف هذه الفرصة؟',
                 failedDelete: 'فشل حذف الفرصة',
                 failedToggle: 'فشل تغيير الحالة',
+                filterTypes: {
+                    all: 'الكل',
+                    internship: 'تدريب',
+                    job: 'وظائف',
+                    training: 'تكوين'
+                },
                 form: {
                     basicInfo: 'المعلومات الأساسية',
                     details: 'تفاصيل الفرصة',

@@ -221,10 +221,11 @@ export function AdminOverview() {
                             <TrendingUp className="h-5 w-5 text-white" />
                         </div>
                         <div>
-                            <p className="text-xs font-semibold uppercase tracking-widest text-emerald-100 mb-1">Success Rate</p>
+                            <p className="text-xs font-semibold uppercase tracking-widest text-emerald-100 mb-1">{t?.admin?.stats?.successRateLabel || 'Success Rate'}</p>
                             <h3 className="text-4xl font-black text-white">
                                 <Counter value={s.successRate || 0} />%
                             </h3>
+                            <p className="text-xs text-emerald-200/70 mt-1 font-medium">{t?.admin?.stats?.successRateSubtitle || '(accepted candidates)'}</p>
                         </div>
                         <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-white/10" />
                     </div>

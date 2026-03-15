@@ -188,7 +188,12 @@ export function ManageInternships() {
                 <div className="flex flex-wrap gap-2 pt-1">
                     {/* Type toggle pill group */}
                     <div className="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-lg">
-                        {[['all', 'Tous'], ['Internship', 'Stages'], ['Job', 'Emplois'], ['Training', 'Formations']].map(([val, label]) => (
+                        {[
+                            ['all', t.admin.manageInternships.filterTypes?.all || 'Tous'],
+                            ['Internship', t.admin.manageInternships.filterTypes?.internship || 'Stages'],
+                            ['Job', t.admin.manageInternships.filterTypes?.job || 'Emplois'],
+                            ['Training', t.admin.manageInternships.filterTypes?.training || 'Formations']
+                        ].map(([val, label]) => (
                             <button
                                 key={val}
                                 onClick={() => setFilterType(val)}
@@ -335,13 +340,16 @@ export function ManageInternships() {
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.admin.manageInternships.form.type || 'Type d\'opportunité'}</label>
-                                            <Input
+                                            <select
                                                 required
                                                 value={formData.type}
                                                 onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                                                placeholder="e.g. Stage, Emploi, Formation..."
-                                                className="bg-white dark:bg-slate-900 border-slate-200"
-                                            />
+                                                className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                                            >
+                                                <option value="Internship">{t.admin.manageInternships.filterTypes?.internship || 'Stage'}</option>
+                                                <option value="Job">{t.admin.manageInternships.filterTypes?.job || 'Emploi'}</option>
+                                                <option value="Training">{t.admin.manageInternships.filterTypes?.training || 'Formation'}</option>
+                                            </select>
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.admin.manageInternships.form.targetAudience}</label>
