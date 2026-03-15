@@ -93,28 +93,32 @@ export function FindFriends() {
                 </div>
 
                 <div className="w-full max-w-4xl space-y-4">
-                    <form onSubmit={handleSearch} className="flex gap-3">
+                    <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
+                        {/* Search input — full width on mobile */}
                         <div className="relative flex-1 group">
-                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-blue-600 transition-colors z-10" />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-blue-600 transition-colors z-10" />
                             <Input
                                 placeholder={t.findFriends.searchPlaceholder}
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="pl-14 h-16 rounded-2xl border-none bg-white dark:bg-slate-800 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-xl shadow-blue-500/5 text-lg font-medium"
+                                className="pl-12 h-14 sm:h-16 rounded-2xl border-none bg-white dark:bg-slate-800 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-xl shadow-blue-500/5 text-base sm:text-lg font-medium w-full"
                             />
                         </div>
-                        <Button
-                            type="button"
-                            onClick={() => setShowFilters(!showFilters)}
-                            variant="outline"
-                            className={`h-16 px-6 rounded-2xl border-none shadow-xl transition-all font-bold flex items-center gap-2 ${showFilters ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50'}`}
-                        >
-                            {showFilters ? <X className="h-5 w-5" /> : <Filter className="h-5 w-5" />}
-                            <span className="hidden sm:inline">{t.findFriends.filters}</span>
-                        </Button>
-                        <Button type="submit" className="h-16 px-10 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-xl shadow-blue-500/20 font-black text-lg transition-transform hover:scale-[1.02] active:scale-[0.98]">
-                            {t.common.search.replace('...', '')}
-                        </Button>
+                        {/* Buttons row on mobile */}
+                        <div className="flex gap-3 sm:contents">
+                            <Button
+                                type="button"
+                                onClick={() => setShowFilters(!showFilters)}
+                                variant="outline"
+                                className={`flex-1 sm:flex-none h-12 sm:h-16 px-5 rounded-2xl border-none shadow-xl transition-all font-bold flex items-center justify-center gap-2 ${showFilters ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50'}`}
+                            >
+                                {showFilters ? <X className="h-5 w-5" /> : <Filter className="h-5 w-5" />}
+                                <span>{t.findFriends.filters}</span>
+                            </Button>
+                            <Button type="submit" className="flex-1 sm:flex-none h-12 sm:h-16 px-8 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-xl shadow-blue-500/20 font-black text-base sm:text-lg transition-transform hover:scale-[1.02] active:scale-[0.98]">
+                                {t.common.search.replace('...', '')}
+                            </Button>
+                        </div>
                     </form>
 
                     <AnimatePresence>

@@ -508,7 +508,9 @@ export function Messages() {
                                                         exit={{ opacity: 0, scale: 0.9, y: index < 2 ? -5 : 5 }}
                                                         className={cn(
                                                             "absolute w-40 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-slate-700/50 z-[100] p-1",
-                                                            isMe ? "right-0" : "left-0",
+                                                            language === 'AR' 
+                                                                ? (isMe ? "left-0" : "right-0") 
+                                                                : (isMe ? "right-0" : "left-0"),
                                                             index < 2 ? "top-full mt-1" : "bottom-full mb-1"
                                                         )}
                                                         onClick={(e) => e.stopPropagation()}

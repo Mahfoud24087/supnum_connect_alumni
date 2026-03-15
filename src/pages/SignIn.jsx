@@ -32,7 +32,13 @@ export function SignIn() {
                     navigate('/dashboard');
                 }
             } else {
-                setError(result.error || t.auth.invalidCredentials);
+                let errorMsg = result.error;
+                if (errorMsg?.includes('Too many login attempts')) {
+                    errorMsg = t.auth.tooManyAttempts;
+                } else if (errorMsg === 'Invalid credentials' || errorMsg === 'Invalid email or password') {
+                    errorMsg = t.auth.invalidCredentials;
+                }
+                setError(errorMsg || t.auth.invalidCredentials);
             }
         } catch (err) {
             setError(t.auth.unexpectedError);

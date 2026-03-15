@@ -163,7 +163,7 @@ export function DashboardLayout() {
             <div className="md:ml-64 min-h-screen flex flex-col">
                 {/* Top Header */}
                 <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 h-16 transition-colors duration-300">
-                    <div className="h-full px-4 md:px-8 flex items-center justify-between md:justify-end">
+                    <div className="h-full px-4 md:px-8 flex items-center justify-between md:justify-end" dir="ltr">
                         {/* Mobile Logo (Visible only on mobile) */}
                         <div className="md:hidden flex items-center">
                             <Link to={user?.role === 'admin' ? "/admin" : "/dashboard"} className="flex items-center space-x-2">
