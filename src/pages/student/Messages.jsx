@@ -584,16 +584,30 @@ export function Messages() {
 
 
                                                     {editingMessageId === msg.id ? (
-                                                        <form onSubmit={handleEditMessage} className="flex flex-col gap-2 min-w-[200px]">
+                                                        <form onSubmit={handleEditMessage} className="flex flex-col gap-3 min-w-[220px] w-full py-1">
                                                             <Input
                                                                 value={editContent}
                                                                 onChange={(e) => setEditContent(e.target.value)}
-                                                                className="h-8 text-slate-900 bg-white"
+                                                                className="h-10 text-slate-900 bg-white dark:bg-slate-900 dark:text-white border-2 border-white/20"
                                                                 autoFocus
                                                             />
                                                             <div className="flex gap-2 justify-end">
-                                                                <Button type="button" size="xs" variant="ghost" onClick={() => setEditingMessageId(null)} className="h-6 text-xs text-white/80 hover:text-white">Cancel</Button>
-                                                                <Button type="submit" size="xs" className="h-6 text-xs bg-white text-blue-600">Save</Button>
+                                                                <Button 
+                                                                    type="button" 
+                                                                    size="sm" 
+                                                                    variant="ghost" 
+                                                                    onClick={() => setEditingMessageId(null)} 
+                                                                    className="h-9 px-4 text-xs text-white bg-white/10 hover:bg-white/20 border border-white/20"
+                                                                >
+                                                                    {t.common?.cancel || 'Cancel'}
+                                                                </Button>
+                                                                <Button 
+                                                                    type="submit" 
+                                                                    size="sm" 
+                                                                    className="h-9 px-4 text-xs bg-white text-blue-600 font-bold hover:bg-slate-100 shadow-lg"
+                                                                >
+                                                                    {t.common?.save || 'Save'}
+                                                                </Button>
                                                             </div>
                                                         </form>
                                                     ) : (
