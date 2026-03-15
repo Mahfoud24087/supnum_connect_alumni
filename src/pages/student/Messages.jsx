@@ -15,7 +15,8 @@ import { ConfirmationModal } from '../../components/ConfirmationModal';
 
 export function Messages() {
     const { user: currentUser } = useAuth();
-    const { t, language } = useLanguage();
+    const { t, language: currentLang } = useLanguage();
+    const language = currentLang || 'FR'; // Fallback to ensure it's never undefined
     const { socket, onlineUsers } = useSocket();
     const location = useLocation();
     const navigate = useNavigate();
