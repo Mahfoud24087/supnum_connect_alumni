@@ -681,6 +681,19 @@ export function Messages() {
                                     language === 'AR' && "flex-row-reverse"
                                 )}>
                                     <form onSubmit={handleSend} className="w-full">
+                                        {selectedFile && (
+                                            <div className={cn(
+                                                "absolute -top-14 bg-white dark:bg-slate-800 p-1 rounded-xl shadow-xl border border-blue-500/30 flex items-center gap-2",
+                                                language === 'AR' ? "left-0" : "right-0"
+                                            )}>
+                                                <div className="h-10 w-10 rounded-lg overflow-hidden border border-slate-200">
+                                                    <img src={URL.createObjectURL(selectedFile)} alt="" className="h-full w-full object-cover" />
+                                                </div>
+                                                <button onClick={() => setSelectedFile(null)} className="p-1 hover:text-red-500 text-slate-400">
+                                                    <X className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        )}
                                         <Input
                                             placeholder={t.messages?.placeholder || "Write a message..."}
                                             value={newMessage}
@@ -692,7 +705,7 @@ export function Messages() {
                                         />
                                         <button
                                             type="submit"
-                                            disabled={!newMessage.trim()}
+                                            disabled={!newMessage.trim() && !selectedFile}
                                             className={cn(
                                                 "absolute top-1/2 -translate-y-1/2 h-9 w-9 flex items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:shadow-none disabled:scale-100 disabled:bg-slate-300 dark:disabled:bg-slate-700",
                                                 language === 'AR' ? "left-1" : "right-1"
