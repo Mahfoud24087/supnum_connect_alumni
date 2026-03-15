@@ -167,10 +167,10 @@ export function DashboardLayout() {
                         {/* Mobile Logo (Visible only on mobile) */}
                         <div className="md:hidden flex items-center">
                             <Link to={user?.role === 'admin' ? "/admin" : "/dashboard"} className="flex items-center space-x-2">
-                                <div className="bg-supnum-blue p-1.5 rounded-lg">
-                                    <GraduationCap className="h-6 w-6 text-white" />
+                                <div className="bg-supnum-blue p-1.5 rounded-lg shrink-0">
+                                    <GraduationCap className="h-5 w-5 text-white" />
                                 </div>
-                                <span className="font-bold text-slate-900 dark:text-white">SupNum Connect</span>
+                                <span className="font-bold text-slate-900 dark:text-white whitespace-nowrap text-sm">SupNum Connect</span>
                             </Link>
                         </div>
 
@@ -197,10 +197,10 @@ export function DashboardLayout() {
                             {/* Notifications */}
                             <NotificationDropdown />
 
-                            {/* Theme Toggle */}
+                            {/* Theme Toggle - hidden on mobile */}
                             <button
                                 onClick={toggleTheme}
-                                className="p-2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-slate-900"
+                                className="hidden md:block p-2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-slate-900"
                             >
                                 {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                             </button>
@@ -286,21 +286,30 @@ export function DashboardLayout() {
                                 <div className="pt-4 border-t border-slate-100 dark:border-slate-900">
                                     <div className="flex items-center justify-between mb-4 px-2">
                                         <span className="text-sm font-medium text-slate-500 dark:text-slate-400">{t.footer.language}</span>
-                                        <div className="flex bg-slate-100 dark:bg-slate-900 rounded-lg p-1">
-                                            {languages.map((l) => (
-                                                <button
-                                                    key={l}
-                                                    onClick={() => setLanguage(l)}
-                                                    className={cn(
-                                                        "px-3 py-1 text-xs font-bold rounded-md transition-all",
-                                                        language === l
-                                                            ? "bg-white dark:bg-slate-800 text-supnum-blue shadow-sm"
-                                                            : "text-slate-500 dark:text-slate-400"
-                                                    )}
-                                                >
-                                                    {l}
-                                                </button>
-                                            ))}
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex bg-slate-100 dark:bg-slate-900 rounded-lg p-1">
+                                                {languages.map((l) => (
+                                                    <button
+                                                        key={l}
+                                                        onClick={() => setLanguage(l)}
+                                                        className={cn(
+                                                            "px-3 py-1 text-xs font-bold rounded-md transition-all",
+                                                            language === l
+                                                                ? "bg-white dark:bg-slate-800 text-supnum-blue shadow-sm"
+                                                                : "text-slate-500 dark:text-slate-400"
+                                                        )}
+                                                    >
+                                                        {l}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            {/* Theme toggle in mobile menu */}
+                                            <button
+                                                onClick={toggleTheme}
+                                                className="p-2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors rounded-lg bg-slate-100 dark:bg-slate-900"
+                                            >
+                                                {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                                            </button>
                                         </div>
                                     </div>
                                     <button
