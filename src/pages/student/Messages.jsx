@@ -319,7 +319,7 @@ export function Messages() {
     }
 
     return (
-        <div className="flex h-[calc(100vh-8rem)] bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-800 transition-all duration-300">
+        <div className="flex h-[calc(100dvh-120px)] md:h-[calc(100vh-140px)] bg-white dark:bg-slate-900 rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-800 transition-all duration-300">
             {/* Sidebar */}
             <div className={cn(
                 "w-full md:w-80 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-all",
@@ -482,13 +482,13 @@ export function Messages() {
                             </div>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                        <div className="flex-1 overflow-y-auto p-4 space-y-1">
                             {messages.map((msg, index) => {
                                 const isMe = String(msg.senderId) === String(currentUser.id);
                                 return (
                                     <div
                                         key={msg.id}
-                                        className={cn("flex group relative mb-4", isMe ? "justify-end" : "justify-start")}
+                                        className={cn("flex group relative mb-1", isMe ? "justify-end" : "justify-start")}
                                     >
                                         <div
                                             onClick={() => !msg.isDeleted && setOpenActionId(openActionId === msg.id ? null : msg.id)}
@@ -584,11 +584,11 @@ export function Messages() {
 
 
                                                     {editingMessageId === msg.id ? (
-                                                        <form onSubmit={handleEditMessage} className="flex flex-col gap-3 min-w-[220px] w-full py-1">
+                                                        <form onSubmit={handleEditMessage} className="flex flex-col gap-2 min-w-[200px] w-full py-1">
                                                             <Input
                                                                 value={editContent}
                                                                 onChange={(e) => setEditContent(e.target.value)}
-                                                                className="h-10 text-slate-900 bg-white dark:bg-slate-900 dark:text-white border-2 border-white/20"
+                                                                className="h-9 text-slate-900 bg-white border-none shadow-inner"
                                                                 autoFocus
                                                             />
                                                             <div className="flex gap-2 justify-end">
@@ -597,31 +597,32 @@ export function Messages() {
                                                                     size="sm" 
                                                                     variant="ghost" 
                                                                     onClick={() => setEditingMessageId(null)} 
-                                                                    className="h-9 px-4 text-xs text-white bg-white/10 hover:bg-white/20 border border-white/20"
+                                                                    className="h-8 px-3 text-[11px] text-white/90 hover:bg-black/10"
                                                                 >
                                                                     {t.common?.cancel || 'Cancel'}
                                                                 </Button>
                                                                 <Button 
                                                                     type="submit" 
                                                                     size="sm" 
-                                                                    className="h-9 px-4 text-xs bg-white text-blue-600 font-bold hover:bg-slate-100 shadow-lg"
+                                                                    className="h-8 px-4 text-[11px] bg-white text-blue-600 font-black hover:bg-blue-50 shadow-md transition-transform active:scale-95"
                                                                 >
                                                                     {t.common?.save || 'Save'}
                                                                 </Button>
                                                             </div>
                                                         </form>
                                                     ) : (
-                                                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                                                        <>
+                                                            <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                                                            <div className={cn(
+                                                                "text-[10px] mt-1 flex items-center justify-end gap-1 opacity-70",
+                                                                isMe ? "text-blue-50" : "text-slate-500"
+                                                            )}>
+                                                                {msg.isEdited && <span className="mr-1 italic">Edited</span>}
+                                                                {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                {isMe && <Check className="h-3 w-3" />}
+                                                            </div>
+                                                        </>
                                                     )}
-
-                                                    <div className={cn(
-                                                        "text-[10px] mt-1 flex items-center justify-end gap-1 opacity-70",
-                                                        isMe ? "text-blue-50" : "text-slate-500"
-                                                    )}>
-                                                        {msg.isEdited && <span className="mr-1 italic">Edited</span>}
-                                                        {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                        {isMe && <Check className="h-3 w-3" />}
-                                                    </div>
                                                 </>
                                             )}
                                         </div>
@@ -674,19 +675,29 @@ export function Messages() {
                                     <ImageIcon className="h-5 w-5" />
                                 </Button>
 
-                                <div className="flex-1 relative">
-                                    <form onSubmit={handleSend}>
+                                <div className={cn(
+                                    "flex-1 relative group bg-slate-100 dark:bg-slate-800 rounded-2xl border border-transparent focus-within:border-blue-500/50 focus-within:bg-white dark:focus-within:bg-slate-800/80 transition-all",
+                                    language === 'AR' && "flex-row-reverse"
+                                )}>
+                                    <form onSubmit={handleSend} className="w-full">
                                         <Input
-                                            placeholder="Write a message..."
+                                            placeholder={t.messages?.placeholder || "Write a message..."}
                                             value={newMessage}
                                             onChange={(e) => setNewMessage(e.target.value)}
-                                            className="pr-10 bg-slate-100 dark:bg-slate-800 border-none h-11 rounded-2xl text-sm"
+                                            className={cn(
+                                                "bg-transparent border-none h-11 text-sm w-full focus:ring-0",
+                                                language === 'AR' ? "pl-12 pr-4 text-right" : "pr-12 pl-4 text-left"
+                                            )}
                                         />
                                         <button
                                             type="submit"
-                                            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 flex items-center justify-center text-blue-600 hover:scale-110 active:scale-95 transition-all"
+                                            disabled={!newMessage.trim()}
+                                            className={cn(
+                                                "absolute top-1/2 -translate-y-1/2 h-9 w-9 flex items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:shadow-none disabled:scale-100 disabled:bg-slate-300 dark:disabled:bg-slate-700",
+                                                language === 'AR' ? "left-1" : "right-1"
+                                            )}
                                         >
-                                            <Send className="h-5 w-5" />
+                                            <Send className={cn("h-4 w-4", language === 'AR' && "rotate-180")} />
                                         </button>
                                     </form>
                                 </div>
