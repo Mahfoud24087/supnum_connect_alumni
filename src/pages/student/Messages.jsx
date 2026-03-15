@@ -591,22 +591,22 @@ export function Messages() {
                                                                 className="h-9 text-slate-900 bg-white border-none shadow-inner"
                                                                 autoFocus
                                                             />
-                                                            <div className="flex gap-2 justify-end">
+                                                            <div className="flex gap-2 justify-end items-center">
+                                                                <Button 
+                                                                    type="submit" 
+                                                                    size="sm" 
+                                                                    className="h-8 px-5 text-[11px] bg-amber-400 text-slate-900 font-black hover:bg-amber-300 shadow-lg transition-all active:scale-95 border-none"
+                                                                >
+                                                                    {t.common?.save || 'Save'}
+                                                                </Button>
                                                                 <Button 
                                                                     type="button" 
                                                                     size="sm" 
                                                                     variant="ghost" 
                                                                     onClick={() => setEditingMessageId(null)} 
-                                                                    className="h-8 px-3 text-[11px] text-white/90 hover:bg-black/10"
+                                                                    className="h-8 px-3 text-[11px] text-white font-bold hover:bg-white/10"
                                                                 >
                                                                     {t.common?.cancel || 'Cancel'}
-                                                                </Button>
-                                                                <Button 
-                                                                    type="submit" 
-                                                                    size="sm" 
-                                                                    className="h-8 px-4 text-[11px] bg-white text-blue-600 font-black hover:bg-blue-50 shadow-md transition-transform active:scale-95"
-                                                                >
-                                                                    {t.common?.save || 'Save'}
                                                                 </Button>
                                                             </div>
                                                         </form>
