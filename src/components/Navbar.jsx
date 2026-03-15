@@ -157,12 +157,25 @@ export function Navbar() {
                         </div>
 
                         <div className="flex flex-col space-y-2 pt-4 border-t border-slate-100 dark:border-slate-900">
-                            <Link to="/signin" onClick={() => setIsOpen(false)}>
-                                <Button variant="ghost" className="w-full justify-start text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900">{t.nav.signin}</Button>
-                            </Link>
-                            <Link to="/signup" onClick={() => setIsOpen(false)}>
-                                <Button className="w-full">{t.nav.signup}</Button>
-                            </Link>
+                            {user ? (
+                                <Link
+                                    to={user.role === 'admin' ? '/admin' : '/dashboard'}
+                                    onClick={() => setIsOpen(false)}
+                                >
+                                    <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                                        {t.dashboard.nav.dashboard}
+                                    </Button>
+                                </Link>
+                            ) : (
+                                <>
+                                    <Link to="/signin" onClick={() => setIsOpen(false)}>
+                                        <Button variant="ghost" className="w-full justify-start text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900">{t.nav.signin}</Button>
+                                    </Link>
+                                    <Link to="/signup" onClick={() => setIsOpen(false)}>
+                                        <Button className="w-full">{t.nav.signup}</Button>
+                                    </Link>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
