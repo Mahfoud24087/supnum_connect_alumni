@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { userService } from '../../services/userService';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
@@ -24,7 +25,8 @@ export function Profile() {
         company: '',
         cvUrl: '',
         specialty: '',
-        graduationYear: ''
+        graduationYear: '',
+        skills: []
     });
     const [gallery, setGallery] = useState([]);
     const [previewImage, setPreviewImage] = useState(null);
@@ -48,7 +50,8 @@ export function Profile() {
                 company: user.company || '',
                 cvUrl: user.cvUrl || '',
                 specialty: user.specialty || '',
-                graduationYear: user.graduationYear || ''
+                graduationYear: user.graduationYear || '',
+                skills: user.skills || []
             });
             setPreviewImage(user.avatar || null);
             setGallery(user.gallery || []);
@@ -72,6 +75,7 @@ export function Profile() {
             formData.cvUrl !== (user.cvUrl || '') ||
             formData.specialty !== (user.specialty || '') ||
             formData.graduationYear !== (user.graduationYear || '') ||
+            JSON.stringify(formData.skills) !== JSON.stringify(user.skills || []) ||
             previewImage !== (user.avatar || null) ||
             JSON.stringify(gallery) !== JSON.stringify(user.gallery || []);
 
@@ -103,6 +107,7 @@ export function Profile() {
             reader.readAsDataURL(file);
         }
     };
+
 
     const handleGalleryImageAdd = (e) => {
         const file = e.target.files[0];
@@ -142,7 +147,8 @@ export function Profile() {
                     linkedin: formData.linkedin,
                     github: formData.github,
                     facebook: formData.facebook
-                }
+                },
+                skills: formData.skills
             };
 
             const result = await updateProfile(updatedProfile);
@@ -361,12 +367,27 @@ export function Profile() {
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.common.jobTitle}</label>
-                                <Input
-                                    value={formData.jobTitle}
-                                    onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
-                                    placeholder={t.profile.jobPlaceholder}
-                                    className="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
-                                />
+                                <div className="relative">
+                                    <Briefcase className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+                                    <Input
+                                        value={formData.jobTitle}
+                                        onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
+                                        placeholder={t.profile.jobPlaceholder}
+                                        className="pl-10 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.common.company || 'Entreprise'}</label>
+                                <div className="relative">
+                                    <Building className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+                                    <Input
+                                        value={formData.company}
+                                        onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                                        placeholder="e.g. SupNum Tech"
+                                        className="pl-10 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
+                                    />
+                                </div>
                             </div>
                             <div className="space-y-4 md:col-span-2">
                                 <label className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
@@ -454,46 +475,119 @@ export function Profile() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex flex-col sm:flex-row items-center gap-4">
-                            {formData.cvUrl ? (
-                                <div className="flex-1 flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                                            <FileText className="h-6 w-6 text-red-500" />
+                        <div className="flex flex-col gap-4">
+                            <div className="flex flex-col sm:flex-row items-center gap-4">
+                                {formData.cvUrl ? (
+                                    <div className="flex-1 flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                                                <FileText className="h-6 w-6 text-red-500" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-medium text-slate-900 dark:text-white">Curriculum Vitae.pdf</p>
+                                                <p className="text-xs text-slate-500">PDF Document</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-slate-900 dark:text-white">Curriculum Vitae.pdf</p>
-                                            <p className="text-xs text-slate-500">PDF Document</p>
+                                        <div className="flex items-center gap-2">
+                                            <a
+                                                href={formData.cvUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="p-2 text-slate-400 hover:text-blue-500 transition-colors"
+                                            >
+                                                <ExternalLink className="h-5 w-5" />
+                                            </a>
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, cvUrl: '' })}
+                                                className="p-2 text-slate-400 hover:text-red-500 transition-colors"
+                                            >
+                                                <Trash2 className="h-5 w-5" />
+                                            </button>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <a
-                                            href={formData.cvUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="p-2 text-slate-400 hover:text-blue-500 transition-colors"
-                                        >
-                                            <ExternalLink className="h-5 w-5" />
-                                        </a>
-                                        <button
-                                            type="button"
-                                            onClick={() => setFormData({ ...formData, cvUrl: '' })}
-                                            className="p-2 text-slate-400 hover:text-red-500 transition-colors"
-                                        >
-                                            <Trash2 className="h-5 w-5" />
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <label className="flex-1 flex flex-col items-center justify-center p-8 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900 transition-all group">
-                                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-full group-hover:scale-110 transition-transform">
-                                        <Paperclip className="h-8 w-8 text-blue-500" />
-                                    </div>
-                                    <span className="mt-4 text-sm font-medium text-slate-600 dark:text-slate-400">{t.profile.uploadCv}</span>
-                                    <span className="mt-1 text-xs text-slate-400">PDF (Max 5MB)</span>
-                                    <input type="file" className="hidden" accept="application/pdf" onChange={handleCvChange} />
-                                </label>
+                                ) : (
+                                    <label className="flex-1 flex flex-col items-center justify-center p-8 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900 transition-all group">
+                                        <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-full group-hover:scale-110 transition-transform">
+                                            <Paperclip className="h-8 w-8 text-blue-500" />
+                                        </div>
+                                        <span className="mt-4 text-sm font-medium text-slate-600 dark:text-slate-400">{t.profile.uploadCv}</span>
+                                        <span className="mt-1 text-xs text-slate-400">PDF (Max 5MB)</span>
+                                        <input type="file" className="hidden" accept="application/pdf" onChange={handleCvChange} />
+                                    </label>
+                                )}
+                            </div>
+
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Skills Section */}
+                <Card className="border-none shadow-lg bg-white dark:bg-slate-800">
+                    <CardHeader>
+                        <CardTitle className="text-xl text-slate-900 dark:text-white flex items-center gap-2">
+                            <Plus className="h-5 w-5 text-indigo-500" /> {t.common.skills || "Compétences"}
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="flex flex-wrap gap-2">
+                            {formData.skills.map((skill, index) => (
+                                <span 
+                                    key={index}
+                                    className="flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-xl text-xs font-black uppercase tracking-widest border border-indigo-100 dark:border-indigo-800 group"
+                                >
+                                    {skill}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const newSkills = formData.skills.filter((_, i) => i !== index);
+                                            setFormData({ ...formData, skills: newSkills });
+                                            setIsDirty(true);
+                                        }}
+                                        className="hover:text-red-500 transition-colors"
+                                    >
+                                        <Trash2 className="h-3 w-3" />
+                                    </button>
+                                </span>
+                            ))}
+                            {formData.skills.length === 0 && (
+                                <p className="text-sm text-slate-400 italic">Aucune compétence ajoutée.</p>
                             )}
+                        </div>
+                        
+                        <div className="flex gap-2">
+                            <Input
+                                id="new-skill-input"
+                                placeholder="Ajouter une compétence (ex: React, Python, UI Design)"
+                                className="flex-1 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
+                                onKeyPress={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        const input = e.target;
+                                        const value = input.value.trim();
+                                        if (value && !formData.skills.some(s => s.toLowerCase() === value.toLowerCase())) {
+                                            setFormData({ ...formData, skills: [...formData.skills, value] });
+                                            setIsDirty(true);
+                                            input.value = '';
+                                        }
+                                    }
+                                }}
+                            />
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => {
+                                    const input = document.getElementById('new-skill-input');
+                                    const value = input.value.trim();
+                                    if (value && !formData.skills.some(s => s.toLowerCase() === value.toLowerCase())) {
+                                        setFormData({ ...formData, skills: [...formData.skills, value] });
+                                        setIsDirty(true);
+                                        input.value = '';
+                                    }
+                                }}
+                            >
+                                <Plus className="h-4 w-4" />
+                            </Button>
                         </div>
                     </CardContent>
                 </Card>

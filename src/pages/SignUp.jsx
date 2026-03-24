@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { GraduationCap, User, Mail, Lock, Hash, ArrowRight, CheckCircle2, Eye, EyeOff, Network, Globe, Cpu, Database, Code } from 'lucide-react';
+import { GraduationCap, User, Mail, Lock, Hash, ArrowRight, CheckCircle2, Eye, EyeOff, Network, Globe, Cpu, Database, Code, Building, Briefcase } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -16,7 +16,10 @@ export function SignUp() {
         password: '',
         role: 'graduate',
         graduationYear: '',
-        specialty: ''
+        specialty: '',
+        jobTitle: '',
+        company: '',
+        workStatus: ''
     });
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -43,8 +46,16 @@ export function SignUp() {
         setFormData(prev => ({
             ...prev,
             role: newRole,
-            // Clear supnumId and email if switching to other to let them enter their own
-            ...(newRole === 'other' ? { supnumId: '', email: '' } : {})
+            // Clear supnumId, email, specialty, graduationYear, and job info for other/company
+            ...(['other', 'company', 'student'].includes(newRole) ? { 
+                supnumId: prev.supnumId, 
+                email: prev.email, 
+                specialty: prev.specialty, 
+                graduationYear: prev.graduationYear,
+                jobTitle: '',
+                company: '',
+                workStatus: ''
+            } : {})
         }));
     };
 
@@ -63,7 +74,7 @@ export function SignUp() {
 
             const result = await signup(submissionData);
             if (result.success) {
-                navigate('/signin', { state: { message: 'Account created successfully! Please sign in.' } });
+                navigate('/signin', { state: { message: result.message || 'Account created successfully! Please sign in.' } });
             } else {
                 setError(result.error || 'Registration failed. Please try again.');
             }
@@ -178,44 +189,36 @@ export function SignUp() {
                     variants={formVariants}
                     initial="hidden"
                     animate="visible"
-                    className="w-full h-full flex items-center justify-center px-6 py-10 sm:px-16 lg:px-32 lg:py-24 overflow-y-auto bg-white dark:bg-slate-950/20 relative z-10"
+                    className="w-full h-full flex items-center justify-center px-6 py-4 sm:px-16 lg:px-20 lg:py-10 overflow-y-auto bg-white dark:bg-slate-950/20 relative z-10"
                 >
-                    <div className="w-full max-w-md space-y-8 py-8">
+                    <div className="w-full max-w-2xl space-y-4 py-4">
                         {/* Seamless Logo Implementation */}
                         <div className="flex flex-col items-center">
                             <motion.div
                                 initial={{ scale: 0.5, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
                                 transition={{ type: "spring", stiffness: 100, delay: 0.2 }}
-                                className="bg-white dark:bg-white p-2 rounded-3xl"
+                                className="bg-white dark:bg-white p-1 rounded-2xl shadow-sm"
                             >
                                 <img
                                     src="/logo.png"
                                     alt="SupNum Logo"
-                                    className="h-24 w-auto mix-blend-multiply select-none"
+                                    className="h-16 w-auto mix-blend-multiply select-none"
                                 />
                             </motion.div>
-                            <div className="text-center mt-6">
+                            <div className="text-center mt-3">
                                 <motion.h1
                                     initial={{ opacity: 0, y: -10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.5, duration: 0.8 }}
-                                    className="text-3xl font-black text-slate-900 dark:text-white tracking-tight italic"
+                                    className="text-2xl font-black text-slate-900 dark:text-white tracking-tight italic"
                                 >
                                     {t.auth.signup.title}
                                 </motion.h1>
-                                <motion.p
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ delay: 0.7, duration: 1 }}
-                                    className="mt-2 text-slate-500 dark:text-slate-400 font-medium"
-                                >
-                                    {t.auth.signup.subtitle}
-                                </motion.p>
                             </div>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
+                        <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
                             {error && (
                                 <motion.div
                                     initial={{ opacity: 0, x: 20 }}
@@ -226,46 +229,48 @@ export function SignUp() {
                                     {error}
                                 </motion.div>
                             )}
-                            <div className={`${formData.role === 'other' ? 'grid-cols-1' : 'grid gap-5 md:grid-cols-2'}`}>
+                            <div className="grid gap-4 md:grid-cols-2">
                                 <motion.div
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.9, duration: 0.5 }}
-                                    className="space-y-2"
+                                    className="space-y-1.5"
                                 >
-                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t.auth.signup.fullName}</label>
+                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
+                                        {formData.role === 'company' ? t.admin.manageCompanies.form.name : t.auth.signup.fullName}
+                                    </label>
                                     <div className="relative">
-                                        <User className="absolute left-3 top-3 h-5 w-5 text-slate-400 pointer-events-none z-10" />
+                                        <User className="absolute left-3 top-2.5 h-4.5 w-4.5 text-slate-400 pointer-events-none z-10" />
                                         <Input
                                             name="fullName"
                                             placeholder="John Doe"
                                             required
                                             value={formData.fullName}
                                             onChange={handleChange}
-                                            className="pl-10 h-11 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 font-sans transition-all focus:ring-2 focus:ring-blue-500/20"
+                                            className="pl-10 h-10 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 font-sans text-sm"
                                         />
                                     </div>
                                 </motion.div>
 
                                 <AnimatePresence>
-                                    {formData.role !== 'other' && (
+                                    {!['other', 'company'].includes(formData.role) && (
                                         <motion.div
                                             initial={{ opacity: 0, x: 20 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             exit={{ opacity: 0, x: -20, width: 0 }}
                                             transition={{ duration: 0.3 }}
-                                            className="space-y-2 overflow-hidden"
+                                            className="space-y-1.5 overflow-hidden"
                                         >
-                                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t.auth.signup.supnumId}</label>
+                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">{t.auth.signup.supnumId}</label>
                                             <div className="relative">
-                                                <Hash className="absolute left-3 top-3 h-5 w-5 text-slate-400 pointer-events-none z-10" />
+                                                <Hash className="absolute left-3 top-2.5 h-4.5 w-4.5 text-slate-400 pointer-events-none z-10" />
                                                 <Input
                                                     name="supnumId"
                                                     placeholder="2YXXX"
                                                     required
                                                     value={formData.supnumId}
                                                     onChange={handleChange}
-                                                    className="pl-10 h-11 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 font-sans transition-all focus:ring-2 focus:ring-blue-500/20"
+                                                    className="pl-10 h-10 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 font-sans text-sm"
                                                 />
                                             </div>
                                         </motion.div>
@@ -283,8 +288,8 @@ export function SignUp() {
                                         className={`grid gap-4 overflow-hidden ${formData.role === 'graduate' ? 'grid-cols-2' : 'grid-cols-1'}`}
                                     >
                                         {formData.role === 'graduate' && (
-                                            <div className="space-y-2">
-                                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t.auth.signup.promoYear}</label>
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">{t.auth.signup.promoYear}</label>
                                                 <div className="relative">
                                                     <Input
                                                         name="graduationYear"
@@ -293,16 +298,16 @@ export function SignUp() {
                                                         required
                                                         value={formData.graduationYear}
                                                         onChange={handleChange}
-                                                        className="h-11 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 font-sans transition-all focus:ring-2 focus:ring-blue-500/20"
+                                                        className="h-10 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 font-sans text-sm"
                                                     />
                                                 </div>
                                             </div>
                                         )}
-                                        <div className="space-y-3 col-span-full">
-                                            <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">
+                                        <div className="space-y-2 col-span-full">
+                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
                                                 {t.auth.signup.fieldOfStudy}
                                             </label>
-                                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+                                            <div className="grid grid-cols-5 gap-2">
                                                 {[
                                                     { id: 'RSS', label: 'RSS', icon: Network, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
                                                     { id: 'DSI', label: 'DSI', icon: Code, color: 'text-blue-500', bg: 'bg-blue-500/10' },
@@ -315,92 +320,128 @@ export function SignUp() {
                                                         type="button"
                                                         onClick={() => setFormData(prev => ({ ...prev, specialty: spec.id }))}
                                                         className={`
-                                                            relative group flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl border-2 transition-all duration-300
+                                                            relative group flex flex-col items-center justify-center p-2 rounded-xl border-2 transition-all duration-300
                                                             ${formData.specialty === spec.id
-                                                                ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-600/10 shadow-lg shadow-blue-500/10 ring-4 ring-blue-500/5'
-                                                                : 'border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 hover:border-blue-200 dark:hover:border-blue-800/50'}
+                                                                ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-600/10 shadow-sm ring-2 ring-blue-500/5'
+                                                                : 'border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 hover:border-blue-200'}
                                                         `}
                                                     >
-                                                        <div className={`
-                                                            p-2 rounded-xl mb-2 transition-transform duration-300 group-hover:scale-110
-                                                            ${formData.specialty === spec.id ? spec.bg + ' ' + spec.color : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}
-                                                        `}>
-                                                            <spec.icon className="h-4 w-4 sm:h-5 sm:w-5" />
-                                                        </div>
+                                                        <spec.icon className={`h-4 w-4 mb-1 ${formData.specialty === spec.id ? spec.color : 'text-slate-400'}`} />
                                                         <span className={`
-                                                            text-[10px] sm:text-xs font-black tracking-wider transition-colors duration-300
-                                                            ${formData.specialty === spec.id ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300'}
+                                                            text-[9px] font-black tracking-wider transition-colors duration-300
+                                                            ${formData.specialty === spec.id ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500'}
                                                         `}>
                                                             {spec.label}
                                                         </span>
-                                                        {formData.specialty === spec.id && (
-                                                            <motion.div
-                                                                layoutId="activeSpecIndicator"
-                                                                className="absolute -top-1 -right-1 bg-blue-600 text-white rounded-full p-0.5 shadow-lg z-10"
-                                                                initial={{ scale: 0 }}
-                                                                animate={{ scale: 1 }}
-                                                            >
-                                                                <CheckCircle2 className="h-3 w-3" />
-                                                            </motion.div>
-                                                        )}
                                                     </button>
                                                 ))}
                                             </div>
                                         </div>
+
+                                        {formData.role === 'graduate' && (
+                                            <div className="col-span-full space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                                                <div className="grid gap-3 md:grid-cols-2">
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">{t.common.jobTitle}</label>
+                                                        <div className="relative">
+                                                            <Briefcase className="absolute left-3 top-2.5 h-4.5 w-4.5 text-slate-400" />
+                                                            <Input
+                                                                name="jobTitle"
+                                                                placeholder="e.g. Software Engineer"
+                                                                value={formData.jobTitle}
+                                                                onChange={handleChange}
+                                                                className="pl-10 h-10 bg-slate-50 dark:bg-slate-800 border-slate-200 text-sm w-full"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">{t.common.company}</label>
+                                                        <div className="relative">
+                                                            <Building className="absolute left-3 top-2.5 h-4.5 w-4.5 text-slate-400" />
+                                                            <Input
+                                                                name="company"
+                                                                placeholder="e.g. SupNum Tech"
+                                                                value={formData.company}
+                                                                onChange={handleChange}
+                                                                className="pl-10 h-10 bg-slate-50 dark:bg-slate-800 border-slate-200 text-sm w-full"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">{t.common.workStatus.label}</label>
+                                                    <select
+                                                        name="workStatus"
+                                                        value={formData.workStatus}
+                                                        onChange={handleChange}
+                                                        className="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                                                    >
+                                                        <option value="">{t.common.workStatus.select}</option>
+                                                        <option value="employed">{t.common.workStatus.employed}</option>
+                                                        <option value="seeking">{t.common.workStatus.seeking}</option>
+                                                        <option value="studying">{t.common.workStatus.studying}</option>
+                                                        <option value="freelance">{t.common.workStatus.freelance}</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        )}
                                     </motion.div>
                                 )}
                             </AnimatePresence>
 
-                            <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 1.1, duration: 0.5 }}
-                                className="space-y-2"
-                            >
-                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t.auth.signup.email}</label>
-                                <div className="relative">
-                                    <Mail className="absolute left-3 top-3 h-5 w-5 text-slate-400 pointer-events-none z-10" />
-                                    <Input
-                                        name="email"
-                                        type="email"
-                                        placeholder="name@example.com"
-                                        required
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                        autoComplete="off"
-                                        className="pl-10 h-11 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 font-sans transition-all focus:ring-2 focus:ring-blue-500/20"
-                                    />
-                                </div>
-                            </motion.div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 1.1, duration: 0.5 }}
+                                    className="space-y-1.5"
+                                >
+                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">{t.auth.signup.email}</label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-3 top-2.5 h-4.5 w-4.5 text-slate-400 z-10" />
+                                        <Input
+                                            name="email"
+                                            type="email"
+                                            placeholder="email@example.com"
+                                            required
+                                            value={formData.email}
+                                            onChange={handleChange}
+                                            autoComplete="off"
+                                            className="pl-10 h-10 bg-slate-50 dark:bg-slate-800 border-slate-200 text-sm w-full"
+                                        />
+                                    </div>
+                                </motion.div>
 
-                            <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 1.2, duration: 0.5 }}
-                                className="space-y-2"
-                            >
-                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t.auth.signup.password}</label>
-                                <div className="relative">
-                                    <Lock className="absolute left-3 top-3 h-5 w-5 text-slate-400 pointer-events-none z-10" />
-                                    <Input
-                                        name="password"
-                                        type={showPassword ? "text" : "password"}
-                                        placeholder="••••••••"
-                                        required
-                                        value={formData.password}
-                                        onChange={handleChange}
-                                        autoComplete="new-password"
-                                        className="pl-10 pr-10 h-11 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 transition-all focus:ring-2 focus:ring-blue-500/20"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors z-20"
-                                    >
-                                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                                    </button>
-                                </div>
-                            </motion.div>
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 1.2, duration: 0.5 }}
+                                    className="space-y-1.5"
+                                >
+                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">{t.auth.signup.password}</label>
+                                    <div className="relative">
+                                        <Lock className="absolute left-3 top-2.5 h-4.5 w-4.5 text-slate-400 z-10" />
+                                        <Input
+                                            name="password"
+                                            type={showPassword ? "text" : "password"}
+                                            placeholder="••••••••"
+                                            required
+                                            value={formData.password}
+                                            onChange={handleChange}
+                                            autoComplete="new-password"
+                                            className="pl-10 pr-10 h-10 bg-slate-50 dark:bg-slate-800 border-slate-200 text-sm w-full"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 z-20"
+                                        >
+                                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            </div>
+
 
                             <motion.div
                                 initial={{ opacity: 0, y: 10 }}
@@ -415,7 +456,7 @@ export function SignUp() {
                                     {[
                                         { id: 'student', label: t.profile.student, icon: GraduationCap },
                                         { id: 'graduate', label: t.profile.graduate, icon: CheckCircle2 },
-                                        { id: 'other', label: t.auth.signup.other, icon: User }
+                                        { id: 'company', label: t.common.roles.company, icon: Building },
                                     ].map((role) => (
                                         <button
                                             key={role.id}

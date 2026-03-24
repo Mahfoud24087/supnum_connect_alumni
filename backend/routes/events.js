@@ -1,14 +1,40 @@
 const express = require('express');
 const router = express.Router();
-const { Event, User } = require('../models');
+const { Event, User, sequelize, Notification } = require('../models');
+const { Op } = require('sequelize');
 const { protect, admin } = require('../middleware/auth');
+const { sendPushNotification } = require('../services/pushNotificationService');
 
 // @route   GET /api/events
 // @desc    Get all events
 // @access  Public
 router.get('/', async (req, res, next) => {
     try {
+        const { search, type, stage } = req.query;
+        const andConditions = [];
+
+        if (type && type !== 'All') {
+            andConditions.push({ type });
+        }
+
+        if (stage && stage !== 'All') {
+            andConditions.push({ stage: { [Op.iLike]: `%${stage}%` } });
+        }
+
+        if (search) {
+            andConditions.push({
+                [Op.or]: [
+                    { title: { [Op.iLike]: `%${search}%` } },
+                    { description: { [Op.iLike]: `%${search}%` } },
+                    { stage: { [Op.iLike]: `%${search}%` } }
+                ]
+            });
+        }
+
+        const where = andConditions.length > 0 ? { [Op.and]: andConditions } : {};
+
         const events = await Event.findAll({
+            where,
             include: [{ model: User, as: 'createdBy', attributes: ['name'] }],
             order: [['date', 'DESC']]
         });
@@ -55,6 +81,33 @@ router.post('/', protect, admin, async (req, res, next) => {
         });
 
         res.status(201).json({ event });
+
+        // Notify all students/graduates about the new event
+        const allUsers = await User.findAll({ 
+            where: { role: { [Op.in]: ['student', 'graduate'] } },
+            attributes: ['id']
+        });
+
+        const notifyPromises = allUsers.map(async (u) => {
+            // Create in-app notification
+            await Notification.create({
+                userId: u.id,
+                title: 'Nouvel Événement ! 🎉',
+                message: `Un nouvel événement "${title}" a été publié. Ne le manquez pas !`,
+                type: 'event_reminder',
+                link: `/events/${event.id}`
+            });
+
+            // Send Push
+            return sendPushNotification(u.id, {
+                title: 'Nouvel Événement sur SupNum ! 🎉',
+                body: `Vient de paraître: ${title}. Regardez les détails maintenant !`,
+                icon: '/icons/icon-192x192.png',
+                data: { url: `/events/${event.id}` }
+            });
+        });
+
+        await Promise.all(notifyPromises);
     } catch (error) {
         next(error);
     }

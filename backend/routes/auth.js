@@ -25,7 +25,7 @@ router.post('/register', [
         }
         return true;
     }),
-    body('role').isIn(['student', 'graduate', 'other']).withMessage('Invalid role'),
+    body('role').isIn(['student', 'graduate', 'other', 'company']).withMessage('Invalid role'),
     body('graduationYear').custom((value, { req }) => {
         if (req.body.role === 'graduate' && !value) {
             throw new Error('Graduation year is required for graduates');
@@ -33,21 +33,22 @@ router.post('/register', [
         return true;
     }),
     body('specialty').custom((value, { req }) => {
-        if ((req.body.role === 'graduate' || req.body.role === 'student') && !value) {
+        const needsSpecialty = ['graduate', 'student'].includes(req.body.role);
+        if (needsSpecialty && !value) {
             throw new Error('Specialty (Filière) is required');
         }
         return true;
     })
 ], async (req, res, next) => {
     try {
-        const { fullName, email, password, supnumId, role, graduationYear, specialty } = req.body;
+        const { fullName, email, password, supnumId, role, graduationYear, specialty, jobTitle, company, workStatus } = req.body;
 
         // Check if user exists
         const whereClause = {
             [require('sequelize').Op.or]: [{ email }]
         };
 
-        if (supnumId) {
+        if (supnumId && role !== 'company' && role !== 'other') {
             whereClause[require('sequelize').Op.or].push({ supnumId });
         }
 
@@ -59,20 +60,30 @@ router.post('/register', [
             return res.status(400).json({ message: 'User with this email or ID already exists' });
         }
 
+        // Verification Logic: Only graduates and companies need manual approval
+        const status = (role === 'graduate' || role === 'company') ? 'Pending' : 'Verified';
+
         // Create user
         const user = await User.create({
             name: fullName,
             email,
             password,
-            supnumId,
+            supnumId: (role === 'company' || role === 'other') ? null : supnumId,
             role: role || 'student',
-            status: 'Pending',
+            status,
             graduationYear: role === 'graduate' ? graduationYear : null,
-            specialty: (role === 'graduate' || role === 'student') ? specialty : ''
+            specialty: (role === 'graduate' || role === 'student') ? specialty : '',
+            jobTitle: role === 'graduate' ? jobTitle : '',
+            company: role === 'graduate' ? company : '',
+            workStatus: role === 'graduate' ? workStatus : ''
         });
 
+        const successMessage = status === 'Pending' 
+            ? 'Registration successful! Please wait for admin approval.' 
+            : 'Registration successful! You can now sign in.';
+
         res.status(201).json({
-            message: 'Registration successful! Please wait for admin approval.',
+            message: successMessage,
             user: { id: user.id, name: user.name, status: user.status }
         });
     } catch (error) {
@@ -132,13 +143,13 @@ router.get('/me', protect, async (req, res) => {
 // @access  Private
 router.put('/profile', protect, async (req, res, next) => {
     try {
-        const allowedUpdates = ['name', 'bio', 'location', 'avatar', 'phone', 'birthday', 'workStatus', 'jobTitle', 'company', 'cvUrl', 'gallery', 'graduationYear', 'specialty'];
+        const allowedUpdates = ['name', 'bio', 'location', 'avatar', 'phone', 'birthday', 'workStatus', 'jobTitle', 'company', 'cvUrl', 'gallery', 'graduationYear', 'specialty', 'website', 'industry', 'foundationYear', 'contactEmail', 'latitude', 'longitude', 'socialTwitter', 'socialYoutube', 'skills'];
         const updates = {};
 
         allowedUpdates.forEach(field => {
             if (req.body[field] !== undefined) {
                 let value = req.body[field];
-                if ((field === 'birthday' || field === 'workStatus') && value === '') {
+                if ((field === 'birthday' || field === 'workStatus' || field === 'latitude' || field === 'longitude' || field === 'foundationYear' || field === 'graduationYear') && value === '') {
                     value = null;
                 }
                 updates[field] = value;
@@ -150,12 +161,23 @@ router.put('/profile', protect, async (req, res, next) => {
             if (req.body.social.linkedin !== undefined) updates.socialLinkedin = req.body.social.linkedin;
             if (req.body.social.github !== undefined) updates.socialGithub = req.body.social.github;
             if (req.body.social.facebook !== undefined) updates.socialFacebook = req.body.social.facebook;
+            if (req.body.social.twitter !== undefined) updates.socialTwitter = req.body.social.twitter;
+            if (req.body.social.youtube !== undefined) updates.socialYoutube = req.body.social.youtube;
         }
 
+        console.log('Final updates object:', JSON.stringify(updates, null, 2));
+        
         await req.user.update(updates);
+        
+        // Re-fetch to ensure we have all fields from the DB
+        const refreshedUser = await User.findByPk(req.user.id);
+        const userJson = refreshedUser.toJSON();
+        
+        console.log('Sending back refreshed user JSON:', JSON.stringify(userJson, null, 2));
 
-        res.json({ user: req.user.toJSON() });
+        res.json({ user: userJson });
     } catch (error) {
+        console.error('Profile update error:', error);
         next(error);
     }
 });

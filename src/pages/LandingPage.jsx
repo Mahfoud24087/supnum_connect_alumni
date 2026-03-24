@@ -1,4 +1,4 @@
-import { ArrowRight, Users, User, GraduationCap, Award, Calendar, Trophy, Zap, ChevronRight, BarChart3, Building, Briefcase } from 'lucide-react';
+import { ArrowRight, Users, User, GraduationCap, Award, Calendar, Trophy, Zap, ChevronRight, BarChart3, Building, Briefcase, Sparkles } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '../components/Toast';
 import { Button } from '../components/ui/Button';
@@ -520,7 +520,11 @@ export function LandingPage() {
                                                         )}
                                                     </div>
                                                     <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                                                        {job.company} • {job.location}
+                                                        {job.company} 
+                                                        {job.createdBy && job.createdBy.role === 'graduate' && (
+                                                            <span className="text-blue-500 dark:text-blue-400"> (par {job.createdBy.name})</span>
+                                                        )}
+                                                        • {job.location}
                                                         {(job.startDate || job.endDate) && (
                                                             <div className="text-slate-400 dark:text-slate-500 text-[10px] flex items-center gap-1 mt-1 font-semibold uppercase tracking-wider">
                                                                 <Calendar className="h-3 w-3" />
@@ -531,12 +535,20 @@ export function LandingPage() {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <button
-                                                onClick={() => handleJobClick(job.id)}
-                                                className="text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-4 py-2 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm"
-                                            >
-                                                {user ? t.landing.view : t.landing.apply}
-                                            </button>
+                                            <div className="flex items-center gap-3">
+                                                {job.matchScore !== undefined && (
+                                                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800 shadow-sm transition-all hover:scale-105 group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600">
+                                                        <Sparkles className="h-3.5 w-3.5 animate-pulse" />
+                                                        <span className="text-[10px] font-black tracking-widest">{job.matchScore}% MATCH AI</span>
+                                                    </div>
+                                                )}
+                                                <button
+                                                    onClick={() => handleJobClick(job.id)}
+                                                    className="text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-4 py-2 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                                                >
+                                                    {user ? t.landing.view : t.landing.apply}
+                                                </button>
+                                            </div>
                                         </motion.div>
                                     )) : (
                                     <div className="text-center py-12 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">

@@ -33,6 +33,25 @@ import { ManageInternships } from './pages/admin/ManageInternships';
 import { ManageCompanies } from './pages/admin/ManageCompanies';
 import { ManageApplications } from './pages/admin/ManageApplications';
 
+// Company Pages
+import CompanyOverview from './pages/company/CompanyOverview';
+import ManageCompanyOffers from './pages/company/ManageCompanyOffers';
+import ManageCompanyApplications from './pages/company/ManageCompanyApplications';
+import CompanyProfile from './pages/company/CompanyProfile';
+import { useAuth } from './context/AuthContext';
+
+const DashboardIndex = () => {
+  const { user } = useAuth();
+  if (user?.role === 'company') return <CompanyOverview />;
+  return <DashboardHome />;
+};
+
+const ProfileSelector = () => {
+    const { user } = useAuth();
+    if (user?.role === 'company') return <CompanyProfile />;
+    return <Profile />;
+};
+
 function App() {
   return (
     <AuthProvider>
@@ -50,14 +69,24 @@ function App() {
                   <Route path="/signup" element={<SignUp />} />
                 </Route>
 
-                {/* Student/Graduate/Other Routes */}
+                {/* Unified Dashboard Routes */}
                 <Route path="/dashboard" element={
-                  <ProtectedRoute allowedRoles={['student', 'graduate', 'other']}>
+                  <ProtectedRoute allowedRoles={['student', 'graduate', 'other', 'company']}>
                     <DashboardLayout />
                   </ProtectedRoute>
                 }>
-                  <Route index element={<DashboardHome />} />
-                  <Route path="profile" element={<Profile />} />
+                  <Route index element={<DashboardIndex />} />
+                  <Route path="company/offers" element={
+                    <ProtectedRoute allowedRoles={['company', 'graduate']}>
+                      <ManageCompanyOffers />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="company/applications" element={
+                    <ProtectedRoute allowedRoles={['company', 'graduate']}>
+                      <ManageCompanyApplications />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="profile" element={<ProfileSelector />} />
                   <Route path="profile/:id" element={<UserProfile />} />
                   <Route path="search" element={
                     <ProtectedRoute allowedRoles={['student', 'graduate', 'other']}>
@@ -75,7 +104,7 @@ function App() {
                     </ProtectedRoute>
                   } />
                   <Route path="messages" element={
-                    <ProtectedRoute allowedRoles={['student', 'graduate', 'other']}>
+                    <ProtectedRoute allowedRoles={['student', 'graduate', 'other', 'company']}>
                       <Messages />
                     </ProtectedRoute>
                   } />

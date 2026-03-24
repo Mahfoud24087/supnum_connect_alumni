@@ -51,6 +51,7 @@ export function AuthProvider({ children }) {
 
     const updateProfile = async (profileData) => {
         const result = await authService.updateProfile(profileData);
+        console.log('updateProfile API result:', result);
         if (result.success) {
             setUser(result.user);
             return { success: true };

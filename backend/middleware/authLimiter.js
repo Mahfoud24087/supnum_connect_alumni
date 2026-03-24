@@ -10,14 +10,16 @@ const attempts = new Map();
  */
 const progressiveAuthLimiter = (req, res, next) => {
     const ip = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const email = req.body.email || 'unknown';
+    const key = `${ip}-${email}`;
     const now = Date.now();
     
-    let data = attempts.get(ip);
+    let data = attempts.get(key);
     
     // Initialize if first time
     if (!data) {
         data = { count: 0, lockoutUntil: 0 };
-        attempts.set(ip, data);
+        attempts.set(key, data);
     }
 
     // Check if currently locked out
@@ -41,7 +43,7 @@ const progressiveAuthLimiter = (req, res, next) => {
     res.json = function(body) {
         // Status 200/201 = Success
         if (res.statusCode >= 200 && res.statusCode < 300) {
-            attempts.delete(ip); // Reset on success
+            attempts.delete(key); // Reset on success
         } 
         // Status 401 = Unauthorized (Wrong password/email)
         else if (res.statusCode === 401) {
@@ -55,7 +57,7 @@ const progressiveAuthLimiter = (req, res, next) => {
                 data.lockoutUntil = Date.now() + 15 * 60 * 1000; // 15 minutes
             }
             
-            attempts.set(ip, data);
+            attempts.set(key, data);
         }
         
         return originalJson.call(this, body);

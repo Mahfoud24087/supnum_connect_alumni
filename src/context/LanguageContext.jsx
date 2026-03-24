@@ -33,7 +33,8 @@ export const translations = {
                 activeOpportunities: 'Active Opportunities',
                 pendingRequests: 'Pending Requests',
                 partnerCompanies: 'Partner Companies',
-                applications: 'Applications'
+                applications: 'Applications',
+                companyApplications: 'Company Route'
             },
             charts: {
                 userGrowth: 'User Growth',
@@ -41,6 +42,7 @@ export const translations = {
                 graduates: 'Graduates',
                 graduatesGrowth: 'Graduates Growth Over Time',
                 employmentDomains: 'Employment Domains',
+                graduateEmploymentStatus: 'Graduate Employment Status',
                 opportunitiesPosted: 'Opportunities Posted',
                 jobs: 'Jobs',
                 internships: 'Internships',
@@ -137,7 +139,9 @@ export const translations = {
                 reject: 'Reject',
                 accept: 'Accept',
                 noApplications: 'No applications found',
-                noApplicationsDesc: 'Applications for internships and jobs will appear here.'
+                noApplicationsDesc: 'Applications for internships and jobs will appear here.',
+                companyRoute: 'Company Route',
+                companyRouteTooltip: 'Total candidatures directly sent to companies'
             },
             manageCompanies: {
                 title: 'Partner Companies',
@@ -155,6 +159,30 @@ export const translations = {
                     add: 'Add Company',
                     cancel: 'Cancel'
                 }
+            }
+        },
+        company: {
+            nav: {
+                dashboard: 'Dashboard',
+                offers: 'My Offers',
+                applications: 'Applications',
+                messages: 'Messages',
+                profile: 'Company Profile'
+            },
+            stats: {
+                activeOffers: 'Active Offers',
+                totalApplications: 'Total Applications',
+                unreadMessages: 'Unread Messages',
+                recentApplications: 'Recent Applications'
+            },
+            overview: {
+                readyToHire: 'Ready to hire?',
+                createOpp: 'Create a new professional opportunity to reach the best SupNum talent.',
+                postOffer: 'Post New Offer',
+                platformTips: 'Platform Tips',
+                tipActive: 'Keep your offers active and detailed to receive more applications.',
+                tipMessages: 'Regularly check your messages to respond quickly to interested candidates.',
+                appliedFor: 'Applied for:'
             }
         },
         profile: {
@@ -178,7 +206,8 @@ export const translations = {
             downloadCv: 'Download CV',
             uploadCv: 'Upload CV (PDF)',
             gallery: 'Image Gallery',
-            addGalleryImage: 'Add Image'
+            addGalleryImage: 'Add Image',
+            skills: 'Skills'
         },
         hero: {
             welcome: 'Welcome to the SupNum Community',
@@ -311,7 +340,8 @@ export const translations = {
                 seeking: 'Seeking Opportunities',
                 studying: 'Studying',
                 freelance: 'Freelance'
-            }
+            },
+            skills: 'Skills & Endorsements'
         },
         aboutPage: {
             title: 'About SupNum Connect',
@@ -491,7 +521,8 @@ export const translations = {
                 title: 'Artificial Intelligence',
                 description: 'Master AI and machine learning techniques to design intelligent solutions capable of analyzing, predicting, and automating processes across various sectors.'
             }
-        }
+        },
+
     },
     FR: {
         nav: { home: 'Accueil', events: 'Événements', about: 'À propos', signin: 'Se connecter', signup: "S'inscrire" },
@@ -525,7 +556,8 @@ export const translations = {
                 activeOpportunities: 'Opportunités Actives',
                 pendingRequests: 'Demandes en Attente',
                 partnerCompanies: 'Entreprises Partenaires',
-                applications: 'Candidatures'
+                applications: 'Candidatures',
+                companyApplications: 'Route Entreprise'
             },
             charts: {
                 userGrowth: 'Croissance des utilisateurs',
@@ -533,6 +565,7 @@ export const translations = {
                 graduates: 'Diplômés',
                 graduatesGrowth: 'Croissance des diplômés au fil du temps',
                 employmentDomains: "Secteurs d'emploi",
+                graduateEmploymentStatus: "Statut d'emploi des diplômés",
                 opportunitiesPosted: 'Opportunités publiées',
                 jobs: 'Emplois',
                 internships: 'Stages',
@@ -629,24 +662,50 @@ export const translations = {
                 reject: 'Rejeter',
                 accept: 'Accepter',
                 noApplications: 'Aucune candidature trouvée',
-                noApplicationsDesc: 'Les candidatures aux stages et emplois apparaîtront ici.'
+                noApplicationsDesc: 'Les candidatures aux stages et emplois apparaîtront ici.',
+                companyRoute: 'Route Entreprise',
+                companyRouteTooltip: 'Total des candidatures envoyées directement aux entreprises'
             },
             manageCompanies: {
                 title: 'Entreprises Partenaires',
-                addCompany: 'Ajouter une entreprise',
-                editCompany: 'Modifier l\'entreprise',
+                addCompany: 'Ajouter une Entreprise',
+                editCompany: 'Modifier une Entreprise',
                 searchPlaceholder: 'Rechercher des entreprises...',
                 partner: 'Partenaire',
                 confirmDelete: 'Êtes-vous sûr de vouloir supprimer cette entreprise ?',
                 form: {
-                    name: 'Nom de l\'entreprise',
-                    industry: 'Secteur',
+                    name: "Nom de l'Entreprise",
+                    industry: 'Industrie',
                     location: 'Lieu',
-                    website: 'Site web',
+                    website: 'Site Web',
                     save: 'Enregistrer',
                     add: 'Ajouter',
                     cancel: 'Annuler'
                 }
+            }
+        },
+        company: {
+            nav: {
+                dashboard: 'Tableau de bord',
+                offers: 'Mes Offres',
+                applications: 'Candidatures',
+                messages: 'Messages',
+                profile: 'Profil Entreprise'
+            },
+            stats: {
+                activeOffers: 'Offres Actives',
+                totalApplications: 'Total Candidatures',
+                unreadMessages: 'Messages non lus',
+                recentApplications: 'Candidatures Récentes'
+            },
+            overview: {
+                readyToHire: 'Prêt à recruter ?',
+                createOpp: 'Créez une nouvelle opportunité professionnelle pour atteindre les meilleurs talents de SupNum.',
+                postOffer: 'Publier une Offre',
+                platformTips: 'Conseils Plateforme',
+                tipActive: 'Gardez vos offres actives et détaillées pour recevoir plus de candidatures.',
+                tipMessages: 'Vérifiez régulièrement vos messages pour répondre rapidement aux candidats intéressés.',
+                appliedFor: 'Candidature pour :'
             }
         },
         profile: {
@@ -670,7 +729,8 @@ export const translations = {
             downloadCv: 'Télécharger le CV',
             uploadCv: 'Télécharger CV (PDF)',
             gallery: 'Galerie d\'images',
-            addGalleryImage: 'Ajouter une image'
+            addGalleryImage: 'Ajouter une image',
+            skills: 'Compétences'
         },
         hero: {
             welcome: 'Bienvenue dans la communauté SupNum',
@@ -775,13 +835,13 @@ export const translations = {
             loading: 'Chargement...',
             noData: 'Aucune donnée trouvée.',
             search: 'Rechercher...',
-            name: 'Nom',
-            email: 'Email',
+            name: 'Nom complet',
+            email: 'Adresse Email',
             phone: 'Numéro de téléphone',
-            location: 'Localisation',
+            location: 'Emplacement',
             birthday: 'Date de naissance',
             jobTitle: 'Poste',
-            company: 'Entreprise / Organisation',
+            company: 'Entreprise',
             bio: 'Biographie',
             status: 'Statut',
             connect: 'Se connecter',
@@ -801,8 +861,8 @@ export const translations = {
                 label: 'Statut actuel',
                 select: 'Sélectionner le statut',
                 employed: 'Employé',
-                seeking: 'À la recherche d\'opportunités',
-                studying: 'Poursuite d\'études',
+                seeking: 'En recherche',
+                studying: 'Études',
                 freelance: 'Freelance'
             }
         },
@@ -984,7 +1044,7 @@ export const translations = {
                 title: 'Intelligence Artificielle',
                 description: 'Maîtrisez les techniques d’IA et de machine learning pour concevoir des solutions intelligentes capables d’analyser, prédire et automatiser des processus dans divers secteurs.'
             }
-        }
+        },
     },
     AR: {
         nav: { home: 'الرئيسية', events: 'الأحداث', about: 'حول', signin: 'تسجيل الدخول', signup: 'إنشاء حساب' },
@@ -1018,7 +1078,8 @@ export const translations = {
                 activeOpportunities: 'الفرص النشطة',
                 pendingRequests: 'الطلبات المعلقة',
                 partnerCompanies: 'الشركات الشريكة',
-                applications: 'الطلبات'
+                applications: 'الطلبات',
+                companyApplications: 'مسار الشركات'
             },
             charts: {
                 userGrowth: 'نمو المستخدمين',
@@ -1026,6 +1087,7 @@ export const translations = {
                 graduates: 'الخريجين',
                 graduatesGrowth: 'نمو الخريجين بمرور الوقت',
                 employmentDomains: 'مجالات العمل',
+                graduateEmploymentStatus: 'حالة توظيف الخريجين',
                 opportunitiesPosted: 'الفرص المنشورة',
                 jobs: 'وظائف',
                 internships: 'تدريب',
@@ -1122,7 +1184,9 @@ export const translations = {
                 reject: 'رفض',
                 accept: 'قبول',
                 noApplications: 'لا توجد طلبات',
-                noApplicationsDesc: 'ستظهر طلبات التدريب والوظائف هنا.'
+                noApplicationsDesc: 'ستظهر طلبات التدريب والوظائف هنا.',
+                companyRoute: 'مسار الشركات',
+                companyRouteTooltip: 'إجمالي الطلبات المرسلة مباشرة إلى الشركات'
             },
             manageCompanies: {
                 title: 'الشركات الشريكة',
@@ -1141,6 +1205,30 @@ export const translations = {
                     cancel: 'إلغاء'
                 }
             },
+        },
+        company: {
+            nav: {
+                dashboard: 'لوحة التحكم',
+                offers: 'عروضي',
+                applications: 'طلبات التوظيف',
+                messages: 'الرسائل',
+                profile: 'ملف الشركة'
+            },
+            stats: {
+                activeOffers: 'العروض النشطة',
+                totalApplications: 'إجمالي الطلبات',
+                unreadMessages: 'رسائل غير مقروءة',
+                recentApplications: 'الطلبات الأخيرة'
+            },
+            overview: {
+                readyToHire: 'مستعد للتوظيف؟',
+                createOpp: 'أنشئ فرصة مهنية جديدة للوصول إلى أفضل مواهب SupNum.',
+                postOffer: 'نشر عرض جديد',
+                platformTips: 'نصائح المنصة',
+                tipActive: 'حافظ على عروضك نشطة ومفصلة لتلقي المزيد من طلبات التوظيف.',
+                tipMessages: 'تحقق من رسائلك بانتظام للرد السريع على المرشحين المهتمين.',
+                appliedFor: 'متقدم على:'
+            }
         },
         profile: {
             title: 'ملفي الشخصي',
@@ -1163,7 +1251,8 @@ export const translations = {
             downloadCv: 'تحميل السيرة الذاتية',
             uploadCv: 'رفع السيرة الذاتية (PDF)',
             gallery: 'معرض الصور',
-            addGalleryImage: 'إضافة صورة'
+            addGalleryImage: 'إضافة صورة',
+            skills: 'المهارات'
         },
         hero: {
             welcome: 'مرحبًا بكم في مجتمع SupNum',
@@ -1267,13 +1356,13 @@ export const translations = {
             loading: 'جاري التحميل...',
             noData: 'لم يتم العثور على بيانات.',
             search: 'بحث...',
-            name: 'الاسم',
+            name: 'الاسم الكامل',
             email: 'البريد الإلكتروني',
             phone: 'رقم الهاتف',
             location: 'الموقع',
             birthday: 'تاريخ الميلاد',
             jobTitle: 'المسمى الوظيفي',
-            company: 'الشركة / المؤسسة',
+            company: 'الشركة',
             bio: 'نبذة شخصية',
             status: 'الحالة',
             connect: 'تواصل',
@@ -1293,10 +1382,11 @@ export const translations = {
                 label: 'الحالة الحالية',
                 select: 'اختر الحالة',
                 employed: 'موظف',
-                seeking: 'يبحث عن فرص',
-                studying: 'يواصل الدراسة',
-                freelance: 'عمل حر (Freelance)'
-            }
+                seeking: 'باحث عن عمل',
+                studying: 'طالب',
+                freelance: 'عمل حر'
+            },
+            skills: 'المهارات والتوصيات'
         },
         aboutPage: {
             title: 'حول SupNum Connect',
@@ -1386,7 +1476,7 @@ export const translations = {
         },
         search: {
             title: 'البحث عن الأشخاص',
-            placeholder: 'البحث بالاسم أو معرف SupNum (مثال: 2YXXX)...',
+            placeholder: 'البحث بالاسم أو معرف SupNum (مثال: 2YYXXX)...',
             viewProfile: 'عرض الملف الشخصي',
             noResults: 'لم يتم العثور على مستخدمين يطابقون بحثك.',
             requestSent: 'تم إرسال طلب الاتصال!'
@@ -1476,7 +1566,7 @@ export const translations = {
                 title: 'الذكاء الاصطناعي',
                 description: 'أتقن تقنيات الذكاء الاصطناعي والتعلم الآلي لتصميم حلول ذكية قادرة على تحليل وتوقع وأتمتة العمليات في مختلف القطاعات.'
             }
-        }
+        },
     }
 };
 

@@ -16,6 +16,8 @@ export function ManageUsers() {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
     const [roleFilter, setRoleFilter] = useState('All');
+    const [specialtyFilter, setSpecialtyFilter] = useState('All');
+    const [workStatusFilter, setWorkStatusFilter] = useState('All');
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -24,14 +26,22 @@ export function ManageUsers() {
     const [formData, setFormData] = useState({ name: '', email: '', password: '' });
     const [formError, setFormError] = useState('');
     const [formLoading, setFormLoading] = useState(false);
+    const [showExportConfirm, setShowExportConfirm] = useState(false);
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (overrides = {}) => {
         setLoading(true);
+        const currentStatus    = overrides.status    ?? statusFilter;
+        const currentRole      = overrides.role      ?? roleFilter;
+        const currentSpecialty = overrides.specialty ?? specialtyFilter;
+        const currentWorkStatus= overrides.workStatus?? workStatusFilter;
+        const currentSearch    = overrides.search    ?? searchTerm;
         try {
             const query = [];
-            if (statusFilter !== 'All') query.push(`status=${statusFilter}`);
-            if (roleFilter !== 'All') query.push(`role=${roleFilter}`);
-            if (searchTerm) query.push(`search=${searchTerm}`);
+            if (currentStatus    !== 'All') query.push(`status=${currentStatus}`);
+            if (currentRole      !== 'All') query.push(`role=${currentRole}`);
+            if (currentSpecialty !== 'All') query.push(`specialty=${currentSpecialty}`);
+            if (currentWorkStatus!== 'All') query.push(`workStatus=${currentWorkStatus}`);
+            if (currentSearch)              query.push(`search=${encodeURIComponent(currentSearch)}`);
 
             const response = await apiClient.get(`/users?${query.join('&')}`);
             setUsers(response.users);
@@ -43,12 +53,12 @@ export function ManageUsers() {
     };
 
     useEffect(() => {
-        fetchUsers();
-    }, [statusFilter, roleFilter]);
+        fetchUsers({ status: statusFilter, role: roleFilter, specialty: specialtyFilter, workStatus: workStatusFilter, search: searchTerm });
+    }, [statusFilter, roleFilter, specialtyFilter, workStatusFilter]);
 
     const handleSearch = (e) => {
         e.preventDefault();
-        fetchUsers();
+        fetchUsers({ status: statusFilter, role: roleFilter, specialty: specialtyFilter, workStatus: workStatusFilter, search: searchTerm });
     };
 
     const handleDeleteClick = (user) => {
@@ -81,11 +91,19 @@ export function ManageUsers() {
         try {
             const token = localStorage.getItem('auth_token');
             const currentLang = localStorage.getItem('language') || 'FR';
-            const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:3000/api'}/users/export/pdf?lang=${currentLang}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+
+            // Build filter query matching current view
+            const query = [`lang=${currentLang}`];
+            if (statusFilter    !== 'All') query.push(`status=${statusFilter}`);
+            if (roleFilter      !== 'All') query.push(`role=${roleFilter}`);
+            if (specialtyFilter !== 'All') query.push(`specialty=${specialtyFilter}`);
+            if (workStatusFilter!== 'All') query.push(`workStatus=${workStatusFilter}`);
+            if (searchTerm)                query.push(`search=${encodeURIComponent(searchTerm)}`);
+
+            const res = await fetch(
+                `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:3000/api'}/users/export/pdf?${query.join('&')}`,
+                { headers: { 'Authorization': `Bearer ${token}` } }
+            );
 
             if (!res.ok) throw new Error('Failed to download PDF');
 
@@ -98,9 +116,23 @@ export function ManageUsers() {
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
+            setShowExportConfirm(false);
         } catch (error) {
             console.error('Export failed:', error);
         }
+    };
+
+    // Build a human-readable summary of active filters for the confirmation dialog
+    const buildFilterSummary = () => {
+        const parts = [];
+        if (roleFilter      !== 'All') parts.push(`Rôle : ${roleFilter}`);
+        if (specialtyFilter !== 'All') parts.push(`Spécialité : ${specialtyFilter}`);
+        if (workStatusFilter!== 'All') parts.push(`Statut de travail : ${workStatusFilter}`);
+        if (statusFilter    !== 'All') parts.push(`Statut : ${statusFilter}`);
+        if (searchTerm)                parts.push(`Recherche : "${searchTerm}"`);
+        return parts.length > 0
+            ? parts.join(' · ')
+            : 'Tous les utilisateurs (aucun filtre actif)';
     };
 
     const handleCreateAdmin = async (e) => {
@@ -134,7 +166,7 @@ export function ManageUsers() {
                     <Button variant="outline" onClick={() => setShowCreateModal(true)} className="w-full sm:w-auto justify-center">
                         <Plus className="h-4 w-4 mr-2" /> Create Admin
                     </Button>
-                    <Button variant="outline" onClick={handleExportPDF} className="w-full sm:w-auto justify-center">
+                    <Button variant="outline" onClick={() => setShowExportConfirm(true)} className="w-full sm:w-auto justify-center">
                         <Download className="h-4 w-4 mr-2" /> Export PDF
                     </Button>
                 </div>
@@ -168,8 +200,32 @@ export function ManageUsers() {
                     <option value="All">Tous les rôles</option>
                     <option value="student">Étudiant</option>
                     <option value="graduate">Diplômé</option>
+                    <option value="company">Entreprise (Company)</option>
                     <option value="other">Invité (Autre)</option>
                     <option value="admin">Administrateur</option>
+                </select>
+                <select
+                    value={specialtyFilter}
+                    onChange={(e) => setSpecialtyFilter(e.target.value)}
+                    className="h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-sm outline-none text-slate-700 dark:text-slate-300"
+                >
+                    <option value="All">Toutes les spécialités</option>
+                    <option value="RSS">RSS</option>
+                    <option value="DSI">DSI</option>
+                    <option value="DWM">DWM</option>
+                    <option value="IA">IA</option>
+                    <option value="IDS">IDS</option>
+                </select>
+                <select
+                    value={workStatusFilter}
+                    onChange={(e) => setWorkStatusFilter(e.target.value)}
+                    className="h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-sm outline-none text-slate-700 dark:text-slate-300"
+                >
+                    <option value="All">{t?.common?.workStatus?.label || 'All Work Status'}</option>
+                    <option value="employed">{t?.common?.workStatus?.employed || 'Employed'}</option>
+                    <option value="seeking">{t?.common?.workStatus?.seeking || 'Seeking'}</option>
+                    <option value="studying">{t?.common?.workStatus?.studying || 'Studying'}</option>
+                    <option value="freelance">{t?.common?.workStatus?.freelance || 'Freelance'}</option>
                 </select>
             </div>
 
@@ -213,6 +269,18 @@ export function ManageUsers() {
                                                 <div className="min-w-0">
                                                     <p className="font-semibold text-slate-900 dark:text-white text-sm md:text-base truncate">{user.name}</p>
                                                     <p className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[120px] md:max-w-none">{user.email}</p>
+                                                    {user.specialty && (
+                                                        <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                                            user.specialty === 'RSS' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' :
+                                                            user.specialty === 'DSI' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' :
+                                                            user.specialty === 'DWM' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' :
+                                                            user.specialty === 'IA'  ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300' :
+                                                            user.specialty === 'IDS' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' :
+                                                            'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+                                                        }`}>
+                                                            {user.specialty}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
                                         </td>
@@ -220,11 +288,14 @@ export function ManageUsers() {
                                         <td className="p-4 md:p-6 hidden lg:table-cell">
                                             <span className={`px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider ${user.role === 'student'
                                                 ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-                                                : user.role === 'admin' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' : 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300'
+                                                : user.role === 'admin' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' 
+                                                : user.role === 'company' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'
+                                                : 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300'
                                                 }`}>
                                                 {t.common?.roles?.[user.role?.toLowerCase()] || user.role}
                                             </span>
                                         </td>
+
                                         <td className="p-4 md:p-6">
                                             <span className={`flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider w-fit ${user.status === 'Verified' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' :
                                                 user.status === 'Pending' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' :
@@ -391,6 +462,16 @@ export function ManageUsers() {
                 }
                 confirmText="Supprimer"
                 variant="danger"
+            />
+
+            <ConfirmationModal
+                isOpen={showExportConfirm}
+                onClose={() => setShowExportConfirm(false)}
+                onConfirm={handleExportPDF}
+                title="📄 Exporter le rapport PDF"
+                message={`Vous allez exporter un rapport PDF avec les filtres suivants :\n\n${buildFilterSummary()}\n\n${users.length} utilisateur(s) sera/seront inclus dans le rapport.`}
+                confirmText="Exporter"
+                variant="primary"
             />
         </div>
     );

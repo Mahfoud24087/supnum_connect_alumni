@@ -169,40 +169,10 @@ router.post('/', protect, upload.single('file'), async (req, res, next) => {
             return res.status(400).json({ message: 'Message must have text, image or voice' });
         }
 
-        // CHECK IF FRIENDS (Admins can message anyone, and anyone can message admins)
-        if (req.user.role !== 'admin') {
-            const recipientUser = await User.findByPk(recipientId);
-
-            // Allow if recipient is admin
-            if (recipientUser && recipientUser.role === 'admin') {
-                // Allowed
-            } else {
-                // Check if already friends
-                const isFriend = await Connection.findOne({
-                    where: {
-                        [Op.or]: [
-                            { requesterId: req.user.id, recipientId, status: 'accepted' },
-                            { requesterId: recipientId, recipientId: req.user.id, status: 'accepted' }
-                        ]
-                    }
-                });
-
-                if (!isFriend) {
-                    // One last check: if there's ALREADY a message from this person, allow reply
-                    const existingConversation = await Message.findOne({
-                        where: {
-                            [Op.or]: [
-                                { senderId: req.user.id, recipientId },
-                                { senderId: recipientId, recipientId: req.user.id }
-                            ]
-                        }
-                    });
-
-                    if (!existingConversation) {
-                        return res.status(403).json({ message: 'You can only message your friends.' });
-                    }
-                }
-            }
+        // Platform is now public - everyone can message everyone
+        const recipientUser = await User.findByPk(recipientId);
+        if (!recipientUser) {
+            return res.status(404).json({ message: 'Recipient not found' });
         }
 
         // Generate conversation ID (sorted user IDs to ensure uniqueness)

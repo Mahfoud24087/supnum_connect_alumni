@@ -21,6 +21,7 @@ export function ManageEvents() {
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const [eventToDelete, setEventToDelete] = useState(null);
+    const [typeFilter, setTypeFilter] = useState('All');
 
     const [newEvent, setNewEvent] = useState({
         title: '',
@@ -33,10 +34,13 @@ export function ManageEvents() {
         color: 'bg-blue-600'
     });
 
-    const fetchEvents = async () => {
+    const fetchEvents = async (overrides = {}) => {
         try {
             setLoading(true);
-            const response = await apiClient.get('/events');
+            const currentType = overrides.type ?? typeFilter;
+
+            const url = currentType !== 'All' ? `/events?type=${currentType}` : '/events';
+            const response = await apiClient.get(url);
             setEvents(response.events);
         } catch (error) {
             console.error('Failed to fetch events:', error);
@@ -47,7 +51,7 @@ export function ManageEvents() {
 
     useEffect(() => {
         fetchEvents();
-    }, []);
+    }, [typeFilter]);
 
     const handleImageUpload = (e) => {
         const file = e.target.files[0];
@@ -145,6 +149,20 @@ export function ManageEvents() {
                     <Plus className="mr-2 h-4 w-4" />
                     {t.admin.events.create}
                 </Button>
+            </div>
+
+            <div className="flex justify-start">
+                <select
+                    value={typeFilter}
+                    onChange={(e) => setTypeFilter(e.target.value)}
+                    className="h-12 px-6 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-bold text-slate-700 dark:text-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none shadow-sm min-w-[200px] transition-all cursor-pointer appearance-none"
+                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', backgroundSize: '1.5em' }}
+                >
+                    <option value="All">Tous les types</option>
+                    <option value="Event">Event</option>
+                    <option value="Challenge">Challenge</option>
+                    <option value="Contest">Contest</option>
+                </select>
             </div>
 
             <AnimatePresence>

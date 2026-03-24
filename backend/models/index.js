@@ -8,6 +8,8 @@ const Application = require('./Application');
 const Notification = require('./Notification');
 const Post = require('./Post');
 const Comment = require('./Comment');
+const SkillEndorsement = require('./SkillEndorsement');
+const PushSubscription = require('./PushSubscription');
 const { sequelize } = require('../config/database');
 
 // Define associations
@@ -50,6 +52,16 @@ User.hasMany(Comment, { foreignKey: 'userId', onDelete: 'CASCADE' });
 Comment.hasMany(Comment, { as: 'replies', foreignKey: 'parentId', onDelete: 'CASCADE' });
 Comment.belongsTo(Comment, { as: 'parent', foreignKey: 'parentId' });
 
+// SkillEndorsement associations
+SkillEndorsement.belongsTo(User, { as: 'endorser', foreignKey: 'endorserId' });
+SkillEndorsement.belongsTo(User, { as: 'user', foreignKey: 'userId' });
+User.hasMany(SkillEndorsement, { as: 'endorsementsReceived', foreignKey: 'userId', onDelete: 'CASCADE' });
+User.hasMany(SkillEndorsement, { as: 'endorsementsGiven', foreignKey: 'endorserId', onDelete: 'CASCADE' });
+
+// Push Subscription associations
+PushSubscription.belongsTo(User, { foreignKey: 'userId' });
+User.hasMany(PushSubscription, { foreignKey: 'userId', onDelete: 'CASCADE' });
+
 module.exports = {
     User,
     Event,
@@ -61,5 +73,7 @@ module.exports = {
     Notification,
     Post,
     Comment,
+    SkillEndorsement,
+    PushSubscription,
     sequelize
 };

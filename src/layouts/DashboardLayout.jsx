@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -19,12 +19,14 @@ import {
     Building,
     Home,
     UserPlus,
-    Newspaper
+    Newspaper,
+    ClipboardList
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { cn } from '../lib/utils';
 import { NotificationDropdown } from '../components/NotificationDropdown';
 import { apiClient } from '../services/api';
+import { requestNotificationPermission, subscribeToPushNotifications } from '../services/notificationService';
 
 export function DashboardLayout() {
     const { user, logout } = useAuth();
@@ -51,6 +53,16 @@ export function DashboardLayout() {
             fetchUnreadMessages();
             // Poll for unread messages every 30 seconds
             const interval = setInterval(fetchUnreadMessages, 30000);
+            
+            // Handle Push Notifications
+            const setupNotifications = async () => {
+                const granted = await requestNotificationPermission();
+                if (granted) {
+                    await subscribeToPushNotifications();
+                }
+            };
+            setupNotifications();
+
             return () => clearInterval(interval);
         }
     }, [user]);
@@ -95,9 +107,47 @@ export function DashboardLayout() {
         { name: t.dashboard.nav.profile, path: '/dashboard/profile', icon: User },
     ];
 
-    const navItems = user?.role === 'admin'
-        ? adminNavItems
-        : (user?.role === 'other' ? otherNavItems : studentNavItems);
+    const companyNavItems = [
+        { name: t.footer.home, path: '/', icon: Home },
+        { name: t.company.nav.dashboard, icon: LayoutDashboard, path: '/dashboard' },
+        { name: t.company.nav.offers, icon: Briefcase, path: '/dashboard/company/offers' },
+        { name: t.company.nav.applications, icon: ClipboardList, path: '/dashboard/company/applications' },
+        { name: t.company.nav.messages, icon: MessageSquare, path: '/dashboard/messages' },
+        { name: t.company.nav.profile, icon: User, path: '/dashboard/profile' },
+    ];
+
+    const graduateNavItems = [
+        { name: t.footer.home, path: '/', icon: Home },
+        { name: t.dashboard.nav.dashboard, path: '/dashboard', icon: LayoutDashboard },
+        { name: t.company.nav.offers, icon: Briefcase, path: '/dashboard/company/offers' },
+        { name: t.company.nav.applications, icon: ClipboardList, path: '/dashboard/company/applications' },
+        { name: t.footer.findAlumni, path: '/dashboard/find-friends', icon: UserPlus },
+        { name: t.dashboard.nav.friends, path: '/dashboard/friends', icon: Users },
+        { name: t.dashboard.nav.messages, path: '/dashboard/messages', icon: MessageSquare },
+        { name: t.dashboard.nav.feed, path: '/dashboard/feed', icon: Newspaper },
+        { name: t.dashboard.nav.profile, path: '/dashboard/profile', icon: User },
+    ];
+
+    const isWorkingGraduate = useMemo(() => {
+        return user?.role === 'graduate' && (
+            user?.workStatus?.toLowerCase() === 'employed' || 
+            user?.jobTitle || 
+            user?.company
+        );
+    }, [user]);
+
+    const navItems = useMemo(() => {
+        if (!user) return [];
+        if (user.role === 'admin') return adminNavItems;
+        if (user.role === 'company') return companyNavItems;
+        
+        if (user.role === 'graduate' && isWorkingGraduate) {
+            return graduateNavItems;
+        }
+        
+        if (user.role === 'other') return otherNavItems;
+        return studentNavItems;
+    }, [user, isWorkingGraduate, t]);
 
     const isActive = (path) => {
         if (path === '/dashboard' && location.pathname === '/dashboard') return true;

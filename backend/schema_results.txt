@@ -1,0 +1,9 @@
+--- Targeted Column Check ---
+latitude: EXISTS
+longitude: EXISTS
+website: EXISTS
+industry: EXISTS
+foundationYear: EXISTS
+contactEmail: EXISTS
+socialTwitter: EXISTS
+socialYoutube: EXISTS

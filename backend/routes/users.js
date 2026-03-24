@@ -1,13 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { User, Connection, Event, Company, Internship, Application, Message, Notification, Post, Comment, sequelize } = require('../models');
-const { protect, admin } = require('../middleware/auth');
+const { User, Connection, Event, Company, Internship, Application, Message, Notification, Post, Comment, SkillEndorsement, sequelize } = require('../models');
+const { protect, admin, optionalProtect } = require('../middleware/auth');
 const { Op, fn, col } = require('sequelize');
 
 // @route   GET /api/users/public/stats
-// @desc    Get public statistics for landing page
-// @access  Public (Optional Auth)
-const { optionalProtect } = require('../middleware/auth');
+
 router.get('/public/stats', optionalProtect, async (req, res, next) => {
     try {
         const totalUsers = await User.count({
@@ -29,11 +27,16 @@ router.get('/public/stats', optionalProtect, async (req, res, next) => {
 
         const activeInternships = await Internship.count({ where: internshipWhere });
 
-        // Latest 30 Opportunities
+        // Latest 30 Opportunities - Include creator info to show who posted it
         const latestInternships = await Internship.findAll({
             where: internshipWhere,
             limit: 30,
-            order: [['createdAt', 'DESC']]
+            order: [['createdAt', 'DESC']],
+            include: [{
+                model: User,
+                as: 'createdBy',
+                attributes: ['name', 'role']
+            }]
         });
 
         // Latest 6 Events
@@ -104,6 +107,29 @@ router.get('/admin/stats', protect, admin, async (req, res, next) => {
         const partnerCompanies = await Company.count();
         const activeInternships = await Internship.count({ where: { active: true } });
         const totalApplications = await Application.count();
+        
+        // Graduate Work Status Statistics
+        const graduateStats = {
+            employed: await User.count({ where: { role: 'graduate', workStatus: 'employed' } }),
+            seeking: await User.count({ where: { role: 'graduate', workStatus: 'seeking' } }),
+            studying: await User.count({ where: { role: 'graduate', workStatus: 'studying' } }),
+            freelance: await User.count({ where: { role: 'graduate', workStatus: 'freelance' } }),
+            unspecified: await User.count({ where: { role: 'graduate', [Op.or]: [{ workStatus: '' }, { workStatus: null }] } })
+        };
+        
+        // Find company applications for the new counter
+        const adminUsers = await User.findAll({ where: { role: 'admin' }, attributes: ['id'] });
+        const adminUserIds = adminUsers.map(u => u.id);
+        const adminInternships = await Internship.findAll({
+            where: { createdById: { [Op.in]: adminUserIds } },
+            attributes: ['id']
+        });
+        const adminInternshipIds = adminInternships.map(i => i.id);
+        
+        const totalCompanyApplications = await Application.count({
+            where: adminInternshipIds.length > 0 ? { internshipId: { [Op.notIn]: adminInternshipIds } } : {}
+        });
+
         const activeEvents = await Event.count({
             where: {
                 date: { [Op.gte]: new Date() }
@@ -209,13 +235,16 @@ router.get('/admin/stats', protect, admin, async (req, res, next) => {
                 partnerCompanies,
                 activeInternships,
                 totalApplications,
+                totalCompanyApplications,
                 activeEvents,
+                graduateStats,
                 avgApplicationsPerUser: totalUsers > 0 ? (totalApplications / totalUsers).toFixed(1) : 0,
                 successRate: totalApplications > 0 ? Math.round((await Application.count({ where: { status: 'accepted' } }) / totalApplications) * 100) : 0
             },
             growthData,
             domainData,
-            opportunitiesData
+            opportunitiesData,
+            graduateStats
         });
     } catch (error) {
         next(error);
@@ -292,7 +321,7 @@ router.post('/create-admin', protect, admin, async (req, res, next) => {
 // @access  Private/Admin
 router.get('/export/pdf', protect, admin, async (req, res, next) => {
     try {
-        const { lang = 'EN' } = req.query;
+        const { lang = 'EN', status, role, specialty, search, workStatus } = req.query;
 
         // Translation object
         const translations = {
@@ -300,6 +329,7 @@ router.get('/export/pdf', protect, admin, async (req, res, next) => {
                 title: 'SupNum Connect',
                 subtitle: 'User Management Report',
                 generated: 'Generated',
+                filters: 'Applied Filters',
                 summary: 'Executive Summary',
                 summaryDesc: 'Overview of current user base statistics',
                 totalUsers: 'Total Users',
@@ -311,6 +341,7 @@ router.get('/export/pdf', protect, admin, async (req, res, next) => {
                 email: 'Email',
                 supnumId: 'SupNum ID',
                 role: 'Role',
+                specialty: 'Specialty',
                 status: 'Status',
                 joined: 'Joined',
                 page: 'Page',
@@ -324,6 +355,7 @@ router.get('/export/pdf', protect, admin, async (req, res, next) => {
                 title: 'SupNum Connect',
                 subtitle: 'Rapport de Gestion des Utilisateurs',
                 generated: 'Généré le',
+                filters: 'Filtres appliqués',
                 summary: 'Résumé Exécutif',
                 summaryDesc: 'Aperçu des statistiques actuelles de la base d\'utilisateurs',
                 totalUsers: 'Total Utilisateurs',
@@ -335,6 +367,7 @@ router.get('/export/pdf', protect, admin, async (req, res, next) => {
                 email: 'Email',
                 supnumId: 'ID SupNum',
                 role: 'Rôle',
+                specialty: 'Spécialité',
                 status: 'Statut',
                 joined: 'Inscrit',
                 page: 'Page',
@@ -348,6 +381,7 @@ router.get('/export/pdf', protect, admin, async (req, res, next) => {
                 title: 'SupNum Connect',
                 subtitle: 'تقرير إدارة المستخدمين',
                 generated: 'تم الإنشاء في',
+                filters: 'الفلاتر المطبقة',
                 summary: 'الملخص التنفيذي',
                 summaryDesc: 'نظرة عامة على إحصائيات قاعدة المستخدمين الحالية',
                 totalUsers: 'إجمالي المستخدمين',
@@ -359,6 +393,7 @@ router.get('/export/pdf', protect, admin, async (req, res, next) => {
                 email: 'البريد الإلكتروني',
                 supnumId: 'معرف SupNum',
                 role: 'الدور',
+                specialty: 'التخصص',
                 status: 'الحالة',
                 joined: 'تاريخ الانضمام',
                 page: 'صفحة',
@@ -372,7 +407,32 @@ router.get('/export/pdf', protect, admin, async (req, res, next) => {
 
         const t = translations[lang] || translations.EN;
 
+        // Build filter conditions (same logic as GET /api/users)
+        const andConditions = [];
+        if (status)    andConditions.push({ status });
+        if (role)      andConditions.push({ role });
+        if (specialty) andConditions.push({ specialty: { [Op.iLike]: specialty } });
+        if (workStatus) andConditions.push({ workStatus });
+        if (search)    andConditions.push({
+            [Op.or]: [
+                { name:     { [Op.iLike]: `%${search}%` } },
+                { email:    { [Op.iLike]: `%${search}%` } },
+                { supnumId: { [Op.iLike]: `%${search}%` } }
+            ]
+        });
+        const filterWhere = andConditions.length > 0 ? { [Op.and]: andConditions } : {};
+
+        // Build human-readable filter label for the PDF
+        const filterParts = [];
+        if (role)      filterParts.push(`Role: ${role}`);
+        if (specialty) filterParts.push(`Specialite: ${specialty}`);
+        if (workStatus) filterParts.push(`Statut de travail: ${workStatus}`);
+        if (status)    filterParts.push(`Statut: ${status}`);
+        if (search)    filterParts.push(`Recherche: "${search}"`);
+        const filterLabel = filterParts.length > 0 ? filterParts.join(' | ') : null;
+
         const allUsers = await User.findAll({
+            where: filterWhere,
             attributes: ['id', 'name', 'email', 'supnumId', 'role', 'status', 'createdAt'],
             order: [['createdAt', 'DESC']]
         });
@@ -405,7 +465,8 @@ router.get('/export/pdf', protect, admin, async (req, res, next) => {
         doc.pipe(res);
 
         // --- HEADER ---
-        doc.rect(0, 0, doc.page.width, 80).fill('#2563eb');
+        const headerHeight = filterLabel ? 100 : 80;
+        doc.rect(0, 0, doc.page.width, headerHeight).fill('#2563eb');
         doc.fillColor('white')
             .fontSize(22)
             .font('Helvetica-Bold')
@@ -424,6 +485,13 @@ router.get('/export/pdf', protect, admin, async (req, res, next) => {
                 align: 'right',
                 width: doc.page.width - 80
             });
+
+        if (filterLabel) {
+            doc.fillColor('rgba(255,255,255,0.75)')
+                .fontSize(8)
+                .font('Helvetica')
+                .text(`${t.filters}: ${filterLabel}`, 40, 76, { width: doc.page.width - 80 });
+        }
 
         doc.fillColor('#000000');
 
@@ -491,20 +559,21 @@ router.get('/export/pdf', protect, admin, async (req, res, next) => {
         const tableTop = currentY;
         const tableLeft = 40;
         const rowHeight = 25;
-        const headerHeight = 30;
+        const tableHeaderHeight = 30;
 
         const columns = [
-            { header: t.name, width: 100, key: 'name' },
-            { header: t.email, width: 140, key: 'email' },
-            { header: t.supnumId, width: 70, key: 'supnumId' },
-            { header: t.role, width: 70, key: 'role' },
-            { header: t.status, width: 70, key: 'status' },
-            { header: t.joined, width: 65, key: 'joined' }
+            { header: t.name, width: 90, key: 'name' },
+            { header: t.email, width: 130, key: 'email' },
+            { header: t.supnumId, width: 65, key: 'supnumId' },
+            { header: t.role, width: 65, key: 'role' },
+            { header: t.specialty, width: 65, key: 'specialty' },
+            { header: t.status, width: 60, key: 'status' },
+            { header: t.joined, width: 55, key: 'joined' }
         ];
 
         // Draw table header
         let xPos = tableLeft;
-        doc.rect(tableLeft, tableTop, 515, headerHeight).fill('#1e40af');
+        doc.rect(tableLeft, tableTop, 530, tableHeaderHeight).fill('#1e40af');
 
         columns.forEach(col => {
             doc.fillColor('#ffffff')
@@ -517,7 +586,7 @@ router.get('/export/pdf', protect, admin, async (req, res, next) => {
             xPos += col.width;
         });
 
-        currentY = tableTop + headerHeight;
+        currentY = tableTop + tableHeaderHeight;
 
         // Draw table rows
         users.forEach((user, index) => {
@@ -529,14 +598,14 @@ router.get('/export/pdf', protect, admin, async (req, res, next) => {
 
             // Alternate row background
             if (index % 2 === 0) {
-                doc.rect(tableLeft, currentY, 515, rowHeight).fill('#f8fafc');
+                doc.rect(tableLeft, currentY, 530, rowHeight).fill('#f8fafc');
             } else {
-                doc.rect(tableLeft, currentY, 515, rowHeight).fill('#ffffff');
+                doc.rect(tableLeft, currentY, 530, rowHeight).fill('#ffffff');
             }
 
             // Draw cell borders
             doc.strokeColor('#e2e8f0').lineWidth(0.5);
-            doc.rect(tableLeft, currentY, 515, rowHeight).stroke();
+            doc.rect(tableLeft, currentY, 530, rowHeight).stroke();
 
             xPos = tableLeft;
             const rowData = {
@@ -544,6 +613,7 @@ router.get('/export/pdf', protect, admin, async (req, res, next) => {
                 email: user.email,
                 supnumId: user.role === 'admin' ? '------' : (user.supnumId ? user.supnumId.replace(/\D/g, '') || 'N/A' : 'N/A'),
                 role: t[user.role.toLowerCase()] || user.role,
+                specialty: user.specialty || '—',
                 status: user.status,
                 joined: new Date(user.createdAt).toLocaleDateString(lang === 'AR' ? 'ar-EG' : lang === 'FR' ? 'fr-FR' : 'en-US', {
                     month: 'short',
@@ -727,24 +797,36 @@ router.get('/search/all', protect, async (req, res, next) => {
 // @access  Private/Admin
 router.get('/', protect, admin, async (req, res, next) => {
     try {
-        const { status, search, role } = req.query;
-        let where = {};
+        const { status, search, role, specialty, workStatus } = req.query;
+        const andConditions = [];
 
         if (status) {
-            where.status = status;
+            andConditions.push({ status });
         }
 
         if (role) {
-            where.role = role;
+            andConditions.push({ role });
+        }
+
+        if (specialty) {
+            andConditions.push({ specialty: { [Op.iLike]: specialty } });
+        }
+
+        if (workStatus) {
+            andConditions.push({ workStatus });
         }
 
         if (search) {
-            where[Op.or] = [
-                { name: { [Op.iLike]: `%${search}%` } },
-                { email: { [Op.iLike]: `%${search}%` } },
-                { supnumId: { [Op.iLike]: `%${search}%` } }
-            ];
+            andConditions.push({
+                [Op.or]: [
+                    { name:     { [Op.iLike]: `%${search}%` } },
+                    { email:    { [Op.iLike]: `%${search}%` } },
+                    { supnumId: { [Op.iLike]: `%${search}%` } }
+                ]
+            });
         }
+
+        const where = andConditions.length > 0 ? { [Op.and]: andConditions } : {};
 
         const users = await User.findAll({
             where,
@@ -950,7 +1032,14 @@ router.get('/connections/friends', protect, async (req, res, next) => {
 router.get('/:id', protect, async (req, res, next) => {
     try {
         const user = await User.findByPk(req.params.id, {
-            attributes: { exclude: ['password'] }
+            attributes: { exclude: ['password'] },
+            include: [
+                {
+                    model: SkillEndorsement,
+                    as: 'endorsementsReceived',
+                    attributes: ['skillName', 'endorserId']
+                }
+            ]
         });
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
@@ -1175,6 +1264,107 @@ router.delete('/connect/:id/unfriend', protect, async (req, res, next) => {
 
         await connection.destroy();
         res.json({ message: 'Friend removed successfully' });
+    } catch (error) {
+        next(error);
+    }
+});
+
+// @route   POST /api/users/skills
+// @desc    Add a skill to profile
+// @access  Private
+router.post('/skills', protect, async (req, res, next) => {
+    try {
+        const { skill } = req.body;
+        if (!skill) return res.status(400).json({ message: 'Skill name is required' });
+
+        const trimmedSkill = skill.trim();
+        const user = await User.findByPk(req.user.id);
+        const skills = user.skills || [];
+
+        if (skills.some(s => s.toLowerCase() === trimmedSkill.toLowerCase())) {
+            return res.status(400).json({ message: 'Skill already exists' });
+        }
+
+        user.skills = [...skills, trimmedSkill];
+        await user.save();
+
+        res.json({ skills: user.skills });
+    } catch (error) {
+        next(error);
+    }
+});
+
+// @route   DELETE /api/users/skills/:skill
+// @desc    Remove a skill from profile
+// @access  Private
+router.delete('/skills/:skill', protect, async (req, res, next) => {
+    try {
+        const { skill } = req.params;
+        const user = await User.findByPk(req.user.id);
+        const skills = user.skills || [];
+
+        user.skills = skills.filter(s => s.toLowerCase() !== decodeURIComponent(skill).toLowerCase());
+        await user.save();
+
+        // Also remove all endorsements for this skill for this user
+        await SkillEndorsement.destroy({
+            where: {
+                userId: req.user.id,
+                skillName: decodeURIComponent(skill)
+            }
+        });
+
+        res.json({ skills: user.skills });
+    } catch (error) {
+        next(error);
+    }
+});
+
+// @route   POST /api/users/:userId/endorse
+// @desc    Endorse a skill for a user
+// @access  Private
+router.post('/:userId/endorse', protect, async (req, res, next) => {
+    try {
+        const { skillName } = req.body;
+        const targetUserId = req.params.userId;
+        const endorserId = req.user.id;
+
+        if (targetUserId === endorserId) {
+            return res.status(400).json({ message: 'You cannot endorse your own skills' });
+        }
+
+        const targetUser = await User.findByPk(targetUserId);
+        if (!targetUser) return res.status(404).json({ message: 'User not found' });
+
+        // Ensure the skill exists on target user package/skills
+        if (!targetUser.skills || !targetUser.skills.some(s => s.toLowerCase() === skillName.toLowerCase())) {
+            return res.status(400).json({ message: 'User does not have this skill' });
+        }
+
+        const [endorsement, created] = await SkillEndorsement.findOrCreate({
+            where: {
+                skillName,
+                endorserId,
+                userId: targetUserId
+            }
+        });
+
+        if (!created) {
+            // If already exists, un-endorse (toggle behavior)
+            await endorsement.destroy();
+            return res.json({ endorsed: false });
+        }
+
+        // Notify the user
+        await Notification.create({
+            userId: targetUserId,
+            type: 'skill_endorsement',
+            title: 'Nouvelle recommandation de compétence !',
+            message: `${req.user.name} a recommandé votre compétence: ${skillName}`,
+            link: `/profile/${targetUserId}`
+        });
+
+        res.json({ endorsed: true });
     } catch (error) {
         next(error);
     }

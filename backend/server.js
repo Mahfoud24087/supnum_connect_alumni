@@ -76,6 +76,10 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+// Body parser - MUST be before any middleware that reads req.body
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
 // Import custom limiters
 const progressiveAuthLimiter = require('./middleware/authLimiter');
 
@@ -90,16 +94,10 @@ app.use('/api/', limiter);
 app.use('/api/auth/login', progressiveAuthLimiter);
 app.use('/api/auth/register', progressiveAuthLimiter);
 
-app.disable('x-powered-by'); // Extra precaution to hide server type
-
-// Compression middleware
+app.disable('x-powered-by');
 app.use(compression());
 
 const path = require('path');
-
-// Body parser
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve static files
 app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));

@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
-import { FileText, User as UserIcon, Calendar, Building, Link as LinkIcon, CheckCircle, XCircle, Clock, Phone, Mail, Search, Briefcase, ChevronRight, ExternalLink, Info, MessageSquare, Send } from 'lucide-react';
+import { FileText, User as UserIcon, Calendar, Building, Link as LinkIcon, CheckCircle, XCircle, Clock, Phone, Mail, Search, Briefcase, ChevronRight, ExternalLink, Info, MessageSquare, Send, Trash2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { apiClient } from '../../services/api';
+import { ConfirmationModal } from '../../components/ConfirmationModal';
+import { useToast } from '../../components/Toast';
 
 export function ManageApplications() {
     const { t, language } = useLanguage();
     const navigate = useNavigate();
     const [applications, setApplications] = useState([]);
+    const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
@@ -16,12 +19,18 @@ export function ManageApplications() {
     const [selectedInternshipId, setSelectedInternshipId] = useState(null);
     const [selectedId, setSelectedId] = useState(null);
     const [isMobileListOpen, setIsMobileListOpen] = useState(true);
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [applicationToDelete, setApplicationToDelete] = useState(null);
+    const { showToast } = useToast();
 
     const fetchApplications = async () => {
         try {
             setLoading(true);
             const response = await apiClient.get('/applications');
             setApplications(response.applications);
+            if (response.stats) {
+                setStats(response.stats);
+            }
         } catch (error) {
             console.error('Failed to fetch applications:', error);
         } finally {
@@ -42,6 +51,29 @@ export function ManageApplications() {
             ));
         } catch (error) {
             console.error(error);
+        }
+    };
+
+    const handleDeleteClick = (app) => {
+        setApplicationToDelete(app);
+        setIsConfirmOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!applicationToDelete) return;
+        try {
+            await apiClient.delete(`/applications/${applicationToDelete.id}`);
+            setApplications(prev => prev.filter(app => app.id !== applicationToDelete.id));
+            if (selectedId === applicationToDelete.id) {
+                setSelectedId(null);
+            }
+            showToast('Candidature supprimée avec succès', 'success');
+        } catch (error) {
+            console.error(error);
+            showToast('Échec de la suppression', 'error');
+        } finally {
+            setIsConfirmOpen(false);
+            setApplicationToDelete(null);
         }
     };
 
@@ -124,7 +156,7 @@ export function ManageApplications() {
         return (
             <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/20 -mt-10 pt-10 px-4">
                 <div className="space-y-12 animate-in fade-in duration-700 max-w-7xl mx-auto pb-20">
-                <div className="flex flex-col md:flex-row justify-between items-end gap-6 overflow-hidden">
+                <div className="flex flex-col md:flex-row justify-between items-end gap-6">
                     <div className="space-y-4">
                         <div className="flex items-center gap-2 text-blue-600 font-black uppercase tracking-widest text-[10px]">
                             <div className="h-1 w-8 bg-blue-600 rounded-full" /> {t.admin.manageApplications.title}
@@ -153,6 +185,19 @@ export function ManageApplications() {
                             <p className="text-[10px] uppercase font-black text-amber-500 tracking-widest mb-1">{t.admin.manageApplications.pending || 'Pending'}</p>
                             <p className="text-xl font-black text-slate-900 dark:text-white">{applications.filter(a => a.status === 'pending').length}</p>
                         </div>
+                        {stats && stats.totalCompanyApplications !== undefined && (
+                            <>
+                                <div className="w-px h-8 bg-slate-200 dark:bg-slate-700" />
+                                <div className="text-center px-4 flex flex-col items-center justify-center relative group/tip">
+                                    <p className="text-[10px] uppercase font-black text-blue-500 tracking-widest mb-1">{t.admin.manageApplications.companyRoute}</p>
+                                    <p className="text-xl font-black text-slate-900 dark:text-white">{stats.totalCompanyApplications}</p>
+                                    {/* Tooltip */}
+                                    <div className="absolute -bottom-8 opacity-0 group-hover/tip:opacity-100 transition-opacity bg-slate-900 border border-slate-700 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg whitespace-nowrap z-50 pointer-events-none shadow-xl">
+                                        {t.admin.manageApplications.companyRouteTooltip}
+                                    </div>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
 
@@ -421,6 +466,12 @@ export function ManageApplications() {
                                         >
                                             <CheckCircle className="h-3.5 w-3.5" /> {t.admin.manageApplications.accept || 'Accept'}
                                         </button>
+                                        <button
+                                            onClick={() => handleDeleteClick(selectedApp)}
+                                            className="flex-1 sm:flex-none flex items-center justify-center h-[42px] w-[42px] bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-2xl hover:bg-red-600 hover:text-white transition-all shadow-lg active:scale-95"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -548,6 +599,16 @@ export function ManageApplications() {
                     )}
                 </div>
             </div>
+            
+            <ConfirmationModal
+                isOpen={isConfirmOpen}
+                onClose={() => setIsConfirmOpen(false)}
+                onConfirm={confirmDelete}
+                title="Supprimer la candidature"
+                message="Êtes-vous sûr de vouloir supprimer cette candidature ? Cette action est irréversible."
+                confirmText="Supprimer"
+                cancelText="Annuler"
+            />
         </div>
     );
 }

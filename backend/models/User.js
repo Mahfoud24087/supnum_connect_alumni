@@ -39,7 +39,7 @@ const User = sequelize.define('User', {
         unique: true
     },
     role: {
-        type: DataTypes.ENUM('student', 'graduate', 'admin', 'other'),
+        type: DataTypes.ENUM('student', 'graduate', 'admin', 'other', 'company'),
         defaultValue: 'student'
     },
     status: {
@@ -105,6 +105,42 @@ const User = sequelize.define('User', {
     specialty: {
         type: DataTypes.STRING,
         defaultValue: ''
+    },
+    website: {
+        type: DataTypes.STRING,
+        defaultValue: ''
+    },
+    industry: {
+        type: DataTypes.STRING,
+        defaultValue: ''
+    },
+    foundationYear: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+    },
+    contactEmail: {
+        type: DataTypes.STRING,
+        defaultValue: ''
+    },
+    latitude: {
+        type: DataTypes.FLOAT,
+        allowNull: true
+    },
+    longitude: {
+        type: DataTypes.FLOAT,
+        allowNull: true
+    },
+    socialTwitter: {
+        type: DataTypes.STRING,
+        defaultValue: ''
+    },
+    socialYoutube: {
+        type: DataTypes.STRING,
+        defaultValue: ''
+    },
+    skills: {
+        type: DataTypes.JSONB,
+        defaultValue: []
     }
 }, {
     timestamps: true,
@@ -138,11 +174,15 @@ User.prototype.toJSON = function () {
     values.social = {
         linkedin: values.socialLinkedin || '',
         github: values.socialGithub || '',
-        facebook: values.socialFacebook || ''
+        facebook: values.socialFacebook || '',
+        twitter: values.socialTwitter || '',
+        youtube: values.socialYoutube || ''
     };
     delete values.socialLinkedin;
     delete values.socialGithub;
     delete values.socialFacebook;
+    delete values.socialTwitter;
+    delete values.socialYoutube;
 
     // Include new fields
     values.cvUrl = values.cvUrl || null;

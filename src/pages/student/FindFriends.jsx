@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../services/api';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent } from '../../components/ui/Card';
-import { Search, UserPlus, Clock, Check, UserMinus, MapPin, Briefcase, Filter, X, Hash, Mail, User as UserIcon, Calendar, GraduationCap } from 'lucide-react';
+import { Search, UserPlus, Clock, Check, UserMinus, MapPin, Briefcase, Filter, X, Hash, Mail, User as UserIcon, Calendar, GraduationCap, Eye, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../../context/LanguageContext';
 
 export function FindFriends() {
     const { t } = useLanguage();
+    const navigate = useNavigate();
     const [search, setSearch] = useState('');
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -284,33 +286,56 @@ export function FindFriends() {
                                     {/* Role badge */}
                                     <div className="mt-4 flex items-center justify-between">
                                         <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400">
-                                            {item.role === 'student' ? t.profile.student : item.role === 'graduate' ? t.profile.graduate : t.profile.other}
+                                            {item.role === 'student' ? t.profile.student : 
+                                             item.role === 'graduate' ? t.profile.graduate : 
+                                             item.role === 'company' ? t.common.roles.company : 
+                                             t.profile.other}
                                         </span>
                                     </div>
 
-                                    <div className="mt-6">
-                                        {(!item.connectionStatus || item.connectionStatus === 'none') && (
-                                            <Button
-                                                onClick={() => handleConnect(item.id)}
-                                                className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/20"
-                                            >
-                                                <UserPlus className="h-4 w-4 mr-2" /> {t.common.connect}
-                                            </Button>
-                                        )}
-                                        {item.connectionStatus === 'pending' && item.isRequester && (
-                                            <Button disabled className="w-full bg-slate-100 dark:bg-slate-700 text-slate-500 rounded-xl">
-                                                <Clock className="h-4 w-4 mr-2" /> {t.common.pending}
-                                            </Button>
-                                        )}
-                                        {item.connectionStatus === 'pending' && !item.isRequester && (
-                                            <Button className="w-full bg-amber-500 hover:bg-amber-600 text-white rounded-xl shadow-lg">
-                                                {t.findFriends.respond}
-                                            </Button>
-                                        )}
-                                        {item.connectionStatus === 'accepted' && (
-                                            <Button disabled className="w-full bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-green-100 dark:border-green-900/30 rounded-xl">
-                                                <Check className="h-4 w-4 mr-2" /> {t.findFriends.connected}
-                                            </Button>
+                                    <div className="mt-6 flex gap-2">
+                                        {item.role === 'company' ? (
+                                            <>
+                                                <Button
+                                                    onClick={() => navigate(`/dashboard/profile/${item.id}`)}
+                                                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/20 font-bold"
+                                                >
+                                                    <Eye className="h-4 w-4 mr-2" /> {t.search.viewProfile}
+                                                </Button>
+                                                <Button
+                                                    onClick={() => navigate('/dashboard/messages', { state: { recipientId: item.id, recipientName: item.name } })}
+                                                    variant="outline"
+                                                    className="px-3 rounded-xl border-slate-200 dark:border-slate-700"
+                                                >
+                                                    <MessageSquare className="h-4 w-4" />
+                                                </Button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                {(!item.connectionStatus || item.connectionStatus === 'none') && (
+                                                    <Button
+                                                        onClick={() => handleConnect(item.id)}
+                                                        className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/20"
+                                                    >
+                                                        <UserPlus className="h-4 w-4 mr-2" /> {t.common.connect}
+                                                    </Button>
+                                                )}
+                                                {item.connectionStatus === 'pending' && item.isRequester && (
+                                                    <Button disabled className="w-full bg-slate-100 dark:bg-slate-700 text-slate-500 rounded-xl">
+                                                        <Clock className="h-4 w-4 mr-2" /> {t.common.pending}
+                                                    </Button>
+                                                )}
+                                                {item.connectionStatus === 'pending' && !item.isRequester && (
+                                                    <Button className="w-full bg-amber-500 hover:bg-amber-600 text-white rounded-xl shadow-lg">
+                                                        {t.findFriends.respond}
+                                                    </Button>
+                                                )}
+                                                {item.connectionStatus === 'accepted' && (
+                                                    <Button disabled className="w-full bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-green-100 dark:border-green-900/30 rounded-xl">
+                                                        <Check className="h-4 w-4 mr-2" /> {t.findFriends.connected}
+                                                    </Button>
+                                                )}
+                                            </>
                                         )}
                                     </div>
                                 </CardContent>

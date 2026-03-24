@@ -99,27 +99,50 @@ export function Search() {
                                     </Link>
                                     <p className="text-sm text-slate-500 dark:text-slate-400">{user.supnumId}</p>
                                     <span className="inline-block mt-1 px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs rounded-full capitalize">
-                                        {user.role === 'student' ? t.profile.student : t.profile.graduate}
+                                        {user.role === 'student' ? t.profile.student : 
+                                         user.role === 'graduate' ? t.profile.graduate : 
+                                         user.role === 'company' ? t.common.roles.company : 
+                                         t.profile.other}
                                     </span>
                                 </div>
                                 <div className="flex w-full gap-2">
-                                    <Link to={`/dashboard/profile/${user.id}`} className="flex-1">
-                                        <Button variant="outline" size="sm" className="w-full border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">
-                                            {t.search.viewProfile}
-                                        </Button>
-                                    </Link>
-                                    {currentUser?.role === 'admin' ? (
-                                        <Button
-                                            onClick={() => navigate('/dashboard/messages', { state: { recipientId: user.id, recipientName: user.name } })}
-                                            size="sm"
-                                            className="flex-1 bg-blue-600 text-white hover:bg-blue-700"
-                                        >
-                                            <MessageSquare className="h-4 w-4" />
-                                        </Button>
+                                    {user.role === 'company' ? (
+                                        <>
+                                            <Button
+                                                onClick={() => navigate(`/dashboard/profile/${user.id}`)}
+                                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold"
+                                            >
+                                                <Eye className="h-4 w-4 mr-2" /> {t.search.viewProfile}
+                                            </Button>
+                                            <Button
+                                                onClick={() => navigate('/dashboard/messages', { state: { recipientId: user.id, recipientName: user.name } })}
+                                                variant="outline"
+                                                className="px-3 border-slate-200 dark:border-slate-700"
+                                            >
+                                                <MessageSquare className="h-4 w-4" />
+                                            </Button>
+                                        </>
                                     ) : (
-                                        <Button onClick={() => handleConnect(user.id)} size="sm" className="flex-1 bg-blue-600 text-white hover:bg-blue-700">
-                                            <UserPlus className="h-4 w-4" />
-                                        </Button>
+                                        <>
+                                            <Link to={`/dashboard/profile/${user.id}`} className="flex-1">
+                                                <Button variant="outline" size="sm" className="w-full border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">
+                                                    {t.search.viewProfile}
+                                                </Button>
+                                            </Link>
+                                            {currentUser?.role === 'admin' ? (
+                                                <Button
+                                                    onClick={() => navigate('/dashboard/messages', { state: { recipientId: user.id, recipientName: user.name } })}
+                                                    size="sm"
+                                                    className="flex-1 bg-blue-600 text-white hover:bg-blue-700"
+                                                >
+                                                    <MessageSquare className="h-4 w-4" />
+                                                </Button>
+                                            ) : (
+                                                <Button onClick={() => handleConnect(user.id)} size="sm" className="flex-1 bg-blue-600 text-white hover:bg-blue-700">
+                                                    <UserPlus className="h-4 w-4" />
+                                                </Button>
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             </CardContent>

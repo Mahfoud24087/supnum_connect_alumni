@@ -91,13 +91,23 @@ const STAT_CARDS = [
         text: 'text-indigo-600',
         ring: 'ring-indigo-200 dark:ring-indigo-800'
     },
+    {
+        key: 'totalCompanyApplications',
+        tKey: 'companyApplications',
+        label: 'Company Route',
+        icon: Briefcase,
+        gradient: 'from-cyan-400 to-blue-600',
+        bg: 'bg-cyan-50 dark:bg-cyan-900/10',
+        text: 'text-cyan-600',
+        ring: 'ring-cyan-200 dark:ring-cyan-800'
+    },
 ];
 
 const FALLBACK_STATS = {
     stats: {
         totalUsers: 0, totalGraduates: 0, verifiedGraduates: 0,
         pendingUserRequests: 0, partnerCompanies: 0, activeInternships: 0,
-        totalApplications: 0, activeEvents: 0, successRate: 0
+        totalApplications: 0, totalCompanyApplications: 0, activeEvents: 0, successRate: 0
     },
     growthData: [
         { name: '2024', users: 0, graduates: 0, students: 0 },
@@ -162,6 +172,16 @@ export function AdminOverview() {
     const growthData = statsData?.growthData || [];
     const domainData = (statsData?.domainData || []).filter(d => d.value > 0);
     const opportunitiesData = statsData?.opportunitiesData || [];
+    const graduateStats = statsData?.graduateStats || s.graduateStats || {};
+
+    // Transform graduate stats for PieChart
+    const graduateEmploymentData = [
+        { name: t.common.workStatus.employed, value: graduateStats.employed || 0, color: '#10b981' },
+        { name: t.common.workStatus.seeking, value: graduateStats.seeking || 0, color: '#f59e0b' },
+        { name: t.common.workStatus.studying, value: graduateStats.studying || 0, color: '#6366f1' },
+        { name: t.common.workStatus.freelance, value: graduateStats.freelance || 0, color: '#8b5cf6' },
+        { name: t.common.workStatus.unspecified || 'Not Specified', value: graduateStats.unspecified || 0, color: '#94a3b8' }
+    ].filter(d => d.value > 0);
 
     return (
         <div className="space-y-8 pb-10">
@@ -231,6 +251,43 @@ export function AdminOverview() {
                 </motion.div>
             </div>
 
+            {/* Graduate Work Status Stats */}
+            <div className="flex items-center gap-3 mt-8 mb-4">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-md">
+                    <Briefcase className="h-4 w-4 text-white" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white uppercase tracking-tight">
+                    {t?.admin?.charts?.graduateEmploymentStatus || 'Graduate Employment Status'}
+                </h3>
+            </div>
+            
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+                {[
+                    { key: 'employed', label: t?.common?.workStatus?.employed || 'Employed', bg: 'bg-emerald-50 dark:bg-emerald-900/20', textObj: 'text-emerald-500', icon: Briefcase },
+                    { key: 'seeking', label: t?.common?.workStatus?.seeking || 'Seeking', bg: 'bg-amber-50 dark:bg-amber-900/20', textObj: 'text-amber-500', icon: Users },
+                    { key: 'studying', label: t?.common?.workStatus?.studying || 'Studying', bg: 'bg-indigo-50 dark:bg-indigo-900/20', textObj: 'text-indigo-500', icon: GraduationCap },
+                    { key: 'freelance', label: t?.common?.workStatus?.freelance || 'Freelance', bg: 'bg-fuchsia-50 dark:bg-fuchsia-900/20', textObj: 'text-fuchsia-500', icon: Building }
+                ].map((stat, idx) => (
+                    <motion.div 
+                        key={stat.key}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 + idx * 0.05 }}
+                        className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow"
+                    >
+                        <div className={`w-14 h-14 rounded-full flex items-center justify-center ${stat.bg} ${stat.textObj}`}>
+                            <stat.icon className="w-7 h-7" />
+                        </div>
+                        <div>
+                            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">{stat.label}</p>
+                            <h4 className="text-2xl font-black text-slate-800 dark:text-slate-100">
+                                <Counter value={graduateStats[stat.key] || 0} />
+                            </h4>
+                        </div>
+                    </motion.div>
+                ))}
+            </div>
+
             {/* Charts */}
             <div className="grid gap-6 lg:grid-cols-2">
 
@@ -281,6 +338,8 @@ export function AdminOverview() {
                     </div>
                 </motion.div>
 
+            {/* Second Row of Charts: Specializations and Graduate Employment */}
+            <div className="lg:col-span-2 grid gap-6 lg:grid-cols-2">
                 {/* Domain/Specialty Pie Chart */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -318,6 +377,44 @@ export function AdminOverview() {
                     </div>
                 </motion.div>
 
+                {/* Graduate Employment Status Pie Chart */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.55 }}
+                >
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 p-6 h-full">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-md">
+                                <Users className="h-4 w-4 text-white" />
+                            </div>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white uppercase tracking-tight">
+                                {t?.admin?.charts?.graduateEmploymentStatus || 'Graduate Employment Status'}
+                            </h3>
+                        </div>
+                        <div className="h-[280px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={graduateEmploymentData.length ? graduateEmploymentData : [{ name: 'No data', value: 1, color: '#e2e8f0' }]}
+                                        cx="50%" cy="50%"
+                                        innerRadius={65} outerRadius={105}
+                                        paddingAngle={4}
+                                        dataKey="value"
+                                    >
+                                        {(graduateEmploymentData.length ? graduateEmploymentData : [{ name: 'No data', value: 1, color: '#e2e8f0' }]).map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} strokeWidth={0} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip content={<CustomTooltip />} />
+                                    <Legend verticalAlign="bottom" height={36} iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+
                 {/* Opportunities Bar Chart */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -340,8 +437,8 @@ export function AdminOverview() {
                                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
                                     <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} allowDecimals={false} />
                                     <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(148,163,184,0.08)' }} />
-                                    <Bar dataKey="jobs" fill="#6366f1" radius={[6, 6, 0, 0]} name="Jobs" />
-                                    <Bar dataKey="internships" fill="#f59e0b" radius={[6, 6, 0, 0]} name="Internships" />
+                                    <Bar dataKey="jobs" fill="#6366f1" radius={[6, 6, 0, 0]} name={t?.admin?.charts?.jobs || 'Jobs'} />
+                                    <Bar dataKey="internships" fill="#f59e0b" radius={[6, 6, 0, 0]} name={t?.admin?.charts?.internships || 'Internships'} />
                                     <Legend iconType="circle" iconSize={8} wrapperStyle={{ paddingTop: 16, fontSize: 13 }} />
                                 </BarChart>
                             </ResponsiveContainer>
