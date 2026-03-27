@@ -142,7 +142,7 @@ export function DashboardLayout() {
         if (user.role === 'admin') return adminNavItems;
         if (user.role === 'company') return companyNavItems;
         
-        if (user.role === 'graduate' && isWorkingGraduate) {
+        if (user.role === 'graduate') {
             return graduateNavItems;
         }
         

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { useToast } from '../../components/Toast';
 import { userService } from '../../services/userService';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
@@ -11,6 +12,7 @@ import { motion } from 'framer-motion';
 export function Profile() {
     const { user, updateProfile } = useAuth();
     const { t } = useLanguage();
+    const toast = useToast();
     const [formData, setFormData] = useState({
         name: '',
         bio: '',
@@ -154,12 +156,14 @@ export function Profile() {
             const result = await updateProfile(updatedProfile);
             if (result.success) {
                 setSaveStatus('success');
+                toast.success(t.common.saved);
                 setTimeout(() => {
                     setSaveStatus('');
                     setIsDirty(false);
                 }, 3000);
             } else {
                 setSaveStatus('error');
+                toast.error(result.message || 'Failed to update profile');
                 setTimeout(() => setSaveStatus(''), 3000);
             }
         } catch (error) {

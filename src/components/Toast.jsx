@@ -12,12 +12,15 @@ export function ToastProvider({ children }) {
         setToasts(prev => [...prev, { id, message, type }]);
     };
 
+    const success = (message) => showToast(message, 'success');
+    const error = (message) => showToast(message, 'error');
+
     const removeToast = (id) => {
         setToasts(prev => prev.filter(toast => toast.id !== id));
     };
 
     return (
-        <ToastContext.Provider value={{ showToast }}>
+        <ToastContext.Provider value={{ showToast, success, error }}>
             {children}
             <div className="fixed bottom-4 right-4 z-[9999] space-y-2 max-w-sm w-full">
                 <AnimatePresence>

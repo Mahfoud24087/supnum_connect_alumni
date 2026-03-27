@@ -10,7 +10,7 @@ import { useToast } from '../../components/Toast';
 
 export default function CompanyProfile() {
     const { user, updateProfile } = useAuth();
-    const { toast } = useToast();
+    const { success, error } = useToast();
     const { t } = useLanguage();
     const [formData, setFormData] = useState({
         name: '',
@@ -147,7 +147,7 @@ export default function CompanyProfile() {
                 }
                 
                 setSaveStatus('');
-                toast.success("Position détectée !");
+                success("Position détectée !");
             },
             (error) => {
                 console.error("Error detecting location", error);
@@ -187,20 +187,20 @@ export default function CompanyProfile() {
             const result = await updateProfile(updatedProfile);
             if (result.success) {
                 setSaveStatus('success');
-                toast.success(t.common?.success || "Profil mis à jour");
+                success(t.common?.saved || "Profil mis à jour");
                 setTimeout(() => {
                     setSaveStatus('');
                     setIsDirty(false);
                 }, 3000);
             } else {
                 setSaveStatus('error');
-                toast.error(result.error || "Erreur lors de la mise à jour");
+                error(result.error || "Erreur lors de la mise à jour");
                 setTimeout(() => setSaveStatus(''), 3000);
             }
-        } catch (error) {
-            console.error("Failed to save profile", error);
+        } catch (err) {
+            console.error("Failed to save profile", err);
             setSaveStatus('error');
-            toast.error("Une erreur inattendue est survenue");
+            error("Une erreur inattendue est survenue");
             setTimeout(() => setSaveStatus(''), 3000);
         }
     };

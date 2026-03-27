@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { useLanguage } from '../../context/LanguageContext';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { useToast } from '../../components/Toast';
 import { Briefcase, Building, MapPin, Send, ArrowLeft, Loader2, Upload, Phone, Mail, FileText, CheckCircle, CheckCircle2, XCircle } from 'lucide-react';
 import { apiClient } from '../../services/api';
 
@@ -13,6 +12,7 @@ export function ApplyOpportunity() {
     const { id } = useParams();
     const { user } = useAuth();
     const { t } = useLanguage();
+    const { success: showSuccessToast, error: showErrorToast } = useToast();
     const navigate = useNavigate();
 
     const [opportunity, setOpportunity] = useState(null);
@@ -73,21 +73,30 @@ export function ApplyOpportunity() {
         setIsSubmitting(true);
         setError('');
         try {
-            await apiClient.post('/applications', {
+            console.log('📤 Submitting application for:', id);
+            const payload = {
                 internshipId: id,
                 message: formData.message,
                 cvUrl: formData.cvBase64,
                 email: formData.email,
                 phone: formData.phone,
                 customAnswers: formData.customAnswers
-            });
+            };
+            
+            const response = await apiClient.post('/applications', payload);
+            console.log('✅ Application submitted successfully:', response);
+            
+            showSuccessToast(t.apply?.successTitle || 'Application submitted successfully!');
             setSuccess(true);
+            
             setTimeout(() => {
-                navigate('/dashboard/feed'); // Redirect to feed to see activity
+                navigate('/dashboard/feed');
             }, 2500);
         } catch (err) {
-            console.error(err);
-            setError(err.response?.data?.message || t.common?.error || 'Submit failed');
+            console.error('❌ Application submission error:', err);
+            const errorMsg = err.response?.data?.message || t.common?.error || 'Submit failed';
+            setError(errorMsg);
+            showErrorToast(errorMsg);
         } finally {
             setIsSubmitting(false);
         }
