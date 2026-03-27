@@ -428,20 +428,57 @@ export const translations = {
         },
         aboutPage: {
             title: 'About SupNum Connect',
-            lead: 'SupNum Connect is the official social-academic network for the Institut Supérieur Numérique (SupNum).',
+            lead: 'SupNum Connect is the official social-academic network of the Institut Supérieur Numérique (SupNum) — the leading digital institute in Mauritania.',
             missionTitle: 'Our Mission',
             missionText: 'To create a vibrant, interconnected community where students, graduates, and administrators can collaborate, share knowledge, and grow together. We believe in the power of networking to unlock new opportunities and foster academic excellence.',
             goalsTitle: 'Key Goals',
             goals: {
-                connect: 'Connect current students with alumni',
-                mentorship: 'Facilitate mentorship and guidance',
-                events: 'Centralize campus events and news',
-                achievements: 'Showcase student achievements'
+                connect: 'Connect current students with alumni worldwide',
+                mentorship: 'Facilitate mentorship, guidance and career coaching',
+                events: 'Centralize campus events, hackathons and competitions',
+                achievements: 'Showcase student and graduate achievements',
+                jobs: 'Bridge students with exclusive internship & job offers',
+                research: 'Share research work and academic publications'
             },
             builtByTitle: 'Built by Students, for Students',
-            builtByText: 'This platform was created as a project by SupNum students, demonstrating the technical skills and innovation fostered at our institute.',
+            builtByText: 'This platform was created as a student project by SupNum students, demonstrating the technical skills and innovation fostered at our institute. Every feature is designed to serve the real needs of our community.',
             founded: 'Founded',
-            institute: 'Institute'
+            institute: 'Institute',
+            valuesTitle: 'Our Values',
+            values: {
+                innovation: { title: 'Innovation', desc: 'We push the boundaries of technology and encourage creative thinking at every level.' },
+                community: { title: 'Community', desc: 'We build bridges between students, graduates, professors and industry professionals.' },
+                excellence: { title: 'Excellence', desc: 'We set a high standard for ourselves — in code, in design, and in the opportunities we create.' },
+                openness: { title: 'Openness', desc: 'We share knowledge freely and believe that collaboration is the engine of progress.' }
+            },
+            featuresTitle: 'Platform Features',
+            features: {
+                network: { title: 'Professional Network', desc: 'Build and grow your network with fellow students, graduates, and industry contacts.' },
+                jobs: { title: 'Opportunities Board', desc: 'Access curated internship and job listings from our partner companies.' },
+                events: { title: 'Events & Challenges', desc: 'Stay updated on hackathons, workshops, competitions and campus events.' },
+                messaging: { title: 'Direct Messaging', desc: 'Communicate privately with anyone in your network in real-time.' },
+                feed: { title: 'Community Feed', desc: 'Share ideas, ask questions and celebrate achievements with your community.' },
+                profiles: { title: 'Rich Profiles', desc: 'Build a stunning professional profile with your CV, skills, gallery and social links.' }
+            },
+            teamTitle: 'The Team',
+            teamDesc: 'SupNum Connect was built by a dedicated team of students passionate about technology, design and community.',
+            contactTitle: 'Get in Touch',
+            contactDesc: 'Have questions or want to partner with us? We\u2019d love to hear from you.',
+            contactEmail: 'contact@supnum.mr',
+            contactLocation: 'Nouakchott, Mauritania',
+            statsTitle: 'SupNum by the Numbers',
+            stats: {
+                founded: '2021',
+                programs: '7+',
+                graduates: '500+',
+                companies: '50+'
+            },
+            statsLabels: {
+                founded: 'Year Founded',
+                programs: 'Degree Programs',
+                graduates: 'Graduates',
+                companies: 'Partner Companies'
+            }
         },
         auth: {
             welcomeBack: 'Welcome back to your alumni community. Connect, grow, and succeed together.',
@@ -1058,20 +1095,57 @@ export const translations = {
         },
         aboutPage: {
             title: 'À propos de SupNum Connect',
-            lead: "SupNum Connect est le réseau social et académique officiel de l'Institut Supérieur Numérique (SupNum).",
+            lead: "SupNum Connect est le réseau social et académique officiel de l'Institut Supérieur Numérique (SupNum) — le principal institut numérique de Mauritanie.",
             missionTitle: 'Notre Mission',
             missionText: 'Créer une communauté dynamique et interconnectée où étudiants, diplômés et administrateurs peuvent collaborer, partager des connaissances et grandir ensemble. Nous croyons au pouvoir du réseautage pour débloquer de nouvelles opportunités et favoriser l\'excellence académique.',
             goalsTitle: 'Objectifs Clés',
             goals: {
-                connect: 'Connecter les étudiants actuels avec les diplômés',
-                mentorship: 'Faciliter le mentorat et l\'orientation',
-                events: 'Centraliser les actualités et événements du campus',
-                achievements: 'Mettre en valeur les réalisations des étudiants'
+                connect: 'Connecter les étudiants actuels avec les diplômés dans le monde entier',
+                mentorship: 'Faciliter le mentorat, l\'orientation et le coaching de carrière',
+                events: 'Centraliser les événements, hackathons et compétitions du campus',
+                achievements: 'Mettre en valeur les réalisations des étudiants et diplômés',
+                jobs: 'Relier les étudiants à des offres de stages et d\'emploi exclusives',
+                research: 'Partager des travaux de recherche et publications académiques'
             },
             builtByTitle: 'Conçu par des Étudiants, pour des Étudiants',
-            builtByText: 'Cette plateforme a été créée en tant que projet par des étudiants de SupNum, démontrant les compétences techniques et l\'innovation encouragées au sein de notre institut.',
+            builtByText: 'Cette plateforme a été créée comme projet étudiant par des étudiants de SupNum, démontrant les compétences techniques et l\'innovation encouragées par notre institut. Chaque fonctionnalité répond aux besoins réels de notre communauté.',
             founded: 'Fondé',
-            institute: 'Institut'
+            institute: 'Institut',
+            valuesTitle: 'Nos Valeurs',
+            values: {
+                innovation: { title: 'Innovation', desc: 'Nous repoussons les limites de la technologie et encourageons la créativité à tous les niveaux.' },
+                community: { title: 'Communauté', desc: 'Nous créons des ponts entre étudiants, diplômés, professeurs et professionnels du secteur.' },
+                excellence: { title: 'Excellence', desc: 'Nous visons un haut standard — dans le code, le design et les opportunités que nous créons.' },
+                openness: { title: 'Ouverture', desc: 'Nous partageons librement la connaissance et croyons que la collaboration est le moteur du progrès.' }
+            },
+            featuresTitle: 'Fonctionnalités de la Plateforme',
+            features: {
+                network: { title: 'Réseau Professionnel', desc: 'Développez votre réseau avec des étudiants, diplômés et contacts professionnels.' },
+                jobs: { title: 'Tableau des Opportunités', desc: 'Accédez à des offres de stages et d\'emploi de nos entreprises partenaires.' },
+                events: { title: 'Événements & Défis', desc: 'Restez informé des hackathons, ateliers, compétitions et événements du campus.' },
+                messaging: { title: 'Messagerie Directe', desc: 'Communiquez en privé avec tout membre de votre réseau en temps réel.' },
+                feed: { title: 'Fil Communautaire', desc: 'Partagez des idées, posez des questions et célébrez les réussites avec votre communauté.' },
+                profiles: { title: 'Profils Enrichis', desc: 'Créez un profil professionnel avec votre CV, compétences, galerie et liens sociaux.' }
+            },
+            teamTitle: 'L\'Équipe',
+            teamDesc: 'SupNum Connect a été conçu par une équipe d\'étudiants passionnés de technologie, de design et de communauté.',
+            contactTitle: 'Nous Contacter',
+            contactDesc: 'Des questions ou souhaitez collaborer avec nous ? Nous serions ravis de vous entendre.',
+            contactEmail: 'contact@supnum.mr',
+            contactLocation: 'Nouakchott, Mauritanie',
+            statsTitle: 'SupNum en Chiffres',
+            stats: {
+                founded: '2021',
+                programs: '7+',
+                graduates: '500+',
+                companies: '50+'
+            },
+            statsLabels: {
+                founded: 'Année de Fondation',
+                programs: 'Filières',
+                graduates: 'Diplômés',
+                companies: 'Entreprises Partenaires'
+            }
         },
         auth: {
             welcomeBack: "Ravis de vous revoir dans votre communauté d'anciens. Connectez-vous, grandissez et réussissez ensemble.",
@@ -1688,20 +1762,57 @@ export const translations = {
         },
         aboutPage: {
             title: 'حول SupNum Connect',
-            lead: 'SupNum Connect هي الشبكة الاجتماعية والأكاديمية الرسمية للمعهد العالي للرقمنة (SupNum).',
+            lead: 'SupNum Connect هي الشبكة الاجتماعية والأكاديمية الرسمية للمعهد العالي للرقمنة (SupNum) — المعهد الرقمي الرائد في موريتانيا.',
             missionTitle: 'مهمتنا',
             missionText: 'خلق مجتمع حيوي ومترابط حيث يمكن للطلاب والخريجين والإداريين التعاون وتبادل المعرفة والنمو معًا. نؤمن بقوة التشبيك لفتح فرص جديدة وتعزيز التفوق الأكاديمي.',
             goalsTitle: 'الأهداف الرئيسية',
             goals: {
-                connect: 'ربط الطلاب الحاليين بالخريجين',
-                mentorship: 'تسهيل الإرشاد والتوجيه',
-                events: 'تجميع أخبار وأحداث الحرم الجامعي',
-                achievements: 'إبراز إنجازات الطلاب'
+                connect: 'ربط الطلاب الحاليين بالخريجين حول العالم',
+                mentorship: 'تسهيل الإرشاد والتوجيه والتدريب المهني',
+                events: 'تجميع أحداث الحرم الجامعي والهاكاثونات والمسابقات',
+                achievements: 'إبراز إنجازات الطلاب والخريجين',
+                jobs: 'ربط الطلاب بعروض التربص والوظائف الحصرية',
+                research: 'مشاركة الأعمال البحثية والمنشورات الأكاديمية'
             },
             builtByTitle: 'بُنيت بواسطة الطلاب، للطلاب',
-            builtByText: 'تم إنشاء هذه المنصة كمشروع من قبل طلاب SupNum، مما يبرز المهارات التقنية والابتكار الذي يُشجعه معهدنا.',
+            builtByText: 'تم إنشاء هذه المنصة كمشروع طلابي من قبل طلاب SupNum، مما يبرز المهارات التقنية والابتكار الذي يُشجعه معهدنا. كل ميزة مصممة لخدمة الاحتياجات الحقيقية لمجتمعنا.',
             founded: 'تأسست',
-            institute: 'معهد'
+            institute: 'معهد',
+            valuesTitle: 'قيمنا',
+            values: {
+                innovation: { title: 'الابتكار', desc: 'نحن ندفع حدود التكنولوجيا ونشجع التفكير الإبداعي على كل المستويات.' },
+                community: { title: 'المجتمع', desc: 'نبني جسوراً بين الطلاب والخريجين والأساتذة والمهنيين في القطاع.' },
+                excellence: { title: 'التميز', desc: 'نضع معايير عالية لأنفسنا — في البرمجة والتصميم والفرص التي نخلقها.' },
+                openness: { title: 'الانفتاح', desc: 'نتشارك المعرفة بحرية ونؤمن بأن التعاون هو محرك التقدم.' }
+            },
+            featuresTitle: 'ميزات المنصة',
+            features: {
+                network: { title: 'الشبكة المهنية', desc: 'بناء وتطوير شبكتك مع الطلاب والخريجين وجهات الاتصال المهنية.' },
+                jobs: { title: 'لوحة الفرص', desc: 'الوصول إلى قوائم التربص والوظائف المنتقاة من شركاتنا الشريكة.' },
+                events: { title: 'الأحداث والتحديات', desc: 'ابق على اطلاع بالهاكاثونات وورش العمل والمسابقات وأحداث الحرم الجامعي.' },
+                messaging: { title: 'الرسائل المباشرة', desc: 'تواصل بشكل خاص مع أي شخص في شبكتك بشكل فوري.' },
+                feed: { title: 'تغذية المجتمع', desc: 'شارك الأفكار واطرح الأسئلة واحتفل بالإنجازات مع مجتمعك.' },
+                profiles: { title: 'ملفات شخصية غنية', desc: 'أنشئ ملفاً شخصياً مهنياً رائعاً مع سيرتك الذاتية ومهاراتك ومعرضك وروابطك الاجتماعية.' }
+            },
+            teamTitle: 'الفريق',
+            teamDesc: 'تم إنشاء SupNum Connect من قبل فريق من الطلاب المتحمسين للتكنولوجيا والتصميم والمجتمع.',
+            contactTitle: 'تواصل معنا',
+            contactDesc: 'هل لديك أسئلة أو تريد الشراكة معنا؟ يسعدنا الاستماع إليك.',
+            contactEmail: 'contact@supnum.mr',
+            contactLocation: 'نواكشوط، موريتانيا',
+            statsTitle: 'SupNum بالأرقام',
+            stats: {
+                founded: '2021',
+                programs: '+7',
+                graduates: '+500',
+                companies: '+50'
+            },
+            statsLabels: {
+                founded: 'سنة التأسيس',
+                programs: 'التخصصات',
+                graduates: 'الخريجون',
+                companies: 'الشركات الشريكة'
+            }
         },
         auth: {
             welcomeBack: "مرحبًا بك مرة أخرى في مجتمع الخريجين الخاص بك. تواصل، تنمو، وانجح معًا.",
