@@ -33,11 +33,13 @@ export function SignIn() {
                 }
             } else {
                 let errorMsg = result.error;
-                if (errorMsg?.includes('Too many login attempts')) {
+                const lowError = errorMsg?.toLowerCase() || '';
+                
+                if (lowError.includes('too many login attempts')) {
                     errorMsg = t.auth.tooManyAttempts;
-                } else if (errorMsg === 'Invalid credentials' || errorMsg === 'Invalid email or password') {
+                } else if (lowError.includes('invalid credentials') || lowError.includes('invalid email or password')) {
                     errorMsg = t.auth.invalidCredentials;
-                } else if (errorMsg === 'Your account is pending admin approval.') {
+                } else if (lowError.includes('pending admin approval') || lowError.includes('en attente d\'approbation')) {
                     errorMsg = t.auth.pendingApproval;
                 }
                 setError(errorMsg || t.auth.invalidCredentials);
