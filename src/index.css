@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Cairo:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Cairo:wght@400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -17,6 +17,7 @@
 
   .dark body {
     background-image: none;
+    @apply bg-slate-950;
   }
 }
 
@@ -24,14 +25,51 @@
   font-family: 'Cairo', sans-serif !important;
 }
 
+[dir="rtl"] {
+  font-family: 'Cairo', sans-serif !important;
+}
+
 .glass-panel {
-  @apply bg-white/70 backdrop-blur-lg border border-white/20 shadow-xl;
+  @apply bg-white/70 backdrop-blur-lg border border-white/20 shadow-xl dark:bg-slate-900/70 dark:border-white/5;
 }
 
 .glass-input {
-  @apply bg-white/50 border-slate-200 focus:bg-white transition-all duration-300;
+  @apply bg-white/50 border-slate-200 focus:bg-white transition-all duration-300 dark:bg-slate-800/50 dark:border-slate-700 dark:focus:bg-slate-800;
 }
 
 .premium-gradient {
-  @apply bg-gradient-to-r from-supnum-blue to-blue-600;
+  @apply bg-gradient-to-br from-blue-600 to-indigo-700;
+}
+
+.circle-divider {
+  @apply flex items-center;
+}
+
+.circle-divider::before {
+  content: "";
+  @apply inline-block w-1 h-1 bg-slate-200 dark:bg-slate-700 rounded-full mx-2;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Animations Hub */
+@keyframes slow-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-slow-spin {
+  animation: slow-spin 20s linear infinite;
+}
+
+/* Scroll progress */
+.scroll-progress {
+  @apply fixed top-0 left-0 w-full h-1 bg-blue-600 z-[100] origin-[0%];
 }
