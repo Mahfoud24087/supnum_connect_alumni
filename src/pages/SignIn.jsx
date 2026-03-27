@@ -37,6 +37,8 @@ export function SignIn() {
                     errorMsg = t.auth.tooManyAttempts;
                 } else if (errorMsg === 'Invalid credentials' || errorMsg === 'Invalid email or password') {
                     errorMsg = t.auth.invalidCredentials;
+                } else if (errorMsg === 'Your account is pending admin approval.') {
+                    errorMsg = t.auth.pendingApproval;
                 }
                 setError(errorMsg || t.auth.invalidCredentials);
             }
