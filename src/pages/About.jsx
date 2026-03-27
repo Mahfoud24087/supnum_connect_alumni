@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useRef } from 'react';
 import {
     GraduationCap, Target, Users, Briefcase, MessageSquare,
-    Newspaper, Network, Globe, Mail, MapPin, Lightbulb,
+    Newspaper, Network, Globe, MapPin, Lightbulb,
     Heart, Star, BookOpen, Zap, Shield, ArrowRight,
     CheckCircle, Code2, Sparkles
 } from 'lucide-react';
@@ -288,20 +288,8 @@ export function About() {
                         <p className="text-slate-500 dark:text-slate-400 text-lg">{ab?.contactDesc}</p>
                     </motion.div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl mx-auto mb-10">
-                        <motion.a href={`mailto:${ab?.contactEmail}`} {...stagger(0)}
-                            whileHover={{ scale: 1.03 }}
-                            className="flex items-center gap-3 p-5 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md transition-all group text-left">
-                            <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-600 transition-colors">
-                                <Mail className="h-5 w-5 text-blue-600 group-hover:text-white transition-colors" />
-                            </div>
-                            <div>
-                                <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Email</p>
-                                <p className="text-sm font-bold text-slate-700 dark:text-slate-300 break-all">{ab?.contactEmail}</p>
-                            </div>
-                        </motion.a>
-
-                        <motion.div {...stagger(1)}
+                    <div className="flex justify-center mb-10">
+                        <motion.div {...stagger(0)}
                             className="flex items-center gap-3 p-5 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 text-left">
                             <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
                                 <MapPin className="h-5 w-5 text-green-600" />
