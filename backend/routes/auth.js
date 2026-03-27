@@ -107,10 +107,16 @@ router.post('/login', async (req, res, next) => {
 
         // Check approval status
         if (user.status === 'Pending') {
-            return res.status(403).json({ message: 'Your account is pending admin approval.' });
+            return res.status(403).json({ 
+                message: 'Your account is pending admin approval.',
+                errorCode: 'PENDING_APPROVAL'
+            });
         }
         if (user.status === 'Suspended') {
-            return res.status(403).json({ message: 'Your account has been suspended.' });
+            return res.status(403).json({ 
+                message: 'Your account has been suspended.',
+                errorCode: 'ACCOUNT_SUSPENDED'
+            });
         }
 
         // Check password

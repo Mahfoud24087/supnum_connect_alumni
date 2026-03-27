@@ -33,14 +33,17 @@ export function SignIn() {
                 }
             } else {
                 let errorMsg = result.error;
+                const errorCode = result.errorCode;
                 const lowError = errorMsg?.toLowerCase() || '';
                 
-                if (lowError.includes('too many login attempts')) {
+                if (errorCode === 'PENDING_APPROVAL' || lowError.includes('pending admin approval') || lowError.includes('en attente d\'approbation')) {
+                    errorMsg = t.auth.pendingApproval;
+                } else if (lowError.includes('too many login attempts')) {
                     errorMsg = t.auth.tooManyAttempts;
+                } else if (errorCode === 'ACCOUNT_SUSPENDED' || lowError.includes('suspended')) {
+                    errorMsg = t.auth.unexpectedError; // Or a specific suspended key if you add one
                 } else if (lowError.includes('invalid credentials') || lowError.includes('invalid email or password')) {
                     errorMsg = t.auth.invalidCredentials;
-                } else if (lowError.includes('pending admin approval') || lowError.includes('en attente d\'approbation')) {
-                    errorMsg = t.auth.pendingApproval;
                 }
                 setError(errorMsg || t.auth.invalidCredentials);
             }

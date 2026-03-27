@@ -32,8 +32,10 @@ class ApiClient {
 
             if (!response.ok) {
                 if (contentType && contentType.includes('application/json')) {
-                    const error = await response.json();
-                    throw new Error(error.message || 'Request failed');
+                    const errorData = await response.json();
+                    const error = new Error(errorData.message || 'Request failed');
+                    error.errorCode = errorData.errorCode;
+                    throw error;
                 }
                 throw new Error(response.statusText || 'Request failed');
             }
