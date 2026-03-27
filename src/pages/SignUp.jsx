@@ -452,11 +452,12 @@ export function SignUp() {
                                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
                                     {t.auth.signup.role}
                                 </label>
-                                <div className="grid grid-cols-3 gap-3">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                     {[
                                         { id: 'student', label: t.profile.student, icon: GraduationCap },
                                         { id: 'graduate', label: t.profile.graduate, icon: CheckCircle2 },
                                         { id: 'company', label: t.common.roles.company, icon: Building },
+                                        { id: 'other', label: t.profile.other, icon: User },
                                     ].map((role) => (
                                         <button
                                             key={role.id}

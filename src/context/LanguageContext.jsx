@@ -386,7 +386,7 @@ export const translations = {
             save: 'Save Changes',
             saving: 'Saving...',
             saved: 'Changes saved successfully!',
-            noAccess: 'Ce contenu est réservé exclusivement aux étudiants et diplômés de SupNum.',
+            noAccess: 'This content is reserved exclusively for students and graduates of SupNum.',
             error: 'An error occurred. Please try again.',
             delete: 'Delete',
             edit: 'Edit',

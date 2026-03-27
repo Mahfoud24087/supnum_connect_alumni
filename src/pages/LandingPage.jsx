@@ -473,7 +473,10 @@ export function LandingPage() {
                                                     </div>
                                                 )}
                                                 <button
-                                                    onClick={() => handleJobClick(job.id)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleJobClick(job.id);
+                                                    }}
                                                     className="text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-4 py-2 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm"
                                                 >
                                                     {user ? t.landing.view : t.landing.apply}
