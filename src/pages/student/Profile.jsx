@@ -204,7 +204,7 @@ export function Profile() {
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{t.profile.title}</h1>
                 <Button onClick={handleExportCV} variant="outline" className="shadow-md">
-                    <Download className="mr-2 h-4 w-4" /> Export CV
+                    <Download className="mr-2 h-4 w-4" /> {t.profile.exportCv}
                 </Button>
             </div>
 
@@ -315,7 +315,7 @@ export function Profile() {
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Année de Promotion</label>
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.profile.graduationYear}</label>
                                 <div className="relative">
                                     <GraduationCap className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
                                     <Input
@@ -378,7 +378,7 @@ export function Profile() {
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.common.company || 'Entreprise'}</label>
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.profile.companyName}</label>
                                 <div className="relative">
                                     <Building className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
                                     <Input
@@ -391,7 +391,7 @@ export function Profile() {
                             </div>
                             <div className="space-y-4 md:col-span-2">
                                 <label className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                                    <GraduationCap className="h-4 w-4 text-blue-500" /> {t.auth.signup.fieldOfStudy}
+                                    <GraduationCap className="h-4 w-4 text-blue-500" /> {t.profile.fieldOfStudy}
                                     {user?.role === 'graduate' && (
                                         <span className="text-[10px] bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-slate-400 uppercase tracking-tighter">Fixed for Graduates</span>
                                     )}
@@ -512,7 +512,7 @@ export function Profile() {
                                             <Paperclip className="h-8 w-8 text-blue-500" />
                                         </div>
                                         <span className="mt-4 text-sm font-medium text-slate-600 dark:text-slate-400">{t.profile.uploadCv}</span>
-                                        <span className="mt-1 text-xs text-slate-400">PDF (Max 5MB)</span>
+                                        <span className="mt-1 text-xs text-slate-400">{t.profile.pdfMax}</span>
                                         <input type="file" className="hidden" accept="application/pdf" onChange={handleCvChange} />
                                     </label>
                                 )}
@@ -526,7 +526,7 @@ export function Profile() {
                 <Card className="border-none shadow-lg bg-white dark:bg-slate-800">
                     <CardHeader>
                         <CardTitle className="text-xl text-slate-900 dark:text-white flex items-center gap-2">
-                            <Plus className="h-5 w-5 text-indigo-500" /> {t.common.skills || "Compétences"}
+                            <Plus className="h-5 w-5 text-indigo-500" /> {t.profile.skills}
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
@@ -551,14 +551,14 @@ export function Profile() {
                                 </span>
                             ))}
                             {formData.skills.length === 0 && (
-                                <p className="text-sm text-slate-400 italic">Aucune compétence ajoutée.</p>
+                                <p className="text-sm text-slate-400 italic">{t.profile.noSkills}</p>
                             )}
                         </div>
                         
                         <div className="flex gap-2">
                             <Input
                                 id="new-skill-input"
-                                placeholder="Ajouter une compétence (ex: React, Python, UI Design)"
+                                placeholder={t.profile.skillPlaceholder}
                                 className="flex-1 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
                                 onKeyPress={(e) => {
                                     if (e.key === 'Enter') {

@@ -23,6 +23,7 @@ export function ManageInternships() {
     const [filterType, setFilterType] = useState('all');
     const [filterLocation, setFilterLocation] = useState('all');
     const [filterWorkplace, setFilterWorkplace] = useState('all');
+    const [filterAudience, setFilterAudience] = useState('all');
 
     const fetchInternships = async () => {
         try {
@@ -51,7 +52,8 @@ export function ManageInternships() {
         const matchType = filterType === 'all' || i.type?.toLowerCase().includes(filterType.toLowerCase());
         const matchLocation = filterLocation === 'all' || i.location?.toLowerCase() === filterLocation.toLowerCase();
         const matchWorkplace = filterWorkplace === 'all' || i.workplaceType?.toLowerCase() === filterWorkplace.toLowerCase();
-        return matchSearch && matchType && matchLocation && matchWorkplace;
+        const matchAudience = filterAudience === 'all' || i.targetAudience === filterAudience;
+        return matchSearch && matchType && matchLocation && matchWorkplace && matchAudience;
     });
 
     const uniqueLocations = Array.from(new Set(internships.map(i => i.location).filter(Boolean)));
@@ -178,10 +180,22 @@ export function ManageInternships() {
                         <option value="Hybrid">Hybride</option>
                     </select>
 
+                    {/* Audience Cible filter */}
+                    <select
+                        value={filterAudience}
+                        onChange={(e) => setFilterAudience(e.target.value)}
+                        className="h-9 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs px-3 text-slate-700 dark:text-slate-300 outline-none cursor-pointer focus:ring-2 focus:ring-blue-500/20"
+                    >
+                        <option value="all">🎯 {t.admin.manageInternships.form.targetAudience}: Tous</option>
+                        <option value="All">{t.admin.manageInternships.form.audiences?.all || 'Tout le monde'}</option>
+                        <option value="Students">{t.admin.manageInternships.form.audiences?.students || 'Étudiants'}</option>
+                        <option value="Graduates">{t.admin.manageInternships.form.audiences?.graduates || 'Diplômés'}</option>
+                    </select>
+
                     {/* Reset filters */}
-                    {(filterType !== 'all' || filterLocation !== 'all' || filterWorkplace !== 'all' || searchTerm) && (
+                    {(filterType !== 'all' || filterLocation !== 'all' || filterWorkplace !== 'all' || filterAudience !== 'all' || searchTerm) && (
                         <button
-                            onClick={() => { setFilterType('all'); setFilterLocation('all'); setFilterWorkplace('all'); setSearchTerm(''); }}
+                            onClick={() => { setFilterType('all'); setFilterLocation('all'); setFilterWorkplace('all'); setFilterAudience('all'); setSearchTerm(''); }}
                             className="h-9 px-3 text-xs font-medium text-red-500 bg-red-50 dark:bg-red-900/20 rounded-lg hover:bg-red-100 transition-colors"
                         >
                             ✕ Réinitialiser

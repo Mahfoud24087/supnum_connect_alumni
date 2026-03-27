@@ -14,24 +14,32 @@ router.get('/', optionalProtect, async (req, res, next) => {
 
         // Visibility logic
         if (req.user) {
-            if (req.user.role === 'student') {
+            // Priority 1: User looking at their own offers
+            if ((req.user.role === 'admin' || req.user.role === 'company' || req.user.role === 'graduate') && req.query.myOffers === 'true') {
+                where.createdById = req.user.id;
+            } 
+            // Priority 2: Searching/Browsing
+            else if (req.user.role === 'student') {
                 where.targetAudience = { [Op.in]: ['All', 'Students'] };
-                where.active = true; // Students only see active ones
+                where.active = true;
             } else if (req.user.role === 'graduate') {
                 where.targetAudience = { [Op.in]: ['All', 'Graduates'] };
-                where.active = true; // Graduates only see active ones
-            } else if ((req.user.role === 'company' || req.user.role === 'graduate') && req.query.myOffers === 'true') {
-                where.createdById = req.user.id;
+                where.active = true;
+            } else if (req.user.role === 'admin') {
+                // Admins see all by default, no restriction
+            } else {
+                // Other roles (like 'other' or companies browsing) see only 'All' targeted
+                where.targetAudience = 'All';
+                where.active = true;
             }
-            // Admins see all by default
         } else {
             // Public view only see 'All' targeted and active
             where.targetAudience = 'All';
             where.active = true;
         }
 
-        // Override if explicit audience filter is used (e.g. by admin)
-        if (audience && (req.user?.role === 'admin' || !req.user)) {
+        // Override if explicit audience filter is used (useful for admin or specific searches)
+        if (audience && audience !== 'all') {
             where.targetAudience = audience;
         }
 
