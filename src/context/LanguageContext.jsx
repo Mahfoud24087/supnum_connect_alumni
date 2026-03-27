@@ -604,8 +604,7 @@ export const translations = {
                 title: 'Artificial Intelligence',
                 description: 'Master AI and machine learning techniques to design intelligent solutions capable of analyzing, predicting, and automating processes across various sectors.'
             }
-        },
-
+        }
     },
     FR: {
         nav: { home: 'Accueil', events: 'Événements', about: 'À propos', signin: 'Se connecter', signup: "S'inscrire" },
@@ -1212,7 +1211,7 @@ export const translations = {
                 title: 'Intelligence Artificielle',
                 description: 'Maîtrisez les techniques d’IA et de machine learning pour concevoir des solutions intelligentes capables d’analyser, prédire et automatiser des processus dans divers secteurs.'
             }
-        },
+        }
     },
     AR: {
         nav: { home: 'الرئيسية', events: 'الأحداث', about: 'حول', signin: 'تسجيل الدخول', signup: 'إنشاء حساب' },
@@ -1819,7 +1818,7 @@ export const translations = {
                 title: 'الذكاء الاصطناعي',
                 description: 'أتقن تقنيات الذكاء الاصطناعي والتعلم الآلي لتصميم حلول ذكية قادرة على تحليل وتوقع وأتمتة العمليات في مختلف القطاعات.'
             }
-        },
+        }
     }
 };
 
@@ -1851,4 +1850,25 @@ export function LanguageProvider({ children }) {
     );
 }
 
-export const useLanguage = () => useContext(LanguageContext);
+export const useLanguage = () => {
+    const context = useContext(LanguageContext);
+    if (!context) {
+        throw new Error('useLanguage must be used within a LanguageProvider');
+    }
+    
+    // Add a safe translate function
+    const translate = (path, defaultValue = '') => {
+        const keys = path.split('.');
+        let result = context.t;
+        for (const key of keys) {
+            if (result && result[key] !== undefined) {
+                result = result[key];
+            } else {
+                return defaultValue || path;
+            }
+        }
+        return result;
+    };
+
+    return { ...context, translate };
+};

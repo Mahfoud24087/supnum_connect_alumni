@@ -16,7 +16,19 @@ const Notification = sequelize.define('Notification', {
         allowNull: false
     },
     type: {
-        type: DataTypes.ENUM('application_update', 'friend_request', 'new_message', 'event_reminder', 'system'),
+        type: DataTypes.ENUM(
+            'application_new', 
+            'application_update', 
+            'friend_request', 
+            'connection_accepted',
+            'new_message', 
+            'event_reminder', 
+            'skill_endorsement',
+            'post_like',
+            'post_comment',
+            'system',
+            'system_alert'
+        ),
         defaultValue: 'system'
     },
     isRead: {
