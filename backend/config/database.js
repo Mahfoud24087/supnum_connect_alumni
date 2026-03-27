@@ -1,5 +1,7 @@
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
+// Allow self-signed certificates (fixes Error: self-signed certificate in certificate chain)
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 // Initialize Sequelize with PostgreSQL
 // Support both DATABASE_URL (Render/Production) and individual env vars (Local Dev)
@@ -20,7 +22,7 @@ if (rawUrl) {
         dialectOptions: {
             ssl: {
                 require: true,
-                rejectUnauthorized: false
+                rejectUnauthorized: false,
             }
         },
         pool: {
