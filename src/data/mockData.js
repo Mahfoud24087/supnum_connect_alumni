@@ -24,34 +24,6 @@ export const users = [
             github: '',
             facebook: ''
         }
-    },
-    {
-        id: 'student-1',
-        name: 'Test Student',
-        role: 'student',
-        supnumId: '2Y001',
-        email: 'student@supnum.mr',
-        bio: 'Computer Science student',
-        avatar: null,
-        social: {
-            linkedin: '',
-            github: '',
-            facebook: ''
-        }
-    },
-    {
-        id: 'graduate-1',
-        name: 'Test Graduate',
-        role: 'graduate',
-        supnumId: '1G001',
-        email: 'graduate@supnum.mr',
-        bio: 'Software Engineer',
-        avatar: null,
-        social: {
-            linkedin: '',
-            github: '',
-            facebook: ''
-        }
     }
 ];
 

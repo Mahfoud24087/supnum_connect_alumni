@@ -31,10 +31,3 @@ dist-ssr
 # OneDrive local folder
 OneDrive/
 
-# Company Part (Exclude from GitHub)
-src/pages/company/
-src/services/companyService.js
-backend/models/Company.js
-backend/routes/companies.js
-logos/
-
