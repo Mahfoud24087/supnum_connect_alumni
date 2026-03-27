@@ -64,71 +64,15 @@ function Counter({ value }) {
 
 const MOCK_LANDING_DATA = {
     stats: {
-        totalUsers: 1310,
-        students: 870,
-        graduates: 440,
-        eventsCount: 5,
-        partnerCompanies: 45,
-        activeInternships: 28
+        totalUsers: 0,
+        students: 0,
+        graduates: 0,
+        eventsCount: 0,
+        partnerCompanies: 0,
+        activeInternships: 0
     },
-    latestEvents: [
-        {
-            id: 'mock-1',
-            title: 'Annual Tech Summit 2024',
-            description: 'Join us for the biggest tech event of the year featuring industry leaders from around the globe. Topics include AI, Blockchain, and more. A great opportunity for networking.',
-            date: '2024-12-15',
-            location: 'SupNum Main Hall',
-            type: 'Event',
-            color: 'bg-blue-600',
-            image: 'https://images.unsplash.com/photo-1540575467063-178a50935339?q=80&w=2070&auto=format&fit=crop'
-        },
-        {
-            id: 'mock-2',
-            title: 'Hackathon: Code for Future',
-            description: '48-hour coding challenge to solve real-world problems. Teams of 4. Great prizes including internships and tech gear.',
-            date: '2024-11-20',
-            location: 'Innovation Lab',
-            type: 'Challenge',
-            color: 'bg-purple-600',
-            image: null
-        },
-        {
-            id: 'mock-3',
-            title: 'Alumni Networking Dinner',
-            description: 'Connect with fellow graduates and mentors over a formal dinner. Share experiences and explore career opportunities.',
-            date: '2024-10-05',
-            location: 'Hotel Monotel',
-            type: 'Event',
-            color: 'bg-emerald-600',
-            image: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2069&auto=format&fit=crop'
-        }
-    ],
-    latestInternships: [
-        {
-            id: 'mock-job-1',
-            title: 'Frontend Developer Intern',
-            company: 'TechCorp Mauritania',
-            location: 'Nouakchott'
-        },
-        {
-            id: 'mock-job-2',
-            title: 'Data Analyst Junior',
-            company: 'Banque Centrale',
-            location: 'Nouakchott'
-        },
-        {
-            id: 'mock-job-3',
-            title: 'Network Administrator',
-            company: 'Mattel',
-            location: 'Nouadhibou'
-        },
-        {
-            id: 'mock-job-4',
-            title: 'Cybersecurity Analyst',
-            company: 'SupNum Lab',
-            location: 'Nouakchott'
-        }
-    ]
+    latestEvents: [],
+    latestInternships: []
 };
 
 export function LandingPage() {
@@ -163,23 +107,9 @@ export function LandingPage() {
 
                 const finalStats = response.stats || {};
 
-                // Improved Demo Mode Detection:
-                // Only show mock data if the system is TRULY empty (no verified non-admin users AND no events AND no internships).
-                const hasRealContent = (finalStats.totalUsers || 0) > 0 ||
-                    (response.latestEvents && response.latestEvents.length > 0) ||
-                    (response.latestInternships && response.latestInternships.length > 0);
-
-                if (!hasRealContent) {
-                    // Completely empty system -> Show mock mode
-                    setRealStats(MOCK_LANDING_DATA.stats);
-                    setUpcomingEvents(MOCK_LANDING_DATA.latestEvents);
-                    setLatestInternships(MOCK_LANDING_DATA.latestInternships);
-                } else {
-                    // Real data mode
-                    setRealStats(finalStats);
-                    setUpcomingEvents(response.latestEvents || []);
-                    setLatestInternships(response.latestInternships || []);
-                }
+                setRealStats(finalStats);
+                setUpcomingEvents(response.latestEvents || []);
+                setLatestInternships(response.latestInternships || []);
             } catch (error) {
                 console.error('Failed to fetch public stats:', error);
                 // Fallback on error
