@@ -1,6 +1,6 @@
 const User = require('./User');
 const Event = require('./Event');
-// const Company = require('./Company');
+const Company = require('./Company');
 const Internship = require('./Internship');
 const Message = require('./Message');
 const Connection = require('./Connection');
@@ -65,7 +65,7 @@ User.hasMany(PushSubscription, { foreignKey: 'userId', onDelete: 'CASCADE' });
 module.exports = {
     User,
     Event,
-    // Company,
+    Company,
     Internship,
     Message,
     Connection,

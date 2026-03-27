@@ -34,21 +34,21 @@ import { ManageCompanies } from './pages/admin/ManageCompanies';
 import { ManageApplications } from './pages/admin/ManageApplications';
 
 // Company Pages
-// import CompanyOverview from './pages/company/CompanyOverview';
-// import ManageCompanyOffers from './pages/company/ManageCompanyOffers';
-// import ManageCompanyApplications from './pages/company/ManageCompanyApplications';
-// import CompanyProfile from './pages/company/CompanyProfile';
+import CompanyOverview from './pages/company/CompanyOverview';
+import ManageCompanyOffers from './pages/company/ManageCompanyOffers';
+import ManageCompanyApplications from './pages/company/ManageCompanyApplications';
+import CompanyProfile from './pages/company/CompanyProfile';
 import { useAuth } from './context/AuthContext';
 
 const DashboardIndex = () => {
   const { user } = useAuth();
-  // if (user?.role === 'company') return <CompanyOverview />;
+  if (user?.role === 'company') return <CompanyOverview />;
   return <DashboardHome />;
 };
 
 const ProfileSelector = () => {
     const { user } = useAuth();
-    // if (user?.role === 'company') return <CompanyProfile />;
+    if (user?.role === 'company') return <CompanyProfile />;
     return <Profile />;
 };
 
@@ -76,7 +76,7 @@ function App() {
                   </ProtectedRoute>
                 }>
                   <Route index element={<DashboardIndex />} />
-                  {/* <Route path="company/offers" element={
+                  <Route path="company/offers" element={
                     <ProtectedRoute allowedRoles={['company', 'graduate']}>
                       <ManageCompanyOffers />
                     </ProtectedRoute>
@@ -85,7 +85,7 @@ function App() {
                     <ProtectedRoute allowedRoles={['company', 'graduate']}>
                       <ManageCompanyApplications />
                     </ProtectedRoute>
-                  } /> */}
+                  } />
                   <Route path="profile" element={<ProfileSelector />} />
                   <Route path="profile/:id" element={<UserProfile />} />
                   <Route path="search" element={
@@ -130,7 +130,7 @@ function App() {
                   <Route path="events" element={<ManageEvents />} />
                   <Route path="users" element={<ManageUsers />} />
                   <Route path="internships" element={<ManageInternships />} />
-                  {/* <Route path="companies" element={<ManageCompanies />} /> */}
+                  <Route path="companies" element={<ManageCompanies />} />
                   <Route path="applications" element={<ManageApplications />} />
                   <Route path="messages" element={<Messages />} />
                   <Route path="profile/:id" element={<UserProfile />} />
