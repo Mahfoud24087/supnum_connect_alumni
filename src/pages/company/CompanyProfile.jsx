@@ -536,56 +536,7 @@ export default function CompanyProfile() {
                 </div>
             </form>
 
-            <div className="pt-12 border-t border-slate-200 dark:border-slate-800">
-                <div className="flex items-center justify-between mb-8">
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <Send className="h-5 w-5 text-primary-500" /> {t.profile.footerPreview}
-                    </h2>
-                    <Button 
-                        variant="outline" 
-                        onClick={() => window.open(`/dashboard/profile/${user.id}`, '_blank')}
-                        className="text-xs font-bold uppercase tracking-wider gap-2"
-                    >
-                        <ExternalLink className="h-4 w-4" /> {t.profile.viewPublic}
-                    </Button>
-                </div>
 
-                <div className="bg-slate-900 text-white rounded-[2rem] overflow-hidden pt-12 pb-8 shadow-2xl scale-95 origin-top transition-transform hover:scale-100">
-                    <div className="max-w-4xl mx-auto px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div className="space-y-4">
-                            <h3 className="text-xl font-bold">Abonnez-vous à notre actualité</h3>
-                            <div className="space-y-2">
-                                <div className="h-10 bg-slate-800/50 rounded-lg border border-slate-700 px-4 flex items-center text-xs text-slate-500">NOM</div>
-                                <div className="h-10 bg-slate-800/50 rounded-lg border border-slate-700 px-4 flex items-center text-xs text-slate-500">E-MAIL</div>
-                                <div className="h-10 bg-[#22c55e] rounded-lg flex items-center justify-center text-xs font-bold uppercase tracking-widest text-white shadow-lg shadow-green-900/20">S'ABONNER</div>
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">LIENS UTILES</h3>
-                            <ul className="space-y-2 text-sm text-slate-400">
-                                <li className="flex items-center gap-2"><div className="h-1 w-1 rounded-full bg-primary-500"></div> Offres d'emploi</li>
-                                <li className="flex items-center gap-2"><div className="h-1 w-1 rounded-full bg-primary-500"></div> Site Officiel</li>
-                                <li className="flex items-center gap-2"><div className="h-1 w-1 rounded-full bg-primary-500"></div> À propos</li>
-                            </ul>
-                        </div>
-
-                        <div className="space-y-4">
-                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">CONTACTS</h3>
-                            <div className="space-y-2 text-sm text-slate-400">
-                                <p className="flex items-center gap-2"><Phone className="h-3 w-3" /> {formData.phone || "+222 ..."}</p>
-                                <p className="flex items-center gap-2 truncate"><Mail className="h-3 w-3" /> {formData.contactEmail || user.email}</p>
-                            </div>
-                            <div className="pt-2 flex gap-3">
-                                <div className="h-8 w-8 bg-slate-800 rounded flex items-center justify-center"><Linkedin className="h-4 w-4" /></div>
-                                <div className="h-8 w-8 bg-slate-800 rounded flex items-center justify-center"><Facebook className="h-4 w-4" /></div>
-                                <div className="h-8 w-8 bg-slate-800 rounded flex items-center justify-center text-[10px] font-bold">X</div>
-                                <div className="h-8 w-8 bg-slate-800 rounded flex items-center justify-center"><ImageIcon className="h-4 w-4" /></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </motion.div >
     );
 }
