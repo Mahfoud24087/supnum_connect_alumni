@@ -6,7 +6,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
-import { Briefcase, Building, MapPin, Send, ArrowLeft, Loader2, Upload, Phone, Mail, FileText, CheckCircle } from 'lucide-react';
+import { Briefcase, Building, MapPin, Send, ArrowLeft, Loader2, Upload, Phone, Mail, FileText, CheckCircle, CheckCircle2, XCircle } from 'lucide-react';
 import { apiClient } from '../../services/api';
 
 export function ApplyOpportunity() {
@@ -27,6 +27,7 @@ export function ApplyOpportunity() {
         customAnswers: {}
     });
     const [success, setSuccess] = useState(false);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         const fetchOpportunity = async () => {
@@ -35,6 +36,7 @@ export function ApplyOpportunity() {
                 setOpportunity(response.internship);
             } catch (error) {
                 console.error('Failed to fetch opportunity:', error);
+                setError(t.common?.error || 'Failed to fetch opportunity');
             } finally {
                 setLoading(false);
             }
@@ -52,10 +54,11 @@ export function ApplyOpportunity() {
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            if (file.size > 5 * 1024 * 1024) {
-                console.warn('File size too large. Max 5MB.');
+            if (file.size > 10 * 1024 * 1024) { // Increase to 10MB as Supabase handles larger files
+                setError('File size too large. Max 10MB.');
                 return;
             }
+            setError('');
             setFormData({ ...formData, cvFile: file });
             const reader = new FileReader();
             reader.onloadend = () => {
@@ -68,6 +71,7 @@ export function ApplyOpportunity() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
+        setError('');
         try {
             await apiClient.post('/applications', {
                 internshipId: id,
@@ -79,10 +83,11 @@ export function ApplyOpportunity() {
             });
             setSuccess(true);
             setTimeout(() => {
-                navigate('/dashboard');
-            }, 3000);
-        } catch (error) {
-            console.error(error);
+                navigate('/dashboard/feed'); // Redirect to feed to see activity
+            }, 2500);
+        } catch (err) {
+            console.error(err);
+            setError(err.response?.data?.message || t.common?.error || 'Submit failed');
         } finally {
             setIsSubmitting(false);
         }
@@ -90,18 +95,25 @@ export function ApplyOpportunity() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+            <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+                <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
+                <p className="text-slate-500 font-bold uppercase tracking-widest text-xs animate-pulse">{t.common?.loading || 'Loading...'}</p>
             </div>
         );
     }
 
     if (!opportunity) {
         return (
-            <div className="text-center py-12">
-                <h2 className="text-2xl font-bold">{t.apply.notFound}</h2>
-                <Button onClick={() => navigate(-1)} variant="ghost" className="mt-4">
-                    <ArrowLeft className="mr-2 h-4 w-4" /> {t.apply.goBack}
+            <div className="max-w-md mx-auto py-24 text-center space-y-6">
+                <div className="h-20 w-20 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mx-auto rotate-3 shadow-lg">
+                    <XCircle className="h-10 w-10" />
+                </div>
+                <div>
+                    <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{t.apply.notFound}</h2>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">{t.common?.noData}</p>
+                </div>
+                <Button onClick={() => navigate(-1)} variant="ghost" className="mt-8 font-black uppercase tracking-tighter">
+                    <ArrowLeft className="mr-2 h-5 w-5" /> {t.apply.goBack}
                 </Button>
             </div>
         );
@@ -109,15 +121,53 @@ export function ApplyOpportunity() {
 
     if (success) {
         return (
-            <div className="max-w-md mx-auto py-12 text-center space-y-4">
-                <div className="h-16 w-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto">
-                    <Send className="h-8 w-8" />
-                </div>
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{t.apply.successTitle}</h2>
-                <p className="text-slate-500 dark:text-slate-400">
-                    {t.apply.successSubtitle.replace('{title}', opportunity.title)}
-                </p>
-                <p className="text-sm text-slate-400">{t.apply.redirecting}</p>
+            <div className="min-h-screen bg-white dark:bg-slate-950 flex items-center justify-center p-6">
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    className="max-w-lg w-full bg-slate-50 dark:bg-slate-900/50 p-12 rounded-[3rem] text-center space-y-8 border border-white dark:border-slate-800 shadow-2xl"
+                >
+                    <div className="relative mx-auto w-24 h-24">
+                        <motion.div 
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: "spring", damping: 10, stiffness: 100 }}
+                            className="h-24 w-24 bg-gradient-to-br from-green-400 to-emerald-600 text-white rounded-[2rem] flex items-center justify-center shadow-xl shadow-green-500/20"
+                        >
+                            <Send className="h-12 w-12" />
+                        </motion.div>
+                        <motion.div 
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{ repeat: Infinity, duration: 2 }}
+                            className="absolute -top-3 -right-3 h-8 w-8 bg-white dark:bg-slate-800 rounded-full border-4 border-slate-50 dark:border-slate-900 flex items-center justify-center"
+                        >
+                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        </motion.div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                        <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter decoration-green-500 underline decoration-8 underline-offset-8 decoration-skip-ink">
+                            {t.apply.successTitle}
+                        </h2>
+                        <p className="text-slate-600 dark:text-slate-400 font-bold text-lg leading-snug pt-4">
+                            {t.apply.successSubtitle.replace('{title}', opportunity.title)}
+                        </p>
+                    </div>
+
+                    <div className="pt-6">
+                        <div className="h-1.5 w-48 bg-slate-200 dark:bg-slate-800 mx-auto rounded-full overflow-hidden">
+                            <motion.div 
+                                initial={{ x: "-100%" }}
+                                animate={{ x: "0%" }}
+                                transition={{ duration: 2.5, ease: "linear" }}
+                                className="h-full bg-blue-600 rounded-full"
+                            />
+                        </div>
+                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-3">
+                            {t.apply.redirecting}
+                        </p>
+                    </div>
+                </motion.div>
             </div>
         );
     }
@@ -320,6 +370,17 @@ export function ApplyOpportunity() {
                                             value={formData.message}
                                             onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                                         />
+                                    </motion.div>
+                                )}
+
+                                {error && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        className="bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 p-5 rounded-2xl flex items-center gap-4 text-red-600 dark:text-red-400 font-bold mb-6"
+                                    >
+                                        <XCircle className="h-6 w-6 flex-shrink-0" />
+                                        <p>{error}</p>
                                     </motion.div>
                                 )}
 
