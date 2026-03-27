@@ -1,6 +1,6 @@
 require('dotenv').config();
 const { sequelize, connectDB } = require('./config/database');
-const { User, Event, Company, Internship, Message, Connection, Application, Notification } = require('./models');
+const { User, Event, Internship, Message, Connection, Application, Notification } = require('./models');
 
 const seedDatabase = async () => {
     try {
@@ -14,7 +14,7 @@ const seedDatabase = async () => {
         await Message.destroy({ where: {}, truncate: true, cascade: true });
         await Internship.destroy({ where: {}, truncate: true, cascade: true });
         await Event.destroy({ where: {}, truncate: true, cascade: true });
-        await Company.destroy({ where: {}, truncate: true, cascade: true });
+        // await Company.destroy({ where: {}, truncate: true, cascade: true });
         await User.destroy({ where: {}, truncate: true, cascade: true });
 
         console.log('🗑️  Cleared all existing data');
