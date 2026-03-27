@@ -166,6 +166,7 @@ export const translations = {
                 dashboard: 'Dashboard',
                 offers: 'My Offers',
                 applications: 'Applications',
+                accepted: 'Accepted Candidates',
                 messages: 'Messages',
                 profile: 'Company Profile'
             },
@@ -689,6 +690,7 @@ export const translations = {
                 dashboard: 'Tableau de bord',
                 offers: 'Mes Offres',
                 applications: 'Candidatures',
+                accepted: 'Candidats Acceptés',
                 messages: 'Messages',
                 profile: 'Profil Entreprise'
             },
@@ -1211,6 +1213,7 @@ export const translations = {
                 dashboard: 'لوحة التحكم',
                 offers: 'عروضي',
                 applications: 'طلبات التوظيف',
+                accepted: 'المرشحون المقبولون',
                 messages: 'الرسائل',
                 profile: 'ملف الشركة'
             },

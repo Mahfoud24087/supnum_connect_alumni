@@ -112,6 +112,7 @@ export function DashboardLayout() {
         { name: t.company.nav.dashboard, icon: LayoutDashboard, path: '/dashboard' },
         { name: t.company.nav.offers, icon: Briefcase, path: '/dashboard/company/offers' },
         { name: t.company.nav.applications, icon: ClipboardList, path: '/dashboard/company/applications' },
+        { name: t.company.nav.accepted, icon: Users, path: '/dashboard/company/accepted' },
         { name: t.company.nav.messages, icon: MessageSquare, path: '/dashboard/messages' },
         { name: t.company.nav.profile, icon: User, path: '/dashboard/profile' },
     ];

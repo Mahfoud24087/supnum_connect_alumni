@@ -38,6 +38,7 @@ import CompanyOverview from './pages/company/CompanyOverview';
 import ManageCompanyOffers from './pages/company/ManageCompanyOffers';
 import ManageCompanyApplications from './pages/company/ManageCompanyApplications';
 import CompanyProfile from './pages/company/CompanyProfile';
+import AcceptedCandidates from './pages/company/AcceptedCandidates';
 import { useAuth } from './context/AuthContext';
 
 const DashboardIndex = () => {
@@ -84,6 +85,11 @@ function App() {
                   <Route path="company/applications" element={
                     <ProtectedRoute allowedRoles={['company', 'graduate']}>
                       <ManageCompanyApplications />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="company/accepted" element={
+                    <ProtectedRoute allowedRoles={['company']}>
+                      <AcceptedCandidates />
                     </ProtectedRoute>
                   } />
                   <Route path="profile" element={<ProfileSelector />} />
