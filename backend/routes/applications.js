@@ -231,4 +231,171 @@ router.delete('/:id', protect, async (req, res, next) => {
     }
 });
 
+// @route   GET /api/applications/export/pdf
+// @desc    Export accepted applications to PDF (company owner or admin)
+// @access  Private
+router.get('/export/pdf', protect, async (req, res, next) => {
+    try {
+        const { lang = 'EN', search, internshipId, startDate, endDate } = req.query;
+
+        // Translation object (simplified based on ManageUsers.jsx)
+        const translations = {
+            EN: {
+                title: 'SupNum Connect - Accepted Candidates',
+                subtitle: 'Talent Acquisition Report',
+                generated: 'Generated',
+                filters: 'Filters',
+                summary: 'Recruitment Summary',
+                total: 'Total Placements',
+                details: 'Candidate Details',
+                name: 'Name',
+                email: 'Email',
+                phone: 'Phone',
+                job: 'Position',
+                date: 'Date Accepted',
+                confidential: 'Confidential HR Report'
+            },
+            FR: {
+                title: 'SupNum Connect - Candidats Acceptés',
+                subtitle: 'Rapport d\'Acquisition de Talents',
+                generated: 'Généré le',
+                filters: 'Filtres',
+                summary: 'Résumé de Recrutement',
+                total: 'Total Placements',
+                details: 'Détails des Candidats',
+                name: 'Nom',
+                email: 'E-mail',
+                phone: 'Téléphone',
+                job: 'Poste',
+                date: 'Date d\'Acceptation',
+                confidential: 'Rapport RH Confidentiel'
+            },
+            AR: {
+                title: 'SupNum Connect - المرشحون المقبولون',
+                subtitle: 'تقرير استقطاب المواهب',
+                generated: 'تم الإنشاء في',
+                filters: 'الفلاتر',
+                summary: 'ملخص التوظيف',
+                total: 'إجمالي التوظيف',
+                details: 'تفاصيل المرشحين',
+                name: 'الاسم',
+                email: 'البريد الإلكتروني',
+                phone: 'الهاتف',
+                job: 'المنصب',
+                date: 'تاريخ القبول',
+                confidential: 'تقرير موارد بشرية سري'
+            }
+        };
+
+        const t = translations[lang] || translations.EN;
+
+        // Build filter conditions
+        let where = { status: 'accepted' };
+
+        // Ownership check
+        if (req.user.role === 'company' || req.user.role === 'graduate') {
+            const myInternships = await Internship.findAll({
+                where: { createdById: req.user.id },
+                attributes: ['id']
+            });
+            const ownIds = myInternships.map(i => i.id);
+            where.internshipId = { [Op.in]: ownIds };
+        } else if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        // Apply filters
+        if (internshipId) where.internshipId = internshipId;
+        if (startDate && endDate) {
+            where.updatedAt = { [Op.between]: [new Date(startDate), new Date(endDate)] };
+        }
+        
+        const joinWhere = search ? {
+            [Op.or]: [
+                { name: { [Op.iLike]: `%${search}%` } },
+                { email: { [Op.iLike]: `%${search}%` } }
+            ]
+        } : {};
+
+        const applications = await Application.findAll({
+            where,
+            include: [
+                { model: User, as: 'user', where: joinWhere, attributes: ['name', 'email'] },
+                { model: Internship, as: 'internship', attributes: ['title'] }
+            ],
+            order: [['updatedAt', 'DESC']]
+        });
+
+        const PDFDocument = require('pdfkit');
+        // We use pdfkit-table if available for better tables, but since I'm using raw pdfkit in users.js, I'll stick to it for consistency.
+        const doc = new PDFDocument({
+            margin: 40,
+            size: 'A4',
+            bufferPages: true
+        });
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename=accepted_candidates_report.pdf');
+        doc.pipe(res);
+
+        // --- Header ---
+        doc.rect(0, 0, doc.page.width, 100).fill('#2563eb');
+        doc.fillColor('white').fontSize(22).font('Helvetica-Bold').text(t.title, 40, 30);
+        doc.fontSize(12).font('Helvetica').text(t.subtitle, 40, 56);
+        doc.fontSize(9).text(`${t.generated}: ${new Date().toLocaleDateString()}`, 40, 30, { align: 'right', width: doc.page.width - 80 });
+
+        // --- Summary ---
+        doc.fillColor('#000000').fontSize(16).font('Helvetica-Bold').text(t.summary, 40, 130);
+        doc.rect(40, 160, 150, 70).fill('#dbeafe');
+        doc.fillColor('#1e40af').fontSize(10).font('Helvetica').text(t.total, 50, 175);
+        doc.fontSize(28).font('Helvetica-Bold').text(String(applications.length), 50, 195);
+
+        // --- Detailed List ---
+        doc.fillColor('#000000').fontSize(14).font('Helvetica-Bold').text(t.details, 40, 260);
+        
+        let currentY = 290;
+        const colWidths = [120, 130, 80, 120, 80];
+        const headers = [t.name, t.email, t.phone, t.job, t.date];
+
+        // Draw Table Header
+        doc.rect(40, currentY, 515, 25).fill('#1e40af');
+        let x = 45;
+        doc.fillColor('white').fontSize(9).font('Helvetica-Bold');
+        headers.forEach((h, i) => {
+            doc.text(h, x, currentY + 8, { width: colWidths[i] - 10 });
+            x += colWidths[i];
+        });
+
+        currentY += 25;
+
+        // Draw Rows
+        applications.forEach((app, i) => {
+            if (currentY > doc.page.height - 100) {
+                doc.addPage();
+                currentY = 40;
+            }
+
+            if (i % 2 === 1) doc.rect(40, currentY, 515, 20).fill('#f8fafc');
+            
+            doc.fillColor('#334155').fontSize(8).font('Helvetica');
+            let rx = 45;
+            doc.text(app.user?.name || '', rx, currentY + 6, { width: colWidths[0] - 10, truncate: true });
+            rx += colWidths[0];
+            doc.text(app.email || app.user?.email || '', rx, currentY + 6, { width: colWidths[1] - 10, truncate: true });
+            rx += colWidths[1];
+            doc.text(app.phone || 'N/A', rx, currentY + 6, { width: colWidths[2] - 10 });
+            rx += colWidths[2];
+            doc.text(app.internship?.title || '', rx, currentY + 6, { width: colWidths[3] - 10, truncate: true });
+            rx += colWidths[3];
+            doc.text(new Date(app.updatedAt).toLocaleDateString(), rx, currentY + 6, { width: colWidths[4] - 10 });
+
+            currentY += 20;
+        });
+
+        doc.end();
+    } catch (error) {
+        next(error);
+    }
+});
+
 module.exports = router;
