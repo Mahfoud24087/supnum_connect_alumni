@@ -96,6 +96,7 @@ export function DashboardLayout() {
         { name: t.admin.nav.applications, path: '/admin/applications', icon: Briefcase },
         { name: t.footer.internships, path: '/admin/internships', icon: Briefcase },
         { name: t.footer.companies, path: '/admin/companies', icon: Building },
+        { name: t.support?.adminTitle || 'Support', path: '/admin/support', icon: MessageSquare },
         { name: t.dashboard.nav.messages, path: '/admin/messages', icon: MessageSquare },
     ];
 

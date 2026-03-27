@@ -605,6 +605,28 @@ export const translations = {
                 title: 'Artificial Intelligence',
                 description: 'Master AI and machine learning techniques to design intelligent solutions capable of analyzing, predicting, and automating processes across various sectors.'
             }
+        },
+        support: {
+            title: 'Report a Problem',
+            subtitle: 'Facing an issue? Let us know and we\'ll help you.',
+            formTitle: 'Submit a Problem Report',
+            name: 'Your Name',
+            email: 'Your Email',
+            subject: 'Subject',
+            message: 'Message',
+            send: 'Send Message',
+            success: 'Thank you! Your message has been sent to the admin.',
+            error: 'Failed to send message. Please try again.',
+            loading: 'Sending...',
+            adminTitle: 'Support Messages',
+            noMessages: 'No support messages received yet.',
+            status: 'Status',
+            date: 'Date',
+            from: 'From',
+            resolve: 'Resolve',
+            resolved: 'Resolved',
+            pending: 'Pending',
+            inProgress: 'In Progress'
         }
     },
     FR: {
@@ -1213,6 +1235,28 @@ export const translations = {
                 title: 'Intelligence Artificielle',
                 description: 'Maîtrisez les techniques d’IA et de machine learning pour concevoir des solutions intelligentes capables d’analyser, prédire et automatiser des processus dans divers secteurs.'
             }
+        },
+        support: {
+            title: 'Signaler un problème',
+            subtitle: 'Vous rencontrez un problème ? Faites-le nous savoir.',
+            formTitle: 'Soumettre un rapport de problème',
+            name: 'Votre nom',
+            email: 'Votre email',
+            subject: 'Sujet',
+            message: 'Message',
+            send: 'Envoyer le message',
+            success: 'Merci ! Votre message a été envoyé à l\'administrateur.',
+            error: 'Échec de l\'envoi du message. Veuillez réessayer.',
+            loading: 'Envoi en cours...',
+            adminTitle: 'Messages de support',
+            noMessages: 'Aucun message de support reçu pour le moment.',
+            status: 'Statut',
+            date: 'Date',
+            from: 'De',
+            resolve: 'Résoudre',
+            resolved: 'Résolu',
+            pending: 'En attente',
+            inProgress: 'En cours'
         }
     },
     AR: {
@@ -1821,6 +1865,28 @@ export const translations = {
                 title: 'الذكاء الاصطناعي',
                 description: 'أتقن تقنيات الذكاء الاصطناعي والتعلم الآلي لتصميم حلول ذكية قادرة على تحليل وتوقع وأتمتة العمليات في مختلف القطاعات.'
             }
+        },
+        support: {
+            title: 'الإبلاغ عن مشكلة',
+            subtitle: 'هل تواجه مشكلة؟ أخبرنا وسنساعدك.',
+            formTitle: 'تقديم بلاغ عن مشكلة',
+            name: 'اسمك',
+            email: 'بريدك الإلكتروني',
+            subject: 'الموضوع',
+            message: 'الرسالة',
+            send: 'إرسال الرسالة',
+            success: 'شكراً لك! تم إرسال رسالتك إلى المسؤول.',
+            error: 'فشل إرسال الرسالة. يرجى المحاولة مرة أخرى.',
+            loading: 'جاري الإرسال...',
+            adminTitle: 'رسائل الدعم',
+            noMessages: 'لا توجد رسائل دعم مستلمة بعد.',
+            status: 'الحالة',
+            date: 'التاريخ',
+            from: 'من',
+            resolve: 'حل',
+            resolved: 'تم الحل',
+            pending: 'قيد الانتظار',
+            inProgress: 'قيد المعالجة'
         }
     }
 };

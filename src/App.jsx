@@ -32,6 +32,7 @@ import { ManageUsers } from './pages/admin/ManageUsers';
 import { ManageInternships } from './pages/admin/ManageInternships';
 import { ManageCompanies } from './pages/admin/ManageCompanies';
 import { ManageApplications } from './pages/admin/ManageApplications';
+import { ManageSupportMessages } from './pages/admin/ManageSupportMessages';
 
 // Company Pages
 import CompanyOverview from './pages/company/CompanyOverview';
@@ -138,6 +139,7 @@ function App() {
                   <Route path="internships" element={<ManageInternships />} />
                   <Route path="companies" element={<ManageCompanies />} />
                   <Route path="applications" element={<ManageApplications />} />
+                  <Route path="support" element={<ManageSupportMessages />} />
                   <Route path="messages" element={<Messages />} />
                   <Route path="profile/:id" element={<UserProfile />} />
                 </Route>

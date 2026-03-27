@@ -11,6 +11,7 @@ import { useAuth } from '../context/AuthContext';
 import { useState, useEffect, useRef } from 'react';
 import { apiClient } from '../services/api';
 import { EventModal } from '../components/EventModal';
+import { SupportSection } from '../components/SupportSection';
 
 // Data for "Students by Entry Year" (Bar Chart)
 const entryYearData = [
@@ -760,6 +761,8 @@ export function LandingPage() {
                     </div>
                 </div>
             </section>
+
+            <SupportSection />
 
             <EventModal event={selectedEvent} isOpen={!!selectedEvent} onClose={() => setSelectedEvent(null)} />
         </div>

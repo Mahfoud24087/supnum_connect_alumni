@@ -10,9 +10,12 @@ const Post = require('./Post');
 const Comment = require('./Comment');
 const SkillEndorsement = require('./SkillEndorsement');
 const PushSubscription = require('./PushSubscription');
+const SupportMessage = require('./SupportMessage');
 const { sequelize } = require('../config/database');
 
 // Define associations
+SupportMessage.belongsTo(User, { as: 'user', foreignKey: 'userId' });
+User.hasMany(SupportMessage, { foreignKey: 'userId', onDelete: 'SET NULL' });
 Event.belongsTo(User, { as: 'createdBy', foreignKey: 'createdById' });
 User.hasMany(Event, { foreignKey: 'createdById', onDelete: 'CASCADE' });
 
@@ -75,5 +78,6 @@ module.exports = {
     Comment,
     SkillEndorsement,
     PushSubscription,
+    SupportMessage,
     sequelize
 };
